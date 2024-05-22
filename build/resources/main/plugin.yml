@@ -1,0 +1,22 @@
+name: SkysongSpecialItems
+version: '1.1'
+authors: [Ghiojo]
+main: org.skysongdev.skysongspecialitems.SkysongSpecialItems
+api-version: '1.20'
+commands:
+  skysongitems:
+    description: Description
+    usage: "/si (subcommand)"
+    aliases: [ si ]
+    permission: skysongspecialitems.si
+    permission-message: "You do not have permission to use this command!"
+permissions:
+  skysongspecialitems.si:
+    description: "Allows you to do /si"
+    default: op
+  skysongspecialitems.cit:
+    description: "Allows you to do all the item manipulation commands"
+    default: op
+  skysongspecialitems.dm:
+    description: "Allows to bypass needs dm tag for items"
+    default: op
