@@ -22,6 +22,8 @@ public class SkysongItems implements CommandExecutor {
     SetDMOnly dmOnly;
     UnbindBook unbindBook;
 
+    DBReload dbReload;
+
     public SkysongSpecialItems getPlugin() {
         return plugin;
     }
@@ -38,6 +40,7 @@ public class SkysongItems implements CommandExecutor {
         dmOnly = new SetDMOnly();
         setRightClickBook = new SetRightClickBook();
         unbindBook = new UnbindBook();
+        dbReload = new DBReload(plugin);
     }
 
     public ViewExtendedLore getViewExtendedLore() {

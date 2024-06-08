@@ -26,6 +26,20 @@ public final class SkysongSpecialItems extends JavaPlugin {
 
         saveDefaultConfig();
 
+        InitializeDatabase();
+
+        super.onEnable();
+        plugin = this;
+        getCommand("skysongitems").setExecutor(new SkysongItems(this));
+        getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
+        getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
+    }
+
+    public static SkysongSpecialItems getPlugin(){
+        return plugin;
+    }
+
+    public void InitializeDatabase(){
         try{
             this.database = new Database(
                     getConfig().getString("database.host"),
@@ -38,15 +52,5 @@ public final class SkysongSpecialItems extends JavaPlugin {
             Bukkit.getLogger().warning("[SkysongItems] Unable to connect to database and create tables!");
             e.printStackTrace();
         }
-
-        super.onEnable();
-        plugin = this;
-        getCommand("skysongitems").setExecutor(new SkysongItems(this));
-        getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
-        getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
-    }
-
-    public static SkysongSpecialItems getPlugin(){
-        return plugin;
     }
 }
