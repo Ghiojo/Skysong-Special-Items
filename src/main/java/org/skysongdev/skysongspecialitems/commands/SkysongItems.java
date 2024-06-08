@@ -121,6 +121,12 @@ public class SkysongItems implements CommandExecutor {
                 else
                     commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
                 break;
+            case "dbreload":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    dbReload.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                break;
             default:
                 commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Please introduce valid arguments!");
                 return true;
