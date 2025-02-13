@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'org.skysongdev'
-version = '1.2'
+version = '1.4'
 
 repositories {
     mavenCentral()
@@ -12,16 +12,20 @@ repositories {
         url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
     }
     maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT"
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion

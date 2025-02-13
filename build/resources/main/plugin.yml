@@ -1,7 +1,7 @@
-name: SkysongSpecialItems
-version: '1.1'
+name: Skysong_Items
+version: '1.3'
 authors: [Ghiojo]
-main: org.skysongdev.skysongspecialitems.SkysongSpecialItems
+main: org.skysongdev.skysongitems.SkysongItems
 api-version: '1.20'
 commands:
   skysongitems:
@@ -9,6 +9,41 @@ commands:
     usage: "/si (subcommand)"
     aliases: [ si ]
     permission: skysongspecialitems.si
+    permission-message: "You do not have permission to use this command!"
+  getlore:
+    description: Description.
+    usage: /getlore
+    permission: skysongitems.getlore
+    permission-message: "You do not have permission to use this command!"
+  physdesc:
+    description: "add or set a the Physical description of an item (first paragraph)"
+    usage: "/physdesc add [LORE]
+/physdesc set [LORE]
+/physdesc del
+/physdesc dl [Line to Delete]
+"
+    aliases: [ pd ]
+    permission: skysongitems.pd
+    permission-message: "You do not have permission to use this command!"
+  funcdesc:
+    description: "add or set a the Functional description of an item (second paragraph)"
+    usage: "/funcdesc add [LORE]
+/funcdesc set [LORE]
+/funcdesc del
+/funcdesc dl [Line to Delete]
+"
+    aliases: [ fd ]
+    permission: skysongitems.fd
+    permission-message: "You do not have permission to use this command!"
+  skilldesc:
+    description: "add or set a the Skill description of an item (third paragraph)"
+    usage: "/skilldesc add [LORE]
+/skilldesc set [LORE]
+/skilldesc del
+/skilldesc dl [Line to Delete]
+"
+    aliases: [ sd ]
+    permission: skysongitems.sd
     permission-message: "You do not have permission to use this command!"
 permissions:
   skysongspecialitems.si:
@@ -20,3 +55,23 @@ permissions:
   skysongspecialitems.dm:
     description: "Allows to bypass needs dm tag for items"
     default: op
+  skysongitems.getlore:
+    description: Allows you to perform the getlore command
+    default: op
+  skysongitems.pd:
+    description: Allows you to edit the physical description of an item.
+    default: op
+  skysongitems.fd:
+    description: Allows you to edit the functional description of an item.
+    default: op
+  skysongitems.sd:
+    description: Allows you to edit the skill description of an item.
+    default: op
+  skysongitems.*:
+    description: Wildcard permission
+    default: op
+    children:
+      skysongitems.getlore: true
+      skysongitems.pd: true
+      skysongitems.fd: true
+      skysongitems.sd: true
