@@ -33,7 +33,7 @@ public class PrintableProperty extends Property {
         while(matcher.find()){
             int index = Integer.parseInt(matcher.group().substring(1)) - 1;
             if (index >= 0 && index < valuetags.size()) {
-                PersistentDataType type = getPlugin().getUtils().tagList.get(new NamespacedKey(getPlugin(), valuetags.get(index)));
+                PersistentDataType<?,?> type = getPlugin().getUtils().tagList.get(new NamespacedKey(getPlugin(), valuetags.get(index)));
                 if(item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(getPlugin(), valuetags.get(index)), type)) {
                     String value = item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(getPlugin(), valuetags.get(index)), type).toString();
                     matcher.appendReplacement(result, value);
@@ -53,7 +53,7 @@ public class PrintableProperty extends Property {
     }
 
     @Override
-    public String getPropType(){
+    public String getType(){
         return "printable";
     }
 }

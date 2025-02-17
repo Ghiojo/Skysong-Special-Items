@@ -10,12 +10,9 @@ import org.skysongdev.skysongitems.database.BookDescriptions;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ListBooks implements CommandExecutor {
-    SkysongItems plugin;
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-    public ListBooks(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
+public class ListBooks implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -32,7 +29,7 @@ public class ListBooks implements CommandExecutor {
         }
 
         try {
-            books = plugin.getDatabase().listAllBooks();
+            books = getPlugin().getDatabase().listAllBooks();
             if(books.isEmpty()){
                 commandSender.sendMessage(ChatColor.of("RED") + "There are no books on the database!");
                 return true;

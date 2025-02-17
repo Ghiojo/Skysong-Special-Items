@@ -23,6 +23,7 @@ public class SetSkill implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
@@ -35,7 +36,6 @@ public class SetSkill implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please type in lore for the item!"));
             return true;
         }
-        getPlugin().getUpdater().UpdateLore(player);
 
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();

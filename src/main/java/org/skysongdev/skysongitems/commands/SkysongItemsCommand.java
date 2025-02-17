@@ -4,15 +4,27 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.commands.books.*;
 import org.skysongdev.skysongitems.commands.charges.*;
+import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.lore.Updater;
+import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
+import org.skysongdev.skysongitems.commands.misc.UpdateItem;
+import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
+import org.skysongdev.skysongitems.commands.tags.TagCommand;
+import org.skysongdev.skysongitems.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-public class SkysongItemsCommand implements CommandExecutor {
-    private final org.skysongdev.skysongitems.SkysongItems plugin;
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
+public class SkysongItemsCommand implements TabExecutor {
     DisableFunc disableFunc = new DisableFunc();
     SaveBook saveBook;
     public OpenBook openBook;
@@ -24,37 +36,32 @@ public class SkysongItemsCommand implements CommandExecutor {
     SetRightClickBook setRightClickBook;
     SetDMOnly dmOnly;
     UnbindBook unbindBook;
-    SetCharges setCharges;
-    SetMaxCharges setMaxCharges;
-    public AddCharges addCharges;
-    ReduceCharges reduceCharges;
-    RemoveCharges removeCharges;
     DBReload dbReload;
-    SetAddable setAddable;
+    TagCommand tagCommand;
+    PropertiesCommand propertiesCommand;
+    UpdateItem updateItem;
+    ReloadCommand reloadCommand;
+    RenameCommand renameCommand;
+    ChargesCommand chargesCommand;
 
-    public org.skysongdev.skysongitems.SkysongItems getPlugin() {
-        return plugin;
-    }
-
-    public SkysongItemsCommand(org.skysongdev.skysongitems.SkysongItems plugin) {
-        this.plugin = plugin;
-        saveBook = new SaveBook(plugin);
-        openBook = new OpenBook(plugin);
-        setBookContent = new SetBookContent(plugin);
-        deleteBook = new DeleteBook(plugin);
-        listBooks = new ListBooks(plugin);
-        bindBook = new BindBook(plugin);
+    public SkysongItemsCommand() {
+        saveBook = new SaveBook();
+        openBook = new OpenBook();
+        setBookContent = new SetBookContent();
+        deleteBook = new DeleteBook();
+        listBooks = new ListBooks();
+        bindBook = new BindBook();
         viewExtendedLore = new ViewExtendedLore(this);
         dmOnly = new SetDMOnly();
         setRightClickBook = new SetRightClickBook();
         unbindBook = new UnbindBook();
-        dbReload = new DBReload(plugin);
-        addCharges = new AddCharges(plugin);
-        reduceCharges = new ReduceCharges(this);
-        setCharges = new SetCharges(plugin);
-        setMaxCharges = new SetMaxCharges(plugin);
-        setAddable = new SetAddable(plugin);
-        removeCharges = new RemoveCharges(plugin);
+        dbReload = new DBReload();
+        tagCommand = new TagCommand();
+        propertiesCommand = new PropertiesCommand();
+        updateItem = new UpdateItem();
+        reloadCommand = new ReloadCommand();
+        renameCommand = new RenameCommand();
+        chargesCommand = new ChargesCommand();
     }
 
     public ViewExtendedLore getViewExtendedLore() {
@@ -76,37 +83,37 @@ public class SkysongItemsCommand implements CommandExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     disableFunc.onCommand(commandSender, command, s, strings);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "openbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     openBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "savebook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     saveBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     setBookContent.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "delbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     deleteBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "bindbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     bindBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "viewdesc":
                 viewExtendedLore.onCommand(commandSender, command, s, newArgs);
@@ -115,72 +122,130 @@ public class SkysongItemsCommand implements CommandExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     listBooks.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setdm":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     dmOnly.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setrc":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     setRightClickBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "unbind":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     unbindBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "dbreload":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     dbReload.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
-                break;
-            case "setcharges":
-                if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    setCharges.onCommand(commandSender, command, s, newArgs);
-                else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
-                break;
-            case "setmaxcharges":
-                if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    setMaxCharges.onCommand(commandSender, command, s, newArgs);
-                else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
-                break;
-            case "addcharges":
-                addCharges.onCommand(commandSender, command, s, newArgs);
-                break;
-            case "reducecharges":
-                reduceCharges.onCommand(commandSender, command, s, newArgs);
-                break;
-            case "chargerm":
-                if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    removeCharges.onCommand(commandSender, command, s, newArgs);
-                else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "updatelore":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    plugin.getUpdater().UpdateLore((Player) commandSender);
+                    getPlugin().getUpdater().UpdateLore((Player) commandSender);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
-            case "setaddable":
+            case "tag":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    setAddable.onCommand(commandSender, command, s, newArgs);
+                    tagCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to do that command!");
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
+            case "prop":
+            case "property":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    propertiesCommand.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
+            case "update":
+                updateItem.onCommand(commandSender, command, s, newArgs);
+                break;
+            case "reload":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    reloadCommand.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
+            case "rename":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    renameCommand.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
+            case "charges":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    chargesCommand.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             default:
-                commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Please introduce valid arguments!");
+                commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Please introduce valid arguments!"));
                 return true;
         }
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        ArrayList<String> subcommands = new ArrayList<>();
+
+        if(strings.length <= 1) {
+            if (commandSender.hasPermission("skysongspecialitems.cit")) {
+                subcommands.add("disable");
+                subcommands.add("openbook");
+                subcommands.add("savebook");
+                subcommands.add("setbook");
+                subcommands.add("delbook");
+                subcommands.add("bindbook");
+                subcommands.add("viewdesc");
+                subcommands.add("listbooks");
+                subcommands.add("setdm");
+                subcommands.add("setrc");
+                subcommands.add("unbind");
+                subcommands.add("dbreload");
+                subcommands.add("updatelore");
+                subcommands.add("tag");
+                subcommands.add("prop");
+                subcommands.add("property");
+                subcommands.add("update");
+                subcommands.add("reload");
+                subcommands.add("rename");
+                subcommands.add("charges");
+            } else {
+                subcommands.add("viewdesc");
+                subcommands.add("update");
+                subcommands.add("rename");
+                subcommands.add("charges");
+            }
+            return subcommands.stream().filter(a -> a.startsWith(strings[0])).toList();
+        }
+        if(strings.length > 1){
+            String[] subArgs = Arrays.copyOfRange(strings, 1, strings.length);
+            switch(strings[0].toLowerCase()) {
+                case "tag":
+                    return tagCommand.onTabComplete(commandSender, command, s, subArgs);
+                case "prop":
+                case "property":
+                    return propertiesCommand.onTabComplete(commandSender, command, s, subArgs);
+                case "rename":
+                    return renameCommand.onTabComplete(commandSender, command, s, subArgs);
+                case "charges":
+                    return chargesCommand.onTabComplete(commandSender, command, s, subArgs);
+                default:
+                    return Arrays.asList("").stream().toList();
+            }
+        }
+
+        return null;
     }
 }

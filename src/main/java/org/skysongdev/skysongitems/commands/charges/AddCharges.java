@@ -18,11 +18,6 @@ import org.skysongdev.skysongitems.utils.Utils;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class AddCharges implements CommandExecutor {
-    private final SkysongItems plugin;
-
-    public AddCharges(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if(strings.length < 1){
@@ -30,6 +25,7 @@ public class AddCharges implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         int num;
         if(item == null || item.getType() == Material.AIR){

@@ -14,13 +14,11 @@ import org.skysongdev.skysongitems.SkysongItems;
 
 import java.sql.SQLException;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class BindBook implements CommandExecutor {
-    SkysongItems plugin;
     public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
 
-    public BindBook(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -45,7 +43,7 @@ public class BindBook implements CommandExecutor {
         }
 
         try {
-            if(plugin.getDatabase().findBookByID(id) == null){
+            if(getPlugin().getDatabase().findBookByID(id) == null){
                 commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
                 return true;
             }

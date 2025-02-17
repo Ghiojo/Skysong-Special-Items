@@ -1,6 +1,7 @@
 package org.skysongdev.skysongitems.listeners;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,6 +15,7 @@ import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -29,14 +31,71 @@ public class UpdateItemListener implements Listener {
     public void onItemUpdate(ItemEditEvent event){
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
         ItemMeta meta = item.getItemMeta();
-        List<Component> lore;
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
         plugin.getUpdater().UpdateLore(event.getPlayer());
 
-        if(meta.getPersistentDataContainer().has(Utils.maxchargesKey)){
-            item = event.getPlayer().getInventory().getItemInMainHand();
-            item.setItemMeta(meta);
-            lore = meta.lore();
+        item = event.getPlayer().getInventory().getItemInMainHand();
+        item.setItemMeta(meta);
+
+        if(container.has(Utils.propertiesKey)){
             lore.add(getPlugin().getMiniMessage().deserialize(""));
+
+            //Update Printable Properties
+
+            String[] currentProperties = container.get(Utils.propertiesKey, PersistentDataType.STRING).split(";");
+            StringBuilder returnMessage = new StringBuilder();
+            ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
+            for(String property : currentProperties){
+                Property bufferProp = Utils.getProperty(property);
+                if(!(bufferProp instanceof PrintableProperty prop)){
+                    continue;
+                }
+                if(organizedProperties.isEmpty())
+                    organizedProperties.add(prop);
+                else{
+                    boolean added = false;
+                    for(int i = 0; i < organizedProperties.size(); i++){
+                        if(organizedProperties.get(i).getWeight() < prop.getWeight()){
+                            organizedProperties.add(i, prop);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if(!added){
+                        organizedProperties.add(prop);
+                    }
+                }
+            }
+            for (PrintableProperty property : organizedProperties) {
+                returnMessage.append(property.getParsedPrinting(item));
+                lore.add(getPlugin().getMiniMessage().deserialize(returnMessage.toString()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+                returnMessage.replace(0, returnMessage.length(), "");
+            }
+
+            //Update Rename Properties
+            for(String property : currentProperties){
+                Property bufferProp = Utils.getProperty(property);
+                if(!(bufferProp instanceof RenameProperty)){
+                    continue;
+                }
+                RenameProperty prop = (RenameProperty) bufferProp;
+
+                if(item.getItemMeta().displayName() != null) {
+                    String newName = meta.getPersistentDataContainer().get(Utils.nameKey, PersistentDataType.STRING);
+                    newName = TextParser.translateHexColorCodes("&#", "", newName);
+                    newName = TextParser.translateColorCodes(newName);
+                    meta.displayName(getPlugin().getMiniMessage().deserialize(prop.getTag() + " " + newName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+                }
+            }
+
+            meta.lore(lore);
+        }
+        item.setItemMeta(meta);
+        event.getPlayer().updateInventory();
+
+        //if(meta.getPersistentDataContainer().has(Utils.maxchargesKey)){
+
 
             /*String chargesText = "<#9C7D2C>[<#E1BD32>Charges: ";
             if(meta.getPersistentDataContainer().get(Utils.chargesKey, PersistentDataType.INTEGER) == 0){
@@ -47,54 +106,8 @@ public class UpdateItemListener implements Listener {
             chargesText = chargesText + "<#E1BD32>/" + meta.getPersistentDataContainer().get(Utils.maxchargesKey, PersistentDataType.INTEGER) + "<#9C7D2C>]";
             lore.add(chargesText);*/
 
-            if(meta.getPersistentDataContainer().has(Utils.propertiesKey)){
-                //Update Printable Properties
-                String[] currentProperties = meta.getPersistentDataContainer().get(Utils.propertiesKey, PersistentDataType.STRING).split(";");
-                StringBuilder returnMessage = new StringBuilder();
-                ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
-                for(String property : currentProperties){
-                    Property bufferProp = Utils.getProperty(property);
-                    if(!(bufferProp instanceof PrintableProperty)){
-                        continue;
-                    }
-                    PrintableProperty prop = (PrintableProperty) bufferProp;
-                    if(organizedProperties.isEmpty())
-                        organizedProperties.add(prop);
-                    else{
-                        boolean added = false;
-                        for(int i = 0; i < organizedProperties.size(); i++){
-                            if(organizedProperties.get(i).getWeight() < prop.getWeight()){
-                                organizedProperties.add(i, prop);
-                                added = true;
-                                break;
-                            }
-                        }
-                        if(!added){
-                            organizedProperties.add(prop);
-                        }
-                    }
-                }
-                for (PrintableProperty property : organizedProperties) {
-                    returnMessage.append(property.getParsedPrinting(item));
-                    lore.add(getPlugin().getMiniMessage().deserialize(returnMessage.toString()));
-                    returnMessage.replace(0, returnMessage.length(), "");
-                }
 
-                //Update Rename Properties
-                for(String property : currentProperties){
-                    Property bufferProp = Utils.getProperty(property);
-                    if(!(bufferProp instanceof RenameProperty)){
-                        continue;
-                    }
-                    RenameProperty prop = (RenameProperty) bufferProp;
-
-                    if(item.getItemMeta().displayName() != null)
-                        meta.itemName(getPlugin().getMiniMessage().deserialize(prop.getTag()).append(meta.displayName()));
-                }
-            }
-            meta.lore(lore);
-            item.setItemMeta(meta);
-        }
+        //}
     }
 
 }

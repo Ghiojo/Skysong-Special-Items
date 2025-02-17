@@ -22,8 +22,15 @@ public final class SkysongItems extends JavaPlugin {
     private static SkysongItems plugin;
     private Database database;
     private Updater updater;
-    private Utils utils = new Utils();
+    private Utils utils;
     private MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    public static SkysongItems getPlugin(){
+        if(plugin == null){
+            plugin = new SkysongItems();
+        }
+        return plugin;
+    }
 
     public MiniMessage getMiniMessage() {
         return miniMessage;
@@ -49,13 +56,14 @@ public final class SkysongItems extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        plugin = this;
+        utils = new Utils();
         saveDefaultConfig();
 
         InitializeDatabase();
 
         super.onEnable();
-        plugin = this;
-        mainCommand = new SkysongItemsCommand(this);
+        mainCommand = new SkysongItemsCommand();
         updater = new Updater();
         getCommand("skysongitems").setExecutor(mainCommand);
         getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
@@ -66,11 +74,12 @@ public final class SkysongItems extends JavaPlugin {
         getCommand("skilldesc").setExecutor(new SkillDesc());
 
         getServer().getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
+
+        utils.setupTags();
+        utils.setupProperties();
+
     }
 
-    public static SkysongItems getPlugin(){
-        return plugin;
-    }
 
     public void InitializeDatabase(){
         try{

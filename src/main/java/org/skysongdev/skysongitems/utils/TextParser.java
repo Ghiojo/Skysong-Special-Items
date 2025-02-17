@@ -1,6 +1,7 @@
 package org.skysongdev.skysongitems.utils;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.skysongdev.skysongitems.SkysongItems;
@@ -121,7 +122,7 @@ public class TextParser {
                 for (String s : buffer) {
                     colorBuffer = translateColorCodes(s);
                     colorBuffer = translateHexColorCodes("&#", "", colorBuffer);
-                    translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer));
+                    translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
                 }
                 translatedLore.add(getPlugin().getMiniMessage().deserialize(""));
             }
@@ -142,7 +143,7 @@ public class TextParser {
             for (String s : buffer) {
                 colorBuffer = translateColorCodes(s);
                 colorBuffer = translateHexColorCodes("&#", "", colorBuffer);
-                translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer));
+                translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
             }
             translatedLore.add(getPlugin().getMiniMessage().deserialize(""));
         }
@@ -199,6 +200,9 @@ public class TextParser {
         String buffer = test.get(test.size()-1);
         String colorBuffer = null;
         final Pattern clearPattern = Pattern.compile("&-");
+
+        if(inputLore.length > 0)
+            inputLore[0] = "&-" + inputLore[0];
 
         List<String> newInput = new ArrayList<String>();
         boolean isBufferFull = false;

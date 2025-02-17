@@ -18,11 +18,6 @@ import org.skysongdev.skysongitems.utils.Utils;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class SetCharges implements CommandExecutor {
-    private final SkysongItems plugin;
-
-    public SetCharges(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if(strings.length < 1){
@@ -30,6 +25,7 @@ public class SetCharges implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         int num;
         if(item == null || item.getType() == Material.AIR){
@@ -48,8 +44,16 @@ public class SetCharges implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(!container.has(Utils.maxchargesKey))
+        if(!container.has(Utils.maxchargesKey)) {
             container.set(Utils.maxchargesKey, PersistentDataType.INTEGER, num);
+            if(container.has(Utils.propertiesKey)){
+                String properties = container.get(Utils.propertiesKey, PersistentDataType.STRING);
+                if(!properties.contains("charges"))
+                    container.set(Utils.propertiesKey, PersistentDataType.STRING, properties + ";charges");
+            }
+            else
+                container.set(Utils.propertiesKey, PersistentDataType.STRING, "charges");
+        }
         if(num > container.get(Utils.maxchargesKey, PersistentDataType.INTEGER))
             num = container.get(Utils.maxchargesKey, PersistentDataType.INTEGER);
         container.set(Utils.chargesKey, PersistentDataType.INTEGER, num);

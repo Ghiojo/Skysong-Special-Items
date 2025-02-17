@@ -6,9 +6,9 @@ import org.bukkit.command.CommandSender;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 
 public class ReduceCharges implements CommandExecutor {
-    SkysongItemsCommand parent;
+    ChargesCommand parent;
 
-    public ReduceCharges(SkysongItemsCommand parent) {
+    public ReduceCharges(ChargesCommand parent) {
         this.parent = parent;
     }
 

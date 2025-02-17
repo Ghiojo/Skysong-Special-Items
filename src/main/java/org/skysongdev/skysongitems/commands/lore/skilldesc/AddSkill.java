@@ -23,6 +23,7 @@ public class AddSkill implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
@@ -36,7 +37,6 @@ public class AddSkill implements CommandExecutor {
             return true;
         }
 
-        getPlugin().getUpdater().UpdateLore(player);
         switch(strings[0]){
             case "-n":
                 buffer = item.getItemMeta();

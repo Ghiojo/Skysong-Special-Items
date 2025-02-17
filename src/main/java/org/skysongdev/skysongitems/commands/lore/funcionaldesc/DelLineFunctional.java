@@ -25,6 +25,7 @@ public class DelLineFunctional implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
@@ -40,8 +41,6 @@ public class DelLineFunctional implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Please hold the item you wish to lore!"));
             return true;
         }
-
-        getPlugin().getUpdater().UpdateLore(player);
 
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();

@@ -12,7 +12,7 @@ public class RenameProperty extends Property {
     }
 
     @Override
-    public String getPropType(){
+    public String getType(){
         return "rename";
     }
 }

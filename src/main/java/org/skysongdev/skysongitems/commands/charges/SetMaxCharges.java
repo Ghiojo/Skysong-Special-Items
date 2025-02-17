@@ -18,11 +18,6 @@ import org.skysongdev.skysongitems.utils.Utils;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class SetMaxCharges implements CommandExecutor {
-    private final SkysongItems plugin;
-
-    public SetMaxCharges(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -31,6 +26,7 @@ public class SetMaxCharges implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         int num;
         if(item == null || item.getType() == Material.AIR){
@@ -49,8 +45,16 @@ public class SetMaxCharges implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(!container.has(Utils.chargesKey))
+        if(!container.has(Utils.chargesKey)) {
             container.set(Utils.chargesKey, PersistentDataType.INTEGER, num);
+            if(container.has(Utils.propertiesKey)){
+                String properties = container.get(Utils.propertiesKey, PersistentDataType.STRING);
+                if(!properties.contains("charges"))
+                    container.set(Utils.propertiesKey, PersistentDataType.STRING, properties + ";charges");
+            }
+            else
+                container.set(Utils.propertiesKey, PersistentDataType.STRING, "charges");
+        }
         container.set(Utils.maxchargesKey, PersistentDataType.INTEGER, num);
 
         item.setItemMeta(buffer);

@@ -9,6 +9,8 @@ import org.skysongdev.skysongitems.events.ItemEditEvent;
 
 import java.util.Arrays;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class PhysicalDesc implements CommandExecutor {
     AddPhysical addPhys = new AddPhysical();
     SetPhysical setPhys = new SetPhysical();
@@ -21,14 +23,16 @@ public class PhysicalDesc implements CommandExecutor {
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         switch (strings[0].toLowerCase()) {
             case "add":
-                if(strings.length > 1)
+                if(strings.length > 1) {
                     addPhys.onCommand(commandSender, command, s, newArgs);
+                }
                 else
                     return false;
                 break;
             case "set":
-                if(strings.length > 1)
+                if(strings.length > 1) {
                     setPhys.onCommand(commandSender, command, s, newArgs);
+                }
                 else
                     return false;
                 break;

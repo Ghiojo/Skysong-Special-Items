@@ -24,7 +24,7 @@ public class Property {
     public String getId() {
         return id;
     }
-    public String getType() {
+    public String getPropType() {
         return type;
     }
     public ItemStack getItem() {
@@ -37,7 +37,7 @@ public class Property {
         return description;
     }
 
-    public String getPropType(){
+    public String getType(){
         return "base";
     }
 }

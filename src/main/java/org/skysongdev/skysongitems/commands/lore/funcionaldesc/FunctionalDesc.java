@@ -9,6 +9,8 @@ import org.skysongdev.skysongitems.events.ItemEditEvent;
 
 import java.util.Arrays;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class FunctionalDesc implements CommandExecutor {
     AddFunctional addFunc = new AddFunctional();
     SetFunctional setFunc = new SetFunctional();

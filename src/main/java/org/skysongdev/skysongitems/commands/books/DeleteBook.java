@@ -8,12 +8,9 @@ import org.skysongdev.skysongitems.SkysongItems;
 
 import java.sql.SQLException;
 
-public class DeleteBook implements CommandExecutor {
-    SkysongItems plugin;
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-    public DeleteBook(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
+public class DeleteBook implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -30,7 +27,7 @@ public class DeleteBook implements CommandExecutor {
         }
 
         try {
-            plugin.getDatabase().deleteBookDescription(id);
+            getPlugin().getDatabase().deleteBookDescription(id);
         }catch (SQLException e){
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Cannot find book with this id");
             e.printStackTrace();

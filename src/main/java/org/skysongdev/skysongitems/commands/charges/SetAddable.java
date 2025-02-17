@@ -16,11 +16,6 @@ import org.skysongdev.skysongitems.utils.Utils;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class SetAddable implements CommandExecutor {
-    private final SkysongItems plugin;
-
-    public SetAddable(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;

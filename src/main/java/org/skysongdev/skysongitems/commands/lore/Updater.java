@@ -16,6 +16,7 @@ import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,6 @@ public class Updater {
     public void UpdateLore(Player player){
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
-        List<String> newItemLore = new ArrayList<String>();
         PersistentDataContainer bufferDataContainer;
         if(item == null || item.getType() == Material.AIR){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please hold an item!"));
@@ -35,20 +35,18 @@ public class Updater {
         buffer = item.getItemMeta();
         bufferDataContainer = buffer.getPersistentDataContainer();
 
+        if(Objects.equals(bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING), Utils.ITEM_VERSION))
+            return;
+
         if(!(bufferDataContainer.has(Utils.versionKey))){
             item = UpdateAll(item);
         }
-
-        if(bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING) == Utils.ITEM_VERSION)
-            return;
 
         //Uncomment and add more cases when a new version for items is added
         /*switch(bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING)){
 
         }*/
-
-        buffer.setLore(newItemLore);
-        item.setItemMeta(buffer);
+        player.getInventory().setItemInMainHand(item);
     }
 
     public ItemStack UpdateZero(ItemStack item){
@@ -57,10 +55,7 @@ public class Updater {
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
         List<String> parsedLore;
         StringBuilder newProperty = new StringBuilder();
-        if(buffer.getLore() == null)
-            parsedLore = new ArrayList<String>();
-        else
-            parsedLore = buffer.getLore();
+        parsedLore = buffer.getLore();
 
         if(bufferDataContainer.has(TextParser.deletedKey)){
             parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING));
@@ -77,6 +72,12 @@ public class Updater {
         bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, newProperty.toString());
         bufferDataContainer.set(Utils.versionKey, PersistentDataType.STRING, Utils.ITEM_VERSION);
 
+        if(buffer.displayName() != null){
+            String name = buffer.getDisplayName();
+            name = TextParser.revertColor(name);
+            bufferDataContainer.set(Utils.nameKey, PersistentDataType.STRING, name);
+        }
+
         if(bufferDataContainer.has(TextParser.deletedKey)){
             buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
         }
@@ -87,8 +88,8 @@ public class Updater {
         if(bufferDataContainer.has(Utils.chargesKey)){
             bufferDataContainer.set(Utils.propertiesKey, PersistentDataType.STRING, "charges");
         }
-
         newItem.setItemMeta(buffer);
+
         return newItem;
     }
 

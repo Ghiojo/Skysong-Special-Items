@@ -12,12 +12,9 @@ import org.skysongdev.skysongitems.database.BookDescriptions;
 
 import java.sql.SQLException;
 
-public class SetBookContent implements CommandExecutor {
-    private final SkysongItems plugin;
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-    public SetBookContent(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
+public class SetBookContent implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -42,7 +39,7 @@ public class SetBookContent implements CommandExecutor {
         }
         bookDescriptions.setId(id);
         try {
-            plugin.getDatabase().updateBookDescription(bookDescriptions);
+            getPlugin().getDatabase().updateBookDescription(bookDescriptions);
         }catch(SQLException e){
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
             return true;

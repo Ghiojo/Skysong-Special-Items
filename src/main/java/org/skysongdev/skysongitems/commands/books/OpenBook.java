@@ -15,12 +15,9 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-public class OpenBook implements CommandExecutor {
-    private final SkysongItems plugin;
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-    public OpenBook(SkysongItems plugin) {
-        this.plugin = plugin;
-    }
+public class OpenBook implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -40,7 +37,7 @@ public class OpenBook implements CommandExecutor {
         }
 
         try {
-            book = plugin.getDatabase().findBookByID(id);
+            book = getPlugin().getDatabase().findBookByID(id);
             if(book == null){
                 commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
                 return true;

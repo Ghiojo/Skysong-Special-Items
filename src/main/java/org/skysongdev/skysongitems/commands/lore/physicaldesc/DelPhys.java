@@ -24,6 +24,7 @@ public class DelPhys implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         List<String> itemLore = new ArrayList<String>();
         String preChange;
@@ -31,8 +32,6 @@ public class DelPhys implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Please hold the item you wish to lore!"));
             return true;
         }
-
-        getPlugin().getUpdater().UpdateLore(player);
 
         ItemMeta buffer = item.getItemMeta();
         assert buffer != null;

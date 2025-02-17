@@ -9,6 +9,8 @@ import org.skysongdev.skysongitems.events.ItemEditEvent;
 
 import java.util.Arrays;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class SkillDesc implements CommandExecutor {
     AddSkill addSkill = new AddSkill();
     SetSkill setSkill = new SetSkill();

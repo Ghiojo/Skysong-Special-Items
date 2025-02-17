@@ -25,19 +25,20 @@ public class SetPhysical implements CommandExecutor {
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
 
         Player player = (Player) commandSender;
+        getPlugin().getUpdater().UpdateLore(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
-        String bufferString = "";
-        if(item == null || item.getType() == Material.AIR){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please hold the item you wish to lore!"));
-            return true;
-        }
+        StringBuilder bufferString = new StringBuilder();
         if(strings.length < 1){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please type in lore for the item!"));
             return true;
         }
-        getPlugin().getUpdater().UpdateLore(player);
+
+        if(item == null || item.getType() == Material.AIR){
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Please hold the item you wish to lore!"));
+            return true;
+        }
 
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
@@ -45,22 +46,26 @@ public class SetPhysical implements CommandExecutor {
         if(bufferDataContainer.isEmpty() || bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING) == null){
             newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
             newItemLore = TextParser.manipulateSection(newItemLore, strings, 0, true);
+
             for(String string : newItemLore){
-                bufferString += ChatColor.COLOR_CHAR + string;
+                bufferString.append(ChatColor.COLOR_CHAR).append(string);
             }
+
             bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
+
             buffer.lore(TextParser.TranslateToLore(newItemLore));
+            item.setItemMeta(buffer);
         } else{
             String deletedString = bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING);
             newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
             newItemLore = TextParser.manipulateSection(newItemLore, strings, 0, true);
             for(String string : newItemLore){
-                bufferString += ChatColor.COLOR_CHAR + string;
+                bufferString.append(ChatColor.COLOR_CHAR).append(string);
             }
             bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
             buffer.lore(TextParser.TranslateToLore(newItemLore, deletedString));
+            item.setItemMeta(buffer);
         }
-        item.setItemMeta(buffer);
         player.updateInventory();
 
         return true;
