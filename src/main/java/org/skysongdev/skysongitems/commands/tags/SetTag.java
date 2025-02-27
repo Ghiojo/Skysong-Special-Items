@@ -32,7 +32,7 @@ public class SetTag implements TabExecutor {
             return true;
         }
 
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You must hold an item in your main hand to use this command."));

@@ -26,7 +26,7 @@ public class RenameCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         StringBuilder bufferString = new StringBuilder();

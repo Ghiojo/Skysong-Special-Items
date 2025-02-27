@@ -42,7 +42,7 @@ public class RemoveProperty implements TabExecutor {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Invalid property!"));
         }
 
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemMeta meta = itemInMainHand.getItemMeta();
 
         PersistentDataContainer container = meta.getPersistentDataContainer();

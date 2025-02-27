@@ -1,6 +1,5 @@
 package org.skysongdev.skysongitems.commands.tags;
 
-import net.kyori.adventure.key.Namespaced;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,7 +49,7 @@ public class RemoveTag implements TabExecutor {
 
         ItemMeta meta = itemInMainHand.getItemMeta();
 
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 

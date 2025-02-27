@@ -29,7 +29,7 @@ public class UpdateItem implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();

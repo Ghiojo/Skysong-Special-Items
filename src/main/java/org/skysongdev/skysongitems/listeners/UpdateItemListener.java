@@ -23,18 +23,19 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 public class UpdateItemListener implements Listener {
     private final SkysongItems plugin;
 
-    //TODO: Why the fuck are we doing the same thing twice? Remove that Item Lore Manipulation, and update this method to work with Tags
     public UpdateItemListener(SkysongItems plugin) {
         this.plugin = plugin;
     }
     @EventHandler(priority = EventPriority.LOWEST)
     public void onItemUpdate(ItemEditEvent event){
+        plugin.getUpdater().UpdateItem(event.getPlayer());
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
-        plugin.getUpdater().UpdateLore(event.getPlayer());
+        List<Component> lore;
 
+
+        lore = TextParser.TranslateToLore(Arrays.stream(container.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList(), container.get(TextParser.deletedKey, PersistentDataType.STRING));
         item = event.getPlayer().getInventory().getItemInMainHand();
         item.setItemMeta(meta);
 

@@ -12,7 +12,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.commands.misc.UpdateItem;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.PrintableProperty;
 import org.skysongdev.skysongitems.utils.Property;
@@ -35,11 +34,11 @@ public class AddProperty implements TabExecutor {
 
 
         if(args.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Usage: /properties add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Usage: /si property add <property>"));
             return true;
         }
 
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You must hold an item in your main hand to use this command."));

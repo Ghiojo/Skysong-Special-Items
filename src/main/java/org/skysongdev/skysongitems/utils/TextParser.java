@@ -31,7 +31,8 @@ public class TextParser {
     public static final int MAX_CHARACTERS = 45;
 
     //TODO: Edit ParseText to become a Transition Function
-    public static List<String> TranslateFromLore(List<String> inputlore, String deletedLines) {
+    public static List<String> TranslateFromLore(List<String> inputlore, String input) {
+        String deletedLines = (input == null) ? "000" : input;
         List<String> parsedList = new ArrayList<String>();
         int index = 0;
         String buffer = "";
@@ -77,7 +78,7 @@ public class TextParser {
     }
 
     //TODO: Same as above
-    public static List<String> TranslateFromLore(List<String> inputlore) {
+    /*public static List<String> TranslateFromLore(List<String> inputlore) {
         List<String> parsedList = new ArrayList<String>();
         int index = 0;
         String buffer = "";
@@ -106,10 +107,12 @@ public class TextParser {
             parsedList.set(index, buffer.substring(0, buffer.length()-1));
 
         return parsedList;
-    }
+    }*/
 
     //TODO: Edit TranslateToLore to use MiniMessage Formatting and return a List<Component>
-    public static List<Component> TranslateToLore(List<String> inputParsedText, String deletedLines) {
+    public static List<Component> TranslateToLore(List<String> inputParsedText, String deletionInput) {
+        //Is the input null because the item that you got it from has no deletedLines tag? If so, set it to "000"
+        String deletedLines = (deletionInput == null) ? "000" : deletionInput;
         List<Component> translatedLore = new ArrayList<Component>();
         List<String> buffer;
         int index = 0;
@@ -134,7 +137,7 @@ public class TextParser {
     }
 
     //TODO: Same as above
-    public static List<Component> TranslateToLore(List<String> inputParsedText) {
+    /*public static List<Component> TranslateToLore(List<String> inputParsedText) {
         List<Component> translatedLore = new ArrayList<Component>();
         List<String> buffer;
         String colorBuffer = "";
@@ -150,18 +153,20 @@ public class TextParser {
         translatedLore.remove(translatedLore.size() - 1);
 
         return translatedLore;
-    }
+    }*/
 
     //TODO: Edit manipulateSection to use MiniMessage Formatting
-    public static List<String> manipulateSection(List<String> startingList, String[] inputLore, int blockIndex, boolean amIReplacing){
-        String buffer = "";
+    //Modes: 0 -> Replace, 1 -> Concatenate, 2 -> Append Below Last Line
+    public static List<String> manipulateSection(List<String> startingList, String[] inputLore, int blockIndex, int mode){
+        List<String> splitLore = Arrays.asList(startingList.get(blockIndex).split("\n"));
+        String buffer = (mode == 1) ? splitLore.getLast() : "";
         int wordCount = 0;
         String colorBuffer = null;
         final Pattern clearPattern = Pattern.compile("&-");
 
         for(String word : inputLore){
             if(clearPattern.matcher(word).find()){
-                word = word.replaceAll("&-", PRE_COLOR_MAP.get(blockIndex));
+                word = word.replaceAll("&-", "<reset>" + PRE_COLOR_MAP.get(blockIndex));
             }
             if(CheckForColor(word) != null){
                 colorBuffer = CheckForColor(word);
@@ -169,32 +174,46 @@ public class TextParser {
                 colorBuffer = translateColorCodes(colorBuffer);
             }
             String hexedWord = TextParser.translateHexColorCodes("&#", "", word);
+            hexedWord = translateColorCodes(hexedWord);
             String wordcopy = hexedWord;
+
+            //Checks if this is the first word or if the sum of the current line and the word is greater than 45
             if((wordCount + stripColor(wordcopy).length() + 1) > 45 || buffer.isEmpty()){
+                //It's greater or the first word, so we add a new line
                 buffer = buffer.concat("\n" + COLOR_MAP.get(blockIndex));
                 if(colorBuffer != null){
                     buffer = buffer.concat(colorBuffer);
                 }
                 wordCount = 0;
-            }
-            else{
+            } else{
+                //It's not, so we add a space
                 buffer = buffer.concat(" ");
                 wordCount++;
             }
+
+            //Either way you are about to add the word to the buffer
             buffer = buffer.concat(translateColorCodes(hexedWord));
             wordCount += stripColor(wordcopy).length();
         }
-        if(amIReplacing) {
-            startingList.set(blockIndex, COLOR_MAP.get(blockIndex) + buffer.substring(1));
-        } else {
-            startingList.set(blockIndex, startingList.get(blockIndex).concat(buffer));
+
+        switch(mode){
+            case 0:
+                startingList.set(blockIndex, COLOR_MAP.get(blockIndex) + buffer.substring(1));
+                break;
+            case 1:
+                splitLore.set(splitLore.size()-1, buffer);
+                startingList.set(blockIndex, String.join("\n", splitLore));
+                break;
+            case 2:
+                startingList.set(blockIndex, startingList.get(blockIndex).concat(buffer));
+                break;
         }
 
         return startingList;
     }
 
     //Same as above
-    public static List<String> manipulateSectionWithConcat(List<String> startingList, String[] inputLore, int blockIndex){
+    /*public static List<String> manipulateSectionWithConcat(List<String> startingList, String[] inputLore, int blockIndex){
         List<String> test = Arrays.asList(startingList.get(blockIndex).split("\n"));
         String tempword;
         String buffer = test.get(test.size()-1);
@@ -239,7 +258,7 @@ public class TextParser {
         arrayToSend = newInput.toArray(arrayToSend);
 
         return manipulateSection(startingList, arrayToSend, blockIndex, false);
-    }
+    }*/
 
     public static String translateHexColorCodes(String startTag, String endTag, String message)
     {

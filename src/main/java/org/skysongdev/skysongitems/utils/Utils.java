@@ -1,6 +1,10 @@
 package org.skysongdev.skysongitems.utils;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
@@ -122,4 +126,41 @@ public class Utils {
         }
         return null;
     }
+
+    public ItemStack GenerateSkysongItem(String name, ArrayList<String> lore, String type, int custommodeldata, String deleted, String properties, ArrayList<String> tags, ArrayList<String> values){
+        Material mat = Material.getMaterial(type.toUpperCase());
+        if (mat == null){
+            mat = Material.BARRIER;
+        }
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(getPlugin().getMiniMessage().deserialize(name));
+        meta.getPersistentDataContainer().set(nameKey, PersistentDataType.STRING, name);
+
+        String bufferString = "";
+        for(String string : lore){
+            bufferString += ChatColor.COLOR_CHAR + string;
+        }
+
+        meta.getPersistentDataContainer().set(loreKey, PersistentDataType.STRING, bufferString.substring(1));
+
+        meta.lore(TextParser.TranslateToLore(lore, deleted));
+
+        if(custommodeldata != 0) {
+            meta.setCustomModelData(custommodeldata);
+        }
+        meta.getPersistentDataContainer().set(propertiesKey, PersistentDataType.STRING, properties);
+        meta.getPersistentDataContainer().set(versionKey, PersistentDataType.STRING, ITEM_VERSION);
+
+        for(int i = 0; i < tags.size(); i++){
+            if(!isATag(tags.get(i))){
+                continue;
+            }
+            meta.getPersistentDataContainer().set(getTag(tags.get(i)), getPlugin().getUtils().tagList.get(getTag(tags.get(i))), values.get(i));
+        }
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
 }

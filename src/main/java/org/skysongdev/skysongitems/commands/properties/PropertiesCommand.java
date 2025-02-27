@@ -29,10 +29,18 @@ public class PropertiesCommand implements TabExecutor {
 
         switch(args[0].toLowerCase()){
             case "add":
-                addProperty.onCommand(sender, command, label, subArgs);
+                if(sender.hasPermission("skysongitems.cit")){
+                    addProperty.onCommand(sender, command, label, subArgs);
+                } else{
+                    sender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>You do not have permission to use this command."));
+                }
                 break;
             case "remove":
-                removeProperty.onCommand(sender, command, label, subArgs);
+                if(sender.hasPermission("skysongitems.cit")){
+                    removeProperty.onCommand(sender, command, label, subArgs);
+                } else{
+                    sender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>You do not have permission to use this command."));
+                }
                 break;
             case "view":
                 viewProperties.onCommand(sender, command, label, subArgs);

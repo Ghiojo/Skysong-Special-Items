@@ -2,7 +2,6 @@ package org.skysongdev.skysongitems.commands;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
@@ -11,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.commands.books.*;
 import org.skysongdev.skysongitems.commands.charges.*;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
-import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
 import org.skysongdev.skysongitems.commands.misc.UpdateItem;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
@@ -150,7 +148,7 @@ public class SkysongItemsCommand implements TabExecutor {
                 break;
             case "updatelore":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    getPlugin().getUpdater().UpdateLore((Player) commandSender);
+                    getPlugin().getUpdater().UpdateItem((Player) commandSender);
                 else
                     commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
@@ -162,11 +160,7 @@ public class SkysongItemsCommand implements TabExecutor {
                 break;
             case "prop":
             case "property":
-                if(commandSender.hasPermission("skysongspecialitems.cit"))
-                    propertiesCommand.onCommand(commandSender, command, s, newArgs);
-                else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
-                break;
+                propertiesCommand.onCommand(commandSender, command, s, newArgs);
             case "update":
                 updateItem.onCommand(commandSender, command, s, newArgs);
                 break;

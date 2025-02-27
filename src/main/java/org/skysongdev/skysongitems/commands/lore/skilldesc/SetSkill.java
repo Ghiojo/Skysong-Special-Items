@@ -23,7 +23,7 @@ public class SetSkill implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
@@ -40,24 +40,15 @@ public class SetSkill implements CommandExecutor {
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING) == null){
-            newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
-            newItemLore = TextParser.manipulateSection(newItemLore, strings, 2, true);
-            for(String string : newItemLore){
-                bufferString += ChatColor.COLOR_CHAR + string;
-            }
-            bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-            buffer.lore(TextParser.TranslateToLore(newItemLore));
-        } else{
-            String deletedString = bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING);
-            newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
-            newItemLore = TextParser.manipulateSection(newItemLore, strings, 2, true);
-            for(String string : newItemLore){
-                bufferString += ChatColor.COLOR_CHAR + string;
-            }
-            bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-            buffer.lore(TextParser.TranslateToLore(newItemLore, deletedString));
+
+        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        newItemLore = TextParser.manipulateSection(newItemLore, strings, 2, 0);
+        for(String string : newItemLore){
+            bufferString += ChatColor.COLOR_CHAR + string;
         }
+        bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
+        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
+
         item.setItemMeta(buffer);
         player.updateInventory();
 

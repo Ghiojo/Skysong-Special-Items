@@ -24,7 +24,7 @@ public class DelPhys implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         List<String> itemLore = new ArrayList<String>();
         String preChange;

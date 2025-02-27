@@ -1,6 +1,5 @@
 package org.skysongdev.skysongitems.commands.charges;
 
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -11,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Utils;
 
@@ -25,7 +23,7 @@ public class SetCharges implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         int num;
         if(item == null || item.getType() == Material.AIR){

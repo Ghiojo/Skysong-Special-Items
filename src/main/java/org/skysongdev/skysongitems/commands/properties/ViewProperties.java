@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,7 +25,7 @@ public class ViewProperties implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         String proptype;
         Player player = (Player) commandSender;
-        getPlugin().getUpdater().UpdateLore(player);
+        getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         if(strings.length < 1){
