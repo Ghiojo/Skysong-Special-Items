@@ -160,7 +160,7 @@ public class TextParser {
     public static List<String> manipulateSection(List<String> startingList, String[] inputLore, int blockIndex, int mode){
         List<String> splitLore = Arrays.asList(startingList.get(blockIndex).split("\n"));
         String buffer = (mode == 1) ? splitLore.getLast() : "";
-        int wordCount = 0;
+        int wordCount = (mode == 1) ? stripColor(buffer).length() : 0;
         String colorBuffer = null;
         final Pattern clearPattern = Pattern.compile("&-");
 
@@ -206,6 +206,8 @@ public class TextParser {
                 break;
             case 2:
                 startingList.set(blockIndex, startingList.get(blockIndex).concat(buffer));
+                break;
+            default:
                 break;
         }
 
@@ -345,6 +347,8 @@ public class TextParser {
                     break;
                 case "o":
                     matcher.appendReplacement(buffer, "<italic>");
+                    break;
+                default:
                     break;
             }
         }
