@@ -10,10 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.commands.books.*;
 import org.skysongdev.skysongitems.commands.charges.*;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
-import org.skysongdev.skysongitems.commands.misc.LoadItem;
-import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
-import org.skysongdev.skysongitems.commands.misc.SaveItem;
-import org.skysongdev.skysongitems.commands.misc.UpdateItem;
+import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 import org.skysongdev.skysongitems.utils.Utils;
@@ -45,6 +42,7 @@ public class SkysongItemsCommand implements TabExecutor {
     ChargesCommand chargesCommand;
     LoadItem loadItem;
     SaveItem saveItem;
+    SetItemModel setItemModel;
 
     public SkysongItemsCommand() {
         saveBook = new SaveBook();
@@ -66,6 +64,7 @@ public class SkysongItemsCommand implements TabExecutor {
         chargesCommand = new ChargesCommand();
         loadItem = new LoadItem();
         saveItem = new SaveItem();
+        setItemModel = new SetItemModel();
     }
 
     public ViewExtendedLore getViewExtendedLore() {
@@ -189,12 +188,24 @@ public class SkysongItemsCommand implements TabExecutor {
                     commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "loaditem":
-                loadItem.onCommand(commandSender, command, s, newArgs);
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    loadItem.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+
                 break;
             case "saveitem":
-                saveItem.onCommand(commandSender, command, s, newArgs);
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    saveItem.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
-
+            case "setmodel":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    setItemModel.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
             default:
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Please introduce valid arguments!"));
                 return true;
@@ -230,6 +241,7 @@ public class SkysongItemsCommand implements TabExecutor {
                 subcommands.add("charges");
                 subcommands.add("loaditem");
                 subcommands.add("saveitem");
+                subcommands.add("setmodel");
             } else {
                 subcommands.add("viewdesc");
                 subcommands.add("update");
