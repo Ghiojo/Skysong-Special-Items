@@ -3,8 +3,6 @@ package org.skysongdev.skysongitems.utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.NamespacedKey;
-import org.skysongdev.skysongitems.SkysongItems;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -25,8 +23,6 @@ public class TextParser {
     private static final Map.Entry<Integer, String> PRESKILLCOLOR = new AbstractMap.SimpleEntry<>(2, "&#81A871");
 
     private static final Map<Integer, String> PRE_COLOR_MAP = Map.ofEntries(PREPHYSCOLOR, PREFUNCCOLOR, PRESKILLCOLOR);
-
-    public static NamespacedKey deletedKey = new NamespacedKey(getPlugin(), "deleted_lines");
 
     public static final int MAX_CHARACTERS = 45;
 
@@ -112,7 +108,7 @@ public class TextParser {
     //TODO: Edit TranslateToLore to use MiniMessage Formatting and return a List<Component>
     public static List<Component> TranslateToLore(List<String> inputParsedText, String deletionInput) {
         //Is the input null because the item that you got it from has no deletedLines tag? If so, set it to "000"
-        String deletedLines = (deletionInput == null) ? "000" : deletionInput;
+        String deletedLines = (deletionInput == null || deletionInput.isEmpty()) ? "000" : deletionInput;
         List<Component> translatedLore = new ArrayList<Component>();
         List<String> buffer;
         int index = 0;

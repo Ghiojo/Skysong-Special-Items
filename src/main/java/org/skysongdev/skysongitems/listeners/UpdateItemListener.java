@@ -35,7 +35,7 @@ public class UpdateItemListener implements Listener {
         List<Component> lore;
 
 
-        lore = TextParser.TranslateToLore(Arrays.stream(container.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList(), container.get(TextParser.deletedKey, PersistentDataType.STRING));
+        lore = TextParser.TranslateToLore(Arrays.stream(container.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList(), container.get(Utils.deletedKey, PersistentDataType.STRING));
         item = event.getPlayer().getInventory().getItemInMainHand();
         item.setItemMeta(meta);
 

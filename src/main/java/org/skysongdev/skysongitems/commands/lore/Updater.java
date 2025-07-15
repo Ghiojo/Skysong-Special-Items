@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.commands.lore;
 
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,7 +11,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.TextParser;
 import org.skysongdev.skysongitems.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,14 +32,19 @@ public class Updater {
         if(Objects.equals(bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING), Utils.ITEM_VERSION))
             return;
 
-        if(!(bufferDataContainer.has(Utils.versionKey))){
-            item = UpdateAll(item);
-        }
-
         //Uncomment and add more cases when a new version for items is added
-        /*switch(bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING)){
-
-        }*/
+        String version = bufferDataContainer.get(Utils.versionKey, PersistentDataType.STRING);
+        if(version == null || version.isEmpty()){
+            version = "0";
+        }
+        switch(version){
+            case "1.0":
+                item = UpdateOnePointOne(item);
+                break;
+            default:
+                item = UpdateAll(item);
+                break;
+        }
         player.getInventory().setItemInMainHand(item);
     }
 
@@ -52,7 +57,7 @@ public class Updater {
         parsedLore = buffer.getLore();
 
 
-        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING));
+        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING));
 
         newProperty.append(parsedLore.get(0));
         for(String section : parsedLore){
@@ -71,7 +76,7 @@ public class Updater {
         }
 
 
-        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING)));
 
         return newItem;
     }
@@ -84,7 +89,7 @@ public class Updater {
         StringBuilder newProperty = new StringBuilder();
         parsedLore = buffer.getLore();
 
-        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING));
+        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING));
 
         newProperty.append(parsedLore.get(0));
         for(String section : parsedLore){
@@ -94,7 +99,7 @@ public class Updater {
             newProperty.append(ChatColor.COLOR_CHAR + section);
         }
         bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, newProperty.toString());
-        bufferDataContainer.set(Utils.versionKey, PersistentDataType.STRING, Utils.ITEM_VERSION);
+        bufferDataContainer.set(Utils.versionKey, PersistentDataType.STRING, "1.0");
 
         if(buffer.displayName() != null){
             String name = buffer.getDisplayName();
@@ -103,7 +108,7 @@ public class Updater {
         }
 
 
-        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING)));
 
 
         if(bufferDataContainer.has(Utils.chargesKey)){
@@ -114,11 +119,31 @@ public class Updater {
         return newItem;
     }
 
+    public ItemStack UpdateOnePointOne(ItemStack item){
+        ItemStack newItem = item;
+        ItemMeta buffer = newItem.getItemMeta();
+        PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
+
+        String bufferString = bufferDataContainer.get(Utils.nameKey, PersistentDataType.STRING);
+
+        bufferString = TextParser.translateHexColorCodes("&#", "", bufferString);
+        bufferString = TextParser.translateColorCodes(bufferString);
+
+        buffer.displayName(getPlugin().getMiniMessage().deserialize(bufferString.trim()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+
+        bufferDataContainer.set(Utils.versionKey, PersistentDataType.STRING, Utils.ITEM_VERSION);
+
+        newItem.setItemMeta(buffer);
+
+        return newItem;
+    }
+
     //Add every update method here when a new update to items occurs.
     public ItemStack UpdateAll(ItemStack item){
         ItemStack finishedItem = item;
 
         finishedItem = UpdateZero(finishedItem);
+        finishedItem = UpdateOnePointOne(finishedItem);
 
         return finishedItem;
     }

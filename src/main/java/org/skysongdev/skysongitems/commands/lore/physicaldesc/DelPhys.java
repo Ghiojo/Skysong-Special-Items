@@ -36,23 +36,23 @@ public class DelPhys implements CommandExecutor {
         ItemMeta buffer = item.getItemMeta();
         assert buffer != null;
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        if (bufferDataContainer.has(TextParser.deletedKey, PersistentDataType.STRING)) {
-            String bufferString = bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING);
+        if (bufferDataContainer.has(Utils.deletedKey, PersistentDataType.STRING)) {
+            String bufferString = bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING);
             StringBuilder builder = new StringBuilder(bufferString);
             if (builder.charAt(0) == '0') {
                 builder.setCharAt(0, '1');
             } else {
                 builder.setCharAt(0, '0');
             }
-            bufferDataContainer.set(TextParser.deletedKey, PersistentDataType.STRING, builder.toString());
+            bufferDataContainer.set(Utils.deletedKey, PersistentDataType.STRING, builder.toString());
 
         } else {
-            bufferDataContainer.set(TextParser.deletedKey, PersistentDataType.STRING, "100");
+            bufferDataContainer.set(Utils.deletedKey, PersistentDataType.STRING, "100");
         }
 
         itemLore.addAll(Arrays.asList(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")));
 
-        buffer.lore(TextParser.TranslateToLore(itemLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(itemLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING)));
         item.setItemMeta(buffer);
         return true;
     }

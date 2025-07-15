@@ -5,7 +5,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.utils.Utils;
+
+import java.io.File;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -24,6 +27,9 @@ public class ReloadCommand implements CommandExecutor {
         getPlugin().getUtils().setupTags();
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Config reloaded!"));
+        // Reload item files
+        SkysongItems.getPlugin().fixFilePaths();
+
 
         return true;
     }

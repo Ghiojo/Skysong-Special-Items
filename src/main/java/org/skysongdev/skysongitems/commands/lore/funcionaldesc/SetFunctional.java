@@ -46,7 +46,7 @@ public class SetFunctional implements CommandExecutor {
             bufferString += ChatColor.COLOR_CHAR + string;
         }
         bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(TextParser.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING)));
 
         item.setItemMeta(buffer);
         player.updateInventory();

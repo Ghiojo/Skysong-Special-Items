@@ -10,7 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.commands.books.*;
 import org.skysongdev.skysongitems.commands.charges.*;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
+import org.skysongdev.skysongitems.commands.misc.LoadItem;
 import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
+import org.skysongdev.skysongitems.commands.misc.SaveItem;
 import org.skysongdev.skysongitems.commands.misc.UpdateItem;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
@@ -41,6 +43,8 @@ public class SkysongItemsCommand implements TabExecutor {
     ReloadCommand reloadCommand;
     RenameCommand renameCommand;
     ChargesCommand chargesCommand;
+    LoadItem loadItem;
+    SaveItem saveItem;
 
     public SkysongItemsCommand() {
         saveBook = new SaveBook();
@@ -60,6 +64,8 @@ public class SkysongItemsCommand implements TabExecutor {
         reloadCommand = new ReloadCommand();
         renameCommand = new RenameCommand();
         chargesCommand = new ChargesCommand();
+        loadItem = new LoadItem();
+        saveItem = new SaveItem();
     }
 
     public ViewExtendedLore getViewExtendedLore() {
@@ -182,6 +188,13 @@ public class SkysongItemsCommand implements TabExecutor {
                 else
                     commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
+            case "loaditem":
+                loadItem.onCommand(commandSender, command, s, newArgs);
+                break;
+            case "saveitem":
+                saveItem.onCommand(commandSender, command, s, newArgs);
+                break;
+
             default:
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Please introduce valid arguments!"));
                 return true;
@@ -215,6 +228,8 @@ public class SkysongItemsCommand implements TabExecutor {
                 subcommands.add("reload");
                 subcommands.add("rename");
                 subcommands.add("charges");
+                subcommands.add("loaditem");
+                subcommands.add("saveitem");
             } else {
                 subcommands.add("viewdesc");
                 subcommands.add("update");
@@ -235,6 +250,9 @@ public class SkysongItemsCommand implements TabExecutor {
                     return renameCommand.onTabComplete(commandSender, command, s, subArgs);
                 case "charges":
                     return chargesCommand.onTabComplete(commandSender, command, s, subArgs);
+                case "loaditem":
+                    return loadItem.onTabComplete(commandSender, command, s, subArgs);
+
                 default:
                     return Arrays.asList("").stream().toList();
             }

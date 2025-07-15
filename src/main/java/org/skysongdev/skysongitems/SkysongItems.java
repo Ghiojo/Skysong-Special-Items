@@ -15,10 +15,11 @@ import org.skysongdev.skysongitems.listeners.OpenDescRightClick;
 import org.skysongdev.skysongitems.listeners.UpdateItemListener;
 import org.skysongdev.skysongitems.utils.Utils;
 
+import java.io.File;
 import java.sql.SQLException;
 
 public final class SkysongItems extends JavaPlugin {
-
+    private File ItemOutputDirectory;
     private static SkysongItems plugin;
     private Database database;
     private Updater updater;
@@ -62,6 +63,7 @@ public final class SkysongItems extends JavaPlugin {
 
         InitializeDatabase();
 
+
         super.onEnable();
         mainCommand = new SkysongItemsCommand();
         updater = new Updater();
@@ -77,9 +79,24 @@ public final class SkysongItems extends JavaPlugin {
 
         utils.setupTags();
         utils.setupProperties();
-
+        fixFilePaths();
     }
 
+    public void fixFilePaths(){
+        ItemOutputDirectory = new File(getDataFolder() + File.separator + "GeneratedItems");
+
+        if (!ItemOutputDirectory.exists()) {
+            ItemOutputDirectory.mkdir();
+        }
+        File folder = Utils.getOrGenerateOutputFile();
+        File[] files = folder.listFiles();
+        Utils.itemFileNames.clear();
+        if(files != null){
+            for(File file : files){
+                Utils.itemFileNames.add(file.getName().replace(".yml", ""));
+            }
+        }
+    }
 
     public void InitializeDatabase(){
         try{
