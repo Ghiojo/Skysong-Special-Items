@@ -124,12 +124,14 @@ public class Updater {
         ItemMeta buffer = newItem.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        String bufferString = bufferDataContainer.get(Utils.nameKey, PersistentDataType.STRING);
+        if(bufferDataContainer.has(Utils.nameKey, PersistentDataType.STRING)) {
+            String bufferString = bufferDataContainer.get(Utils.nameKey, PersistentDataType.STRING);
 
-        bufferString = TextParser.translateHexColorCodes("&#", "", bufferString);
-        bufferString = TextParser.translateColorCodes(bufferString);
+            bufferString = TextParser.translateHexColorCodes("&#", "", bufferString);
+            bufferString = TextParser.translateColorCodes(bufferString);
 
-        buffer.displayName(getPlugin().getMiniMessage().deserialize(bufferString.trim()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+            buffer.displayName(getPlugin().getMiniMessage().deserialize(bufferString.trim()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+        }
 
         bufferDataContainer.set(Utils.versionKey, PersistentDataType.STRING, Utils.ITEM_VERSION);
 

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.commands.books.*;
 import org.skysongdev.skysongitems.commands.charges.*;
+import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
@@ -43,6 +44,7 @@ public class SkysongItemsCommand implements TabExecutor {
     LoadItem loadItem;
     SaveItem saveItem;
     SetItemModel setItemModel;
+    CustomModelDataCommand customModelDataCommand;
 
     public SkysongItemsCommand() {
         saveBook = new SaveBook();
@@ -65,6 +67,7 @@ public class SkysongItemsCommand implements TabExecutor {
         loadItem = new LoadItem();
         saveItem = new SaveItem();
         setItemModel = new SetItemModel();
+        customModelDataCommand = new CustomModelDataCommand();
     }
 
     public ViewExtendedLore getViewExtendedLore() {
@@ -206,6 +209,12 @@ public class SkysongItemsCommand implements TabExecutor {
                 else
                     commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
                 break;
+            case "cmd":
+                if(commandSender.hasPermission("skysongspecialitems.cit"))
+                    customModelDataCommand.onCommand(commandSender, command, s, newArgs);
+                else
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                break;
             default:
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Please introduce valid arguments!"));
                 return true;
@@ -242,6 +251,7 @@ public class SkysongItemsCommand implements TabExecutor {
                 subcommands.add("loaditem");
                 subcommands.add("saveitem");
                 subcommands.add("setmodel");
+                subcommands.add("cmd");
             } else {
                 subcommands.add("viewdesc");
                 subcommands.add("update");
@@ -264,7 +274,8 @@ public class SkysongItemsCommand implements TabExecutor {
                     return chargesCommand.onTabComplete(commandSender, command, s, subArgs);
                 case "loaditem":
                     return loadItem.onTabComplete(commandSender, command, s, subArgs);
-
+                case "cmd":
+                    return customModelDataCommand.onTabComplete(commandSender, command, s, subArgs);
                 default:
                     return Arrays.asList("").stream().toList();
             }

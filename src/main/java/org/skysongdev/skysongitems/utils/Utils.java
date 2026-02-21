@@ -2,14 +2,17 @@ package org.skysongdev.skysongitems.utils;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
@@ -156,13 +159,13 @@ public class Utils {
         if(Objects.equals(item.getType(), Material.PLAYER_HEAD.toString())) {
             SkysongSkullItem skullItem = (SkysongSkullItem) item;
             getPlugin().getLogger().info("Generating SkysongSkullItem with ID: " + skullItem.getId() + ", Player Name: " + skullItem.getPlayerName() + ", Texture: " + skullItem.getTexture());
-            return GenerateSkysongItem(skullItem.getName(), skullItem.getLore(), skullItem.getType(), skullItem.getItemModel(), skullItem.getDeleted(), skullItem.getProperties(), skullItem.getTagsAsStrings(), skullItem.getValues(), skullItem.getId(), skullItem.getPlayerName(), skullItem.getTexture());
+            return GenerateSkysongItem(skullItem.getName(), skullItem.getLore(), skullItem.getType(), skullItem.getItemModel(), skullItem.getDeleted(), skullItem.getProperties(), skullItem.getTagsAsStrings(), skullItem.getValues(), skullItem.getId(), skullItem.getPlayerName(), skullItem.getTexture(), item.getCustomModelData());
         }
 
-        return GenerateSkysongItem(item.getName(), item.getLore(), item.getType(), item.getItemModel(), item.getDeleted(), item.getProperties(), item.getTagsAsStrings(), item.getValues(), null, null, null);
+        return GenerateSkysongItem(item.getName(), item.getLore(), item.getType(), item.getItemModel(), item.getDeleted(), item.getProperties(), item.getTagsAsStrings(), item.getValues(), null, null, null, item.getCustomModelData());
     }
 
-    public ItemStack GenerateSkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey custommodeldata, String deleted, String properties, ArrayList<String> tags, ArrayList<String> values, String id, String playerName, String texture) {
+    public ItemStack GenerateSkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<String> tags, ArrayList<String> values, String id, String playerName, String texture, CustomModelData customModelData) {
         Material mat = Material.getMaterial(type.toUpperCase());
         if (mat == null){
             mat = Material.BARRIER;
@@ -185,10 +188,10 @@ public class Utils {
             meta.getPersistentDataContainer().set(deletedKey, PersistentDataType.STRING, deleted);
         }
 
-        if(custommodeldata != null)
-            meta.setItemModel(custommodeldata);
+        if(itemModel != null)
+            meta.setItemModel(itemModel);
 
-        getPlugin().getLogger().warning("custommodeldata: " + custommodeldata);
+        getPlugin().getLogger().warning("custommodeldata: " + itemModel);
 
         if(properties != null && !properties.isEmpty())
             meta.getPersistentDataContainer().set(propertiesKey, PersistentDataType.STRING, properties);
@@ -231,7 +234,10 @@ public class Utils {
             item.setItemMeta(skullMeta);
             return item;
         }
+
         item.setItemMeta(meta);
+        item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, io.papermc.paper.datacomponent.item.CustomModelData.customModelData().addStrings(customModelData.getStrings()).addFloats(customModelData.getFloats()).addFlags(customModelData.getFlags()).addColors(customModelData.getColors()));
+
         return item;
     }
 
@@ -248,7 +254,8 @@ public class Utils {
         yaml.set("name", item.getName());
         yaml.set("lore", item.getLore());
         yaml.set("type", item.getType());
-        yaml.set("itemModel", item.getItemModel());
+        if(item.getItemModel() != null)
+            yaml.set("itemModel", item.getItemModel().getNamespace() + ":" + item.getItemModel().getKey());
         yaml.set("deleted", item.getDeleted());
         yaml.set("properties", item.getProperties());
         yaml.set("tags", item.getTagsAsStrings());
@@ -259,6 +266,17 @@ public class Utils {
             yaml.set("id", skullItem.getId());
             yaml.set("playername", skullItem.getPlayerName());
             yaml.set("texture", skullItem.getTexture());
+        }
+
+        if(item.getCustomModelData() != null) {
+            yaml.set("customModelData.floats", item.getCustomModelData().getFloats());
+            yaml.set("customModelData.flags", item.getCustomModelData().getFlags());
+            yaml.set("customModelData.strings", item.getCustomModelData().getStrings());
+            List<String> rgbList = new ArrayList<>();
+            for (Color color : item.getCustomModelData().getColors()) {
+                rgbList.add(color.getRed() + "," + color.getGreen() + "," + color.getBlue());
+            }
+            yaml.set("customModelData.colors", rgbList);
         }
 
         // Save the YAML file
@@ -276,10 +294,34 @@ public class Utils {
         String name = yaml.getString("name");
         ArrayList<String> lore = new ArrayList<>(yaml.getStringList("lore"));
         String type = yaml.getString("type");
-        NamespacedKey customModelData = (new NamespacedKey("skysongitems", yaml.getString("itemModel", "none")));
-        if(customModelData.getKey().equals("none")){
-            customModelData = null; // If no custom model data is specified, set it to null
+        ArrayList<String> model = new ArrayList<>(Arrays.asList(yaml.getString("itemModel", "").split(":")));
+        NamespacedKey itemModel;
+        if(!(model.size() < 2 || model.get(0).isEmpty() || model.get(1).isEmpty())) {
+            itemModel = (new NamespacedKey(model.get(0), model.get(1)));
         }
+        else
+            itemModel = null; // If no custom model data is specified, set it to null
+
+        List<String> rgbList = yaml.getStringList("customModelData.colors");
+        List<Color> parsedColors = new ArrayList<>();
+        for (String rgb : rgbList) {
+            String[] parts = rgb.split(",");
+            if (parts.length == 3) {
+                try {
+                    int r = Integer.parseInt(parts[0].trim());
+                    int g = Integer.parseInt(parts[1].trim());
+                    int b = Integer.parseInt(parts[2].trim());
+                    parsedColors.add(Color.fromRGB(r, g, b));
+                } catch (NumberFormatException e) {
+                    getPlugin().getLogger().warning("Invalid RGB format in customModelData.colors: " + rgb);
+                }
+            } else {
+                getPlugin().getLogger().warning("Invalid RGB entry in customModelData.colors: " + rgb);
+            }
+        }
+
+        CustomModelData customModelData = new CustomModelData(yaml.getFloatList("customModelData.floats"), yaml.getBooleanList("customModelData.flags"), yaml.getStringList("customModelData.strings"), parsedColors);
+
         String deleted = yaml.getString("deleted", "");
         String properties = yaml.getString("properties", "");
         ArrayList<String> tags = new ArrayList<>(yaml.getStringList("tags"));
@@ -295,10 +337,10 @@ public class Utils {
             String id = yaml.getString("id", "");
             String playerName = yaml.getString("playername", "");
             String texture = yaml.getString("texture", "");
-            return new SkysongSkullItem(name, lore, type, customModelData, deleted, properties, finalTags, values, id, playerName, texture);
+            return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, finalTags, values, id, playerName, texture, customModelData);
         }
 
-        return new SkysongItem(name, lore, type, customModelData, deleted, properties, finalTags, values);
+        return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
     }
 
     public static File getOrGenerateOutputFile(){

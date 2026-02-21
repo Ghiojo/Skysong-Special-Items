@@ -20,16 +20,30 @@ public class SkysongItem {
     private String properties;
     private ArrayList<NamespacedKey> tags;
     private ArrayList<String> values;
+    private CustomModelData customModelData;
 
-    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey customModelData, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values) {
+    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values) {
         this.name = name;
         this.lore = lore;
         this.type = type;
-        this.itemModel = customModelData;
+        this.itemModel = itemModel;
         this.deleted = deleted;
         this.properties = properties;
         this.tags = tags;
         this.values = values;
+        this.customModelData = null;
+    }
+
+    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, CustomModelData customModelData) {
+        this.name = name;
+        this.lore = lore;
+        this.type = type;
+        this.itemModel = itemModel;
+        this.deleted = deleted;
+        this.properties = properties;
+        this.tags = tags;
+        this.values = values;
+        this.customModelData = customModelData;
     }
 
     public SkysongItem(ItemStack item){
@@ -59,6 +73,8 @@ public class SkysongItem {
             }
         }
         this.values = valuesList;
+
+        this.customModelData = meta.hasCustomModelDataComponent() ? new CustomModelData(meta.getCustomModelDataComponent()) : null;
     }
 
     public String getName() {
@@ -67,6 +83,7 @@ public class SkysongItem {
 
     public String getFormattedName(){
         // Remove Minecraft color codes (&#HEX and &LETTER)
+        if(name == null) return "no-name";
         String sanitized = MiniMessage.miniMessage().stripTags(name)
                 .replaceAll("(?i)&#[a-f0-9]{6}", "") // Remove &#HEX codes
                 .replaceAll("&[a-z0-9]", "");       // Remove &LETTER codes
@@ -112,5 +129,9 @@ public class SkysongItem {
 
     public ArrayList<String> getValues() {
         return values;
+    }
+
+    public CustomModelData getCustomModelData() {
+        return customModelData;
     }
 }
