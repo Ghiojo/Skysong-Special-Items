@@ -73,6 +73,12 @@ public class SetTag implements TabExecutor {
             }
             container.set(Utils.getTag(strings[0]), Utils.tagList.get(Utils.getTag(strings[0])), Float.parseFloat(strings[1]));
         } else if (tagValue == PersistentDataType.STRING){
+            if(strings[0].equals("permission")){
+                if(container.has(Utils.getTag("permission"), PersistentDataType.STRING)){
+                    Utils.updatePlayerPermissions(player, false, container.get(Utils.getTag("permission"), PersistentDataType.STRING));
+                }
+                Utils.updatePlayerPermissions(player, true, strings[1]);
+            }
             container.set(Utils.getTag(strings[0]), Utils.tagList.get(Utils.getTag(strings[0])), strings[1]);
         }
 

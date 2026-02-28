@@ -3,6 +3,9 @@ version: '${version}'
 authors: [Ghiojo]
 main: org.skysongdev.skysongitems.SkysongItems
 api-version: '1.20'
+
+softdepend: [Luckperms]
+
 commands:
   skysongitems:
     description: Description

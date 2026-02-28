@@ -11,8 +11,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.skysongdev.skysongitems.SkysongItems;
 
+import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+
 public class UnbindBook implements CommandExecutor {
-    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
+
     public static NamespacedKey dMOnlyKey = new NamespacedKey(SkysongItems.getPlugin(), "dm_only");
     public static NamespacedKey rightClickKey = new NamespacedKey(SkysongItems.getPlugin(), "is_right_clickable");
     @Override

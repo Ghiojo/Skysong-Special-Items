@@ -7,6 +7,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Utils;
@@ -49,6 +50,8 @@ public class SetCustomModelData implements TabExecutor {
             return true;
         }
 
+        CustomModelDataComponent cmdComponent = meta.getCustomModelDataComponent();
+
         switch(strings[0].toLowerCase()){
             case "strings":
                 ArrayList<String> stringList = new ArrayList<>(meta.getCustomModelDataComponent().getStrings());
@@ -58,7 +61,9 @@ public class SetCustomModelData implements TabExecutor {
                     }
                 }
                 stringList.set(customModelDataIndex - 1, strings[2]);
-                meta.getCustomModelDataComponent().setStrings(stringList);
+                cmdComponent.setStrings(stringList);
+                meta.setCustomModelDataComponent(cmdComponent);
+                itemInHand.setItemMeta(meta);
                 break;
             case "flags":
                 ArrayList<Boolean> flagList = new ArrayList<>(meta.getCustomModelDataComponent().getFlags());
@@ -74,7 +79,9 @@ public class SetCustomModelData implements TabExecutor {
                     }
                 }
                 flagList.set(customModelDataIndex - 1, Boolean.parseBoolean(strings[2]));
-                meta.getCustomModelDataComponent().setFlags(flagList);
+                cmdComponent.setFlags(flagList);
+                meta.setCustomModelDataComponent(cmdComponent);
+                itemInHand.setItemMeta(meta);
                 break;
             case "floats":
                 ArrayList<Float> floatList = new ArrayList<>(meta.getCustomModelDataComponent().getFloats());
@@ -90,7 +97,9 @@ public class SetCustomModelData implements TabExecutor {
                     }
                 }
                 floatList.set(customModelDataIndex - 1, Float.parseFloat(strings[2]));
-                meta.getCustomModelDataComponent().setFloats(floatList);
+                cmdComponent.setFloats(floatList);
+                meta.setCustomModelDataComponent(cmdComponent);
+                itemInHand.setItemMeta(meta);
                 break;
             case "colors":
                 ArrayList<Color> colorList = new ArrayList<>(meta.getCustomModelDataComponent().getColors());
@@ -114,7 +123,9 @@ public class SetCustomModelData implements TabExecutor {
                     }
                 }
                 colorList.set(customModelDataIndex - 1, Color.fromRGB(r, g, b));
-                meta.getCustomModelDataComponent().setColors(colorList);
+                cmdComponent.setColors(colorList);
+                meta.setCustomModelDataComponent(cmdComponent);
+                itemInHand.setItemMeta(meta);
                 break;
             default:
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid custom model data type. Valid types are: strings, floats, flags, colors."));
@@ -129,6 +140,6 @@ public class SetCustomModelData implements TabExecutor {
         if(strings.length == 1){
             return List.of("strings", "flags", "floats", "colors");
         }
-        return null;
+        return List.of();
     }
 }

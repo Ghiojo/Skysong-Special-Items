@@ -15,11 +15,9 @@ import org.skysongdev.skysongitems.SkysongItems;
 import java.sql.SQLException;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+import static org.skysongdev.skysongitems.utils.Utils.boundKey;
 
 public class BindBook implements CommandExecutor {
-    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
-
-
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         int id;
@@ -56,7 +54,7 @@ public class BindBook implements CommandExecutor {
         PersistentDataContainer itemDataContainer = buffer.getPersistentDataContainer();
         itemDataContainer.set(boundKey, PersistentDataType.INTEGER, id);
         item.setItemMeta(buffer);
-        commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "Item has been bound to book id " + ChatColor.of("GOLD") + id);
+        commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(SkysongItems.getPlugin().getUtils().pluginTag + "<green>Book with id " + id + " bound successfully!"));
 
         return true;
     }

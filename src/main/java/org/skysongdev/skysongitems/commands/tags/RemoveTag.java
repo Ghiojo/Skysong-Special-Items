@@ -58,6 +58,10 @@ public class RemoveTag implements TabExecutor {
             return true;
         }
 
+        if(strings[0].equals("permission")){
+            Utils.updatePlayerPermissions(player, false, container.get(tag, PersistentDataType.STRING));
+        }
+
         container.remove(tag);
 
         itemInMainHand.setItemMeta(meta);

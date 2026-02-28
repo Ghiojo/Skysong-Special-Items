@@ -6,6 +6,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Utils;
@@ -60,7 +61,7 @@ public class RemoveCustomModelData implements TabExecutor {
             }
         }
 
-
+        CustomModelDataComponent customModelDataComponent = meta.getCustomModelDataComponent();
         switch(strings[0].toLowerCase()){
             case "strings":
                 ArrayList<String> stringList = new ArrayList<>(meta.getCustomModelDataComponent().getStrings());
@@ -73,7 +74,8 @@ public class RemoveCustomModelData implements TabExecutor {
                 } else {
                     stringList.set(customModelDataIndex - 1, "");
                 }
-                meta.getCustomModelDataComponent().setStrings(stringList);
+                customModelDataComponent.setStrings(stringList);
+                meta.setCustomModelDataComponent(customModelDataComponent);
                 itemInHand.setItemMeta(meta);
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Successfully removed string custom model data with index <yellow>" + customModelDataIndex + " <green>from the item!"));
                 break;
@@ -88,7 +90,8 @@ public class RemoveCustomModelData implements TabExecutor {
                 } else {
                     floatList.set(customModelDataIndex - 1, 0f);
                 }
-                meta.getCustomModelDataComponent().setFloats(floatList);
+                customModelDataComponent.setFloats(floatList);
+                meta.setCustomModelDataComponent(customModelDataComponent);
                 itemInHand.setItemMeta(meta);
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Successfully removed float custom model data with index <yellow>" + customModelDataIndex + " <green>from the item!"));
                 break;
@@ -103,7 +106,8 @@ public class RemoveCustomModelData implements TabExecutor {
                 } else {
                     flagList.set(customModelDataIndex - 1, false);
                 }
-                meta.getCustomModelDataComponent().setFlags(flagList);
+                customModelDataComponent.setFlags(flagList);
+                meta.setCustomModelDataComponent(customModelDataComponent);
                 itemInHand.setItemMeta(meta);
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Successfully removed flag custom model data with index <yellow>" + customModelDataIndex + " <green>from the item!"));
                 break;
@@ -118,7 +122,8 @@ public class RemoveCustomModelData implements TabExecutor {
                 } else {
                     colorList.set(customModelDataIndex - 1, org.bukkit.Color.fromRGB(0, 0, 0));
                 }
-                meta.getCustomModelDataComponent().setColors(colorList);
+                customModelDataComponent.setColors(colorList);
+                meta.setCustomModelDataComponent(customModelDataComponent);
                 itemInHand.setItemMeta(meta);
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Successfully removed color custom model data with index <yellow>" + customModelDataIndex + " <green>from the item!"));
                 break;
@@ -130,6 +135,9 @@ public class RemoveCustomModelData implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] strings) {
-        return List.of();
+        if(strings.length == 1)
+            return List.of("strings", "floats", "flags", "colors");
+        else
+            return List.of();
     }
 }

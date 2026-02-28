@@ -11,9 +11,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 
+import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+
 public class ViewExtendedLore implements CommandExecutor {
     SkysongItemsCommand parent;
-    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
     public static NamespacedKey dMOnlyKey = new NamespacedKey(SkysongItems.getPlugin(), "dm_only");
 
     public ViewExtendedLore(SkysongItemsCommand parent) {

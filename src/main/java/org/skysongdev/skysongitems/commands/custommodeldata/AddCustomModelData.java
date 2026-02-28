@@ -101,6 +101,6 @@ public class AddCustomModelData implements TabExecutor {
         if(strings.length == 1){
             return List.of("string", "float", "flag", "color");
         }
-        return null;
+        return List.of();
     }
 }

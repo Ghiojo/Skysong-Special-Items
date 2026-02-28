@@ -69,6 +69,6 @@ public class CustomModelDataCommand implements TabExecutor {
                         return setCustomModelData.onTabComplete(commandSender, command, s, subArgs);
                 }
         }
-        return null;
+        return List.of();
     }
 }

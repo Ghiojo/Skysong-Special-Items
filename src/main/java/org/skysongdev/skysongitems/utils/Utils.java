@@ -4,16 +4,20 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataType;
+import org.skysongdev.skysongitems.SkysongItems;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +34,8 @@ public class Utils {
     public static NamespacedKey versionKey = new NamespacedKey(getPlugin(), "version");
     public static NamespacedKey loreKey = new NamespacedKey(getPlugin(), "lore");
     public static NamespacedKey nameKey = new NamespacedKey(getPlugin(), "name");
+    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
+    public static NamespacedKey permissionKey = new NamespacedKey(SkysongItems.getPlugin(), "permission");
 
     public static String ITEM_VERSION = "1.1";
 
@@ -82,6 +88,7 @@ public class Utils {
     public void setupTags(){
         tagList.clear();
         List<String> set = getPlugin().getConfig().getConfigurationSection("tags").getKeys(false).stream().toList();
+        addStaticTags();
         for(String tag : set){
             PersistentDataType type = null;
             switch(getPlugin().getConfig().getString("tags."+tag+".type").toLowerCase()){
@@ -100,6 +107,17 @@ public class Utils {
             }
             tagList.put(new NamespacedKey(getPlugin(), getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
         }
+    }
+
+    public void addStaticTags(){
+        tagList.put(maxchargesKey, PersistentDataType.INTEGER);
+        tagList.put(chargesKey, PersistentDataType.INTEGER);
+        tagList.put(addablechargesKey, PersistentDataType.BOOLEAN);
+        tagList.put(versionKey, PersistentDataType.STRING);
+        tagList.put(loreKey, PersistentDataType.STRING);
+        tagList.put(nameKey, PersistentDataType.STRING);
+        tagList.put(boundKey, PersistentDataType.INTEGER);
+        tagList.put(permissionKey, PersistentDataType.STRING);
     }
 
     public static boolean isAProperty(String id){
@@ -341,6 +359,17 @@ public class Utils {
         }
 
         return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
+    }
+
+    public static void updatePlayerPermissions(Player player, boolean add, String permission) {
+        getPlugin().getLuckPerms().getUserManager().loadUser(player.getUniqueId()).thenAccept( user -> {
+            if(add){
+                user.data().add(Node.builder(permission).value(add).build());
+            } else {
+                user.data().remove(Node.builder(permission).build());
+            }
+            getPlugin().getLuckPerms().getUserManager().saveUser(user);
+        } );
     }
 
     public static File getOrGenerateOutputFile(){

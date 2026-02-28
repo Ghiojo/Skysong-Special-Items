@@ -1,6 +1,8 @@
 package org.skysongdev.skysongitems;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
@@ -12,6 +14,7 @@ import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.Pinger;
 import org.skysongdev.skysongitems.listeners.DisableItemUse;
 import org.skysongdev.skysongitems.listeners.OpenDescRightClick;
+import org.skysongdev.skysongitems.listeners.PermissionItemListener;
 import org.skysongdev.skysongitems.listeners.UpdateItemListener;
 import org.skysongdev.skysongitems.utils.Utils;
 
@@ -25,6 +28,7 @@ public final class SkysongItems extends JavaPlugin {
     private Updater updater;
     private Utils utils;
     private MiniMessage miniMessage = MiniMessage.miniMessage();
+    private LuckPerms luckPerms;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -35,6 +39,10 @@ public final class SkysongItems extends JavaPlugin {
 
     public MiniMessage getMiniMessage() {
         return miniMessage;
+    }
+
+    public LuckPerms getLuckPerms() {
+        return luckPerms;
     }
 
     public Utils getUtils() {
@@ -71,6 +79,7 @@ public final class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
+        getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
         getCommand("physdesc").setExecutor(new PhysicalDesc());
         getCommand("funcdesc").setExecutor(new FunctionalDesc());
         getCommand("skilldesc").setExecutor(new SkillDesc());
@@ -80,6 +89,9 @@ public final class SkysongItems extends JavaPlugin {
         utils.setupTags();
         utils.setupProperties();
         fixFilePaths();
+
+
+        luckPerms = LuckPermsProvider.get();
     }
 
     public void fixFilePaths(){

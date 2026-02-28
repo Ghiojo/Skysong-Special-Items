@@ -12,9 +12,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
 
-public class SetRightClickBook implements CommandExecutor {
+import static org.skysongdev.skysongitems.utils.Utils.boundKey;
 
-    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
+public class SetRightClickBook implements CommandExecutor {
     public static NamespacedKey rightClickKey = new NamespacedKey(SkysongItems.getPlugin(), "is_right_clickable");
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
