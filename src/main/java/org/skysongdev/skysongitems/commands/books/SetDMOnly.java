@@ -12,7 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
 
-import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class SetDMOnly implements CommandExecutor {
     public static NamespacedKey dMOnlyKey = new NamespacedKey(SkysongItems.getPlugin(), "dm_only");

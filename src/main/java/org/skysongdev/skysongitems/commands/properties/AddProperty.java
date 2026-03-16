@@ -13,6 +13,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.PrintableProperty;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
@@ -34,20 +35,20 @@ public class AddProperty implements TabExecutor {
 
 
         if(args.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Usage: /si property add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si property add <property>"));
             return true;
         }
 
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You must hold an item in your main hand to use this command."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
 
         if(!Utils.isAProperty(args[0])){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Invalid property!"));
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Valid properties: " + Utils.properties.stream().map(Property::getId).toList()));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + Constants.properties.stream().map(Property::getId).toList()));
             return true;
         }
 
@@ -55,17 +56,17 @@ public class AddProperty implements TabExecutor {
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(container.has(Utils.propertiesKey)){
-            String[] currentProperties = container.get(Utils.propertiesKey, PersistentDataType.STRING).split(";");
+        if(container.has(Constants.propertiesKey)){
+            String[] currentProperties = container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";");
             for(String property : currentProperties){
                 if(property.equals(args[0])){
-                    player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "This item already has this property!"));
+                    player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
                     return true;
                 }
             }
-            container.set(Utils.propertiesKey, PersistentDataType.STRING, container.get(Utils.propertiesKey, PersistentDataType.STRING) + ";" + args[0]);
+            container.set(Constants.propertiesKey, PersistentDataType.STRING, container.get(Constants.propertiesKey, PersistentDataType.STRING) + ";" + args[0]);
         } else {
-            container.set(Utils.propertiesKey, PersistentDataType.STRING, args[0]);
+            container.set(Constants.propertiesKey, PersistentDataType.STRING, args[0]);
         }
 
         if(Utils.getProperty(args[0]) != null){
@@ -73,7 +74,7 @@ public class AddProperty implements TabExecutor {
             if(property instanceof PrintableProperty){
                 ArrayList<String> values = ((PrintableProperty) property).getValuetags();
                 for(String value : values) {
-                    PersistentDataType type = getPlugin().getUtils().tagList.get(new NamespacedKey(getPlugin(), value));
+                    PersistentDataType type = Constants.tagList.get(new NamespacedKey(getPlugin(), value));
                     if (type == PersistentDataType.STRING) {
                         container.set(new NamespacedKey(getPlugin(), value), PersistentDataType.STRING, "");
                     } else if (type == PersistentDataType.INTEGER) {
@@ -89,7 +90,7 @@ public class AddProperty implements TabExecutor {
 
         itemInMainHand.setItemMeta(meta);
         player.updateInventory();
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Property added!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Property added!"));
 
         Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
 
@@ -100,7 +101,7 @@ public class AddProperty implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         ArrayList<String> properties = new ArrayList<>();
-        for(Property property : Utils.properties){
+        for(Property property : Constants.properties){
             properties.add(property.getId());
         }
         return properties.stream().filter(a -> a.startsWith(args[0])).toList();

@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,14 +44,14 @@ public class ChargesCommand implements TabExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit")){
                     setCharges.onCommand(commandSender, command, s, newArgs);
                 } else {
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 }
                 break;
             case "setmax":
                 if(commandSender.hasPermission("skysongspecialitems.cit")){
                     setMaxCharges.onCommand(commandSender, command, s, newArgs);
                 } else {
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 }
                 break;
             case "add":
@@ -64,14 +64,14 @@ public class ChargesCommand implements TabExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit")){
                     removeCharges.onCommand(commandSender, command, s, newArgs);
                 } else {
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 }
                 break;
             case "addable":
                 if(commandSender.hasPermission("skysongspecialitems.cit")){
                     setAddable.onCommand(commandSender, command, s, newArgs);
                 } else {
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 }
                 break;
             default:

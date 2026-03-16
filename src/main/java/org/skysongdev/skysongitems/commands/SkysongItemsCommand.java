@@ -14,7 +14,7 @@ import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,37 +89,37 @@ public class SkysongItemsCommand implements TabExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     disableFunc.onCommand(commandSender, command, s, strings);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "openbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     openBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "savebook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     saveBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     setBookContent.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "delbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     deleteBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "bindbook":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     bindBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "viewdesc":
                 viewExtendedLore.onCommand(commandSender, command, s, newArgs);
@@ -128,43 +128,43 @@ public class SkysongItemsCommand implements TabExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     listBooks.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setdm":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     dmOnly.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setrc":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     setRightClickBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "unbind":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     unbindBook.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "dbreload":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     dbReload.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "updatelore":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     getPlugin().getUpdater().UpdateItem((Player) commandSender);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "tag":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     tagCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "prop":
             case "property":
@@ -176,47 +176,47 @@ public class SkysongItemsCommand implements TabExecutor {
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     reloadCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "rename":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     renameCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "charges":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     chargesCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "loaditem":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     loadItem.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
 
                 break;
             case "saveitem":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     saveItem.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "setmodel":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     setItemModel.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             case "cmd":
                 if(commandSender.hasPermission("skysongspecialitems.cit"))
                     customModelDataCommand.onCommand(commandSender, command, s, newArgs);
                 else
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You don't have permissions to do that command!") );
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!") );
                 break;
             default:
-                commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Please introduce valid arguments!"));
+                commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Please introduce valid arguments!"));
                 return true;
         }
         return true;

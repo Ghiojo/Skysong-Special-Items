@@ -11,7 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.skysongdev.skysongitems.SkysongItems;
 
-import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class UnbindBook implements CommandExecutor {
 

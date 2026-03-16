@@ -1,6 +1,7 @@
 package org.skysongdev.skysongitems.commands.lore.physicaldesc;
 
 import org.bukkit.Material;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TextParser;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
@@ -11,7 +12,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +31,7 @@ public class SetPhysical implements CommandExecutor {
         List<String> newItemLore = new ArrayList<String>();
         StringBuilder bufferString = new StringBuilder();
         if(strings.length < 1){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please type in lore for the item!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please type in lore for the item!"));
             return true;
         }
 
@@ -44,13 +44,13 @@ public class SetPhysical implements CommandExecutor {
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
 
-        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
         newItemLore = TextParser.manipulateSection(newItemLore, strings, 0, 0);
         for(String string : newItemLore){
             bufferString.append(ChatColor.COLOR_CHAR).append(string);
         }
-        bufferDataContainer.set(Utils.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(Utils.deletedKey, PersistentDataType.STRING)));
+        bufferDataContainer.set(Constants.loreKey, PersistentDataType.STRING, bufferString.substring(1));
+        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
         item.setItemMeta(buffer);
 
         player.updateInventory();

@@ -14,8 +14,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TextParser;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class RenameCommand implements TabExecutor {
         StringBuilder bufferString = new StringBuilder();
 
         if(strings.length < 1){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please type in the item's name!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please type in the item's name!"));
             return true;
         }
 
@@ -43,7 +43,7 @@ public class RenameCommand implements TabExecutor {
             bufferString.append(string).append(" ");
         }
 
-        bufferDataContainer.set(Utils.nameKey, PersistentDataType.STRING, bufferString.toString().trim());
+        bufferDataContainer.set(Constants.nameKey, PersistentDataType.STRING, bufferString.toString().trim());
 
         bufferString.replace(0, bufferString.length(), TextParser.translateHexColorCodes("&#", "", bufferString.toString()));
         bufferString.replace(0, bufferString.length(), TextParser.translateColorCodes(bufferString.toString()));
@@ -65,8 +65,8 @@ public class RenameCommand implements TabExecutor {
         if(player.getInventory().getItemInMainHand().getType() == Material.AIR)
             return List.of("NO ITEM IN HAND");
         else{
-            if(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(Utils.nameKey))
-                return List.of(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(Utils.nameKey, PersistentDataType.STRING));
+            if(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(Constants.nameKey))
+                return List.of(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING));
             else
                 return List.of("");
         }

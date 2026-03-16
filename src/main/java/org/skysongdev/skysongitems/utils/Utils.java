@@ -3,21 +3,18 @@ package org.skysongdev.skysongitems.utils;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.PotionContents;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,29 +24,8 @@ import java.util.logging.Logger;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class Utils {
-    public static String pluginTag = "<dark_gray>[<gold>SkysongItems<dark_gray>] <gray>";
-    public static NamespacedKey maxchargesKey = new NamespacedKey(getPlugin(), "max_charges");
-    public static NamespacedKey chargesKey = new NamespacedKey(getPlugin(), "charges");
-    public static NamespacedKey addablechargesKey = new NamespacedKey(getPlugin(), "can_add_charges");
-    public static NamespacedKey versionKey = new NamespacedKey(getPlugin(), "version");
-    public static NamespacedKey loreKey = new NamespacedKey(getPlugin(), "lore");
-    public static NamespacedKey nameKey = new NamespacedKey(getPlugin(), "name");
-    public static NamespacedKey boundKey = new NamespacedKey(SkysongItems.getPlugin(), "bound_book");
-    public static NamespacedKey permissionKey = new NamespacedKey(SkysongItems.getPlugin(), "permission");
-
-    public static String ITEM_VERSION = "1.1";
-
-    public static NamespacedKey propertiesKey = new NamespacedKey(getPlugin(), "properties");
-    public static HashMap<NamespacedKey,PersistentDataType> tagList = new HashMap<NamespacedKey,PersistentDataType>();
-
-    public static ArrayList<Property> properties = new ArrayList<Property>();
-    public static ArrayList<String> propertyTypes = new ArrayList<String>();
-    public static NamespacedKey deletedKey = new NamespacedKey(getPlugin(), "deleted_lines");
-
-    public static ArrayList<String> itemFileNames = new ArrayList<>();
-
     public void setupProperties(){
-        properties.clear();
+        Constants.properties.clear();
         Logger logger = getPlugin().getLogger();
         if (getPlugin().getConfig().getConfigurationSection("properties") == null) {
             logger.warning("No properties section found in the configuration.");
@@ -64,29 +40,41 @@ public class Utils {
             String name = getPlugin().getConfig().getString("properties." + property + ".name");
             String description = getPlugin().getConfig().getString("properties." + property + ".description");
 
-            if (type.equalsIgnoreCase("rename")) {
-                String tag = getPlugin().getConfig().getString("properties." + property + ".tag");
-                properties.add(new RenameProperty(property, proptype, item, name, description, tag));
-                logger.info("Added RenameProperty: " + property);
-            } else if (type.equalsIgnoreCase("printable")) {
-                String printable = getPlugin().getConfig().getString("properties." + property + ".printable");
-                ArrayList<String> tags = new ArrayList<>(getPlugin().getConfig().getStringList("properties." + property + ".valuetags"));
-                int weight = getPlugin().getConfig().getInt("properties." + property + ".weight");
-                properties.add(new PrintableProperty(property, proptype, item, name, description, printable, tags, weight));
-                logger.info("Added PrintableProperty: " + property);
-            } else {
-                properties.add(new Property(property, proptype, item, name, description));
-                logger.info("Added Property: " + property);
+            switch(type.toLowerCase()){
+                case "rename":
+                    String tag = getPlugin().getConfig().getString("properties." + property + ".tag");
+                    Constants.properties.add(new RenameProperty(property, proptype, item, name, description, tag));
+                    logger.info("Added RenameProperty: " + property);
+                    break;
+                case "printable":
+                    String printable = getPlugin().getConfig().getString("properties." + property + ".printable");
+                    ArrayList<String> tags = new ArrayList<>(getPlugin().getConfig().getStringList("properties." + property + ".valuetags"));
+                    int weight = getPlugin().getConfig().getInt("properties." + property + ".weight");
+                    Constants.properties.add(new PrintableProperty(property, proptype, item, name, description, printable, tags, weight));
+                    logger.info("Added PrintableProperty: " + property);
+                    break;
+                case "breweryprintable":
+                    String brewPrintable = getPlugin().getConfig().getString("properties." + property + ".printable");
+                    ArrayList<String> brewTags = new ArrayList<>(getPlugin().getConfig().getStringList("properties." + property + ".valuetags"));
+                    int brewWeight = getPlugin().getConfig().getInt("properties." + property + ".weight");
+                    Constants.properties.add(new BreweryPrintableProperty(property, proptype, item, name, description, brewPrintable, brewTags, brewWeight));
+                    logger.info("Added BreweryPrintableProperty: " + property);
+                    break;
+                default:
+                    Constants.properties.add(new Property(property, proptype, item, name, description));
+                    logger.info("Added Property: " + property);
+
             }
-            if(!propertyTypes.contains(proptype)){
-                propertyTypes.add(proptype);
+
+            if(!Constants.propertyTypes.contains(proptype)){
+                Constants.propertyTypes.add(proptype);
             }
         }
-        logger.info("Total properties added: " + properties.size());
+        logger.info("Total properties added: " + Constants.properties.size());
     }
 
     public void setupTags(){
-        tagList.clear();
+        Constants.tagList.clear();
         List<String> set = getPlugin().getConfig().getConfigurationSection("tags").getKeys(false).stream().toList();
         addStaticTags();
         for(String tag : set){
@@ -105,23 +93,27 @@ public class Utils {
                     type = PersistentDataType.BOOLEAN;
                     break;
             }
-            tagList.put(new NamespacedKey(getPlugin(), getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
+            Constants.tagList.put(new NamespacedKey(getPlugin(), getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
         }
     }
 
     public void addStaticTags(){
-        tagList.put(maxchargesKey, PersistentDataType.INTEGER);
-        tagList.put(chargesKey, PersistentDataType.INTEGER);
-        tagList.put(addablechargesKey, PersistentDataType.BOOLEAN);
-        tagList.put(versionKey, PersistentDataType.STRING);
-        tagList.put(loreKey, PersistentDataType.STRING);
-        tagList.put(nameKey, PersistentDataType.STRING);
-        tagList.put(boundKey, PersistentDataType.INTEGER);
-        tagList.put(permissionKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.maxchargesKey, PersistentDataType.INTEGER);
+        Constants.tagList.put(Constants.chargesKey, PersistentDataType.INTEGER);
+        Constants.tagList.put(Constants.addablechargesKey, PersistentDataType.BOOLEAN);
+        Constants.tagList.put(Constants.versionKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.loreKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.nameKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.boundKey, PersistentDataType.INTEGER);
+        Constants.tagList.put(Constants.permissionKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.furnitureKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.isShiftRightclickableKey, PersistentDataType.BOOLEAN);
+        Constants.tagList.put(Constants.materialIdKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.onConsumptionKey, PersistentDataType.STRING);
     }
 
     public static boolean isAProperty(String id){
-        for(Property property : properties){
+        for(Property property : Constants.properties){
             if(property.getId().equalsIgnoreCase(id)){
                 return true;
             }
@@ -130,7 +122,7 @@ public class Utils {
     }
 
     public static boolean isATag(String id){
-        for(NamespacedKey key : getPlugin().getUtils().tagList.keySet()){
+        for(NamespacedKey key : Constants.tagList.keySet()){
             if(key.getKey().equalsIgnoreCase(id)){
                 return true;
             }
@@ -139,7 +131,7 @@ public class Utils {
     }
 
     public static NamespacedKey getTag(String id){
-        for(NamespacedKey key : getPlugin().getUtils().tagList.keySet()){
+        for(NamespacedKey key : Constants.tagList.keySet()){
             if(key.getKey().equalsIgnoreCase(id)){
                 return key;
             }
@@ -157,7 +149,7 @@ public class Utils {
             return tags;
         }
         for(NamespacedKey key : meta.getPersistentDataContainer().getKeys()){
-            if(getPlugin().getUtils().tagList.containsKey(key)){
+            if(Constants.tagList.containsKey(key)){
                 tags.add(key);
             }
         }
@@ -165,7 +157,7 @@ public class Utils {
     }
 
     public static Property getProperty(String id){
-        for(Property property : properties){
+        for(Property property : Constants.properties){
             if(property.getId().equalsIgnoreCase(id)){
                 return property;
             }
@@ -177,13 +169,18 @@ public class Utils {
         if(Objects.equals(item.getType(), Material.PLAYER_HEAD.toString())) {
             SkysongSkullItem skullItem = (SkysongSkullItem) item;
             getPlugin().getLogger().info("Generating SkysongSkullItem with ID: " + skullItem.getId() + ", Player Name: " + skullItem.getPlayerName() + ", Texture: " + skullItem.getTexture());
-            return GenerateSkysongItem(skullItem.getName(), skullItem.getLore(), skullItem.getType(), skullItem.getItemModel(), skullItem.getDeleted(), skullItem.getProperties(), skullItem.getTagsAsStrings(), skullItem.getValues(), skullItem.getId(), skullItem.getPlayerName(), skullItem.getTexture(), item.getCustomModelData());
+            return GenerateSkysongItem(skullItem.getName(), skullItem.getLore(), skullItem.getType(), skullItem.getItemModel(), skullItem.getDeleted(), skullItem.getProperties(), skullItem.getTagsAsStrings(), skullItem.getValues(), skullItem.getId(), skullItem.getPlayerName(), skullItem.getTexture(), item.getCustomModelData(), null);
+        }
+        if(Objects.equals(item.getType(), Material.POTION.toString()) || Objects.equals(item.getType(), Material.SPLASH_POTION.toString()) || Objects.equals(item.getType(), Material.LINGERING_POTION.toString())){
+            Color color = ((SkysongPotionItem) item).getColor();
+            getPlugin().getLogger().info("Generating SkysongPotionItem with color: " + color);
+            return GenerateSkysongItem(item.getName(), item.getLore(), item.getType(), item.getItemModel(), item.getDeleted(), item.getProperties(), item.getTagsAsStrings(), item.getValues(), null, null, null, item.getCustomModelData(), color);
         }
 
-        return GenerateSkysongItem(item.getName(), item.getLore(), item.getType(), item.getItemModel(), item.getDeleted(), item.getProperties(), item.getTagsAsStrings(), item.getValues(), null, null, null, item.getCustomModelData());
+        return GenerateSkysongItem(item.getName(), item.getLore(), item.getType(), item.getItemModel(), item.getDeleted(), item.getProperties(), item.getTagsAsStrings(), item.getValues(), null, null, null, item.getCustomModelData(), null);
     }
 
-    public ItemStack GenerateSkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<String> tags, ArrayList<String> values, String id, String playerName, String texture, CustomModelData customModelData) {
+    public ItemStack GenerateSkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<String> tags, ArrayList<String> values, String id, String playerName, String texture, CustomModelData customModelData, Color potionColor) {
         Material mat = Material.getMaterial(type.toUpperCase());
         if (mat == null){
             mat = Material.BARRIER;
@@ -191,19 +188,19 @@ public class Utils {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(getPlugin().getMiniMessage().deserialize(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", name))).decoration(TextDecoration.ITALIC, false));
-        meta.getPersistentDataContainer().set(nameKey, PersistentDataType.STRING, name);
+        meta.getPersistentDataContainer().set(Constants.nameKey, PersistentDataType.STRING, name);
 
         String bufferString = "";
         for(String string : lore){
             bufferString += ChatColor.COLOR_CHAR + string;
         }
 
-        meta.getPersistentDataContainer().set(loreKey, PersistentDataType.STRING, bufferString.substring(1));
+        meta.getPersistentDataContainer().set(Constants.loreKey, PersistentDataType.STRING, bufferString.substring(1));
 
         meta.lore(TextParser.TranslateToLore(lore, deleted));
 
         if(deleted != null && !deleted.isEmpty()){
-            meta.getPersistentDataContainer().set(deletedKey, PersistentDataType.STRING, deleted);
+            meta.getPersistentDataContainer().set(Constants.deletedKey, PersistentDataType.STRING, deleted);
         }
 
         if(itemModel != null)
@@ -212,30 +209,30 @@ public class Utils {
         getPlugin().getLogger().warning("custommodeldata: " + itemModel);
 
         if(properties != null && !properties.isEmpty())
-            meta.getPersistentDataContainer().set(propertiesKey, PersistentDataType.STRING, properties);
+            meta.getPersistentDataContainer().set(Constants.propertiesKey, PersistentDataType.STRING, properties);
 
-        meta.getPersistentDataContainer().set(versionKey, PersistentDataType.STRING, ITEM_VERSION);
+        meta.getPersistentDataContainer().set(Constants.versionKey, PersistentDataType.STRING, Constants.ITEM_VERSION);
 
         if(!tags.isEmpty())
             for(int i = 0; i < tags.size(); i++){
                 if(!isATag(tags.get(i))){
                     continue;
                 }
-                if(getPlugin().getUtils().tagList.get(getTag(tags.get(i))) == PersistentDataType.BOOLEAN){
+                if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.BOOLEAN){
                     boolean value = Boolean.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), getPlugin().getUtils().tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
                 }
-                else if(getPlugin().getUtils().tagList.get(getTag(tags.get(i))) == PersistentDataType.INTEGER){
+                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.INTEGER){
                     int value = Integer.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), getPlugin().getUtils().tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
                 }
-                else if(getPlugin().getUtils().tagList.get(getTag(tags.get(i))) == PersistentDataType.FLOAT){
+                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.FLOAT){
                     float value = Float.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), getPlugin().getUtils().tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
                 }
-                else if(getPlugin().getUtils().tagList.get(getTag(tags.get(i))) == PersistentDataType.STRING){
+                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.STRING){
                     String value = values.get(i);
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), getPlugin().getUtils().tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
                 } else {
                     getPlugin().getLogger().warning("Unknown tag type for tag: " + tags.get(i));
                 }
@@ -256,6 +253,12 @@ public class Utils {
         item.setItemMeta(meta);
         item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, io.papermc.paper.datacomponent.item.CustomModelData.customModelData().addStrings(customModelData.getStrings()).addFloats(customModelData.getFloats()).addFlags(customModelData.getFlags()).addColors(customModelData.getColors()));
 
+        if(potionColor != null) {
+            PotionContents contents = item.getData(DataComponentTypes.POTION_CONTENTS);
+            PotionContents newContents = PotionContents.potionContents().potion(contents.potion()).customColor(potionColor).build();
+
+            item.setData(DataComponentTypes.POTION_CONTENTS, newContents);
+        }
         return item;
     }
 
@@ -284,6 +287,11 @@ public class Utils {
             yaml.set("id", skullItem.getId());
             yaml.set("playername", skullItem.getPlayerName());
             yaml.set("texture", skullItem.getTexture());
+        }
+
+        if(item instanceof SkysongPotionItem) {
+            SkysongPotionItem potionItem = (SkysongPotionItem) item;
+            yaml.set("potionColor", potionItem.getColor().asRGB());
         }
 
         if(item.getCustomModelData() != null) {
@@ -358,6 +366,11 @@ public class Utils {
             return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, finalTags, values, id, playerName, texture, customModelData);
         }
 
+        if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
+            Color color = Color.fromRGB(yaml.getInt("potionColor"));
+            return new SkysongPotionItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData, color);
+        }
+
         return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
     }
 
@@ -378,5 +391,205 @@ public class Utils {
             outputDir.mkdirs(); // Create the directory if it doesn't exist
         }
         return outputDir;
+    }
+
+    public static ItemStack updateItemLore(ItemStack inputItem){
+        if(inputItem == null || inputItem.getType() == Material.AIR){
+            return null;
+        }
+        ItemStack item = inputItem;
+        ItemMeta meta = item.getItemMeta();
+        if(meta == null){
+            return null;
+        }
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(Constants.loreKey, PersistentDataType.STRING).split(net.md_5.bungee.api.ChatColor.COLOR_CHAR + "")).toList(), container.get(Constants.deletedKey, PersistentDataType.STRING));
+
+        if(container.has(Constants.propertiesKey)){
+            lore.add(getPlugin().getMiniMessage().deserialize(""));
+
+            //Update Printable Properties
+
+            String[] currentProperties = container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";");
+            StringBuilder returnMessage = new StringBuilder();
+            ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
+            for(String property : currentProperties){
+                Property bufferProp = Utils.getProperty(property);
+                if(!(bufferProp instanceof PrintableProperty prop)){
+                    continue;
+                }
+                if(organizedProperties.isEmpty())
+                    organizedProperties.add(prop);
+                else{
+                    boolean added = false;
+                    for(int i = 0; i < organizedProperties.size(); i++){
+                        if(organizedProperties.get(i).getWeight() < prop.getWeight()){
+                            organizedProperties.add(i, prop);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if(!added){
+                        organizedProperties.add(prop);
+                    }
+                }
+            }
+            for (PrintableProperty property : organizedProperties) {
+                if(property instanceof BreweryPrintableProperty brewProp){
+                    if(brewProp.getBrewedPrinting(item) == null){
+                        Bukkit.getLogger().warning("BreweryPrintableProperty " + brewProp.getId() + " returned null for brewed printing. Skipping.");
+                        continue;
+                    }
+                    Bukkit.getLogger().warning("Adding lore for BreweryPrintableProperty " + brewProp.getId() + ": " + brewProp.getBrewedPrinting(item));
+                    lore.add(brewProp.getBrewedPrinting(item));
+                }
+                else {
+                    returnMessage.append(property.getParsedPrinting(item));
+                    lore.add(getPlugin().getMiniMessage().deserialize(returnMessage.toString()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+                    returnMessage.replace(0, returnMessage.length(), "");
+                }
+
+            }
+
+            //Update Rename Properties
+            if(meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING) != null){
+                String newName = meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING);
+                newName = TextParser.translateHexColorCodes("&#", "", newName);
+                newName = TextParser.translateColorCodes(newName);
+                meta.displayName(getPlugin().getMiniMessage().deserialize(newName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+            }
+
+            for(String property : currentProperties){
+                Property bufferProp = Utils.getProperty(property);
+                if(!(bufferProp instanceof RenameProperty)){
+                    continue;
+                }
+                RenameProperty prop = (RenameProperty) bufferProp;
+
+                if(item.getItemMeta().displayName() != null) {
+                    String newName = meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING);
+                    newName = TextParser.translateHexColorCodes("&#", "", newName);
+                    newName = TextParser.translateColorCodes(newName);
+                    meta.displayName(getPlugin().getMiniMessage().deserialize(prop.getTag() + " " + newName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+                }
+            }
+
+            meta.lore(lore);
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static boolean isSkysongItem(ItemStack item){
+        if(item == null || item.getType() == Material.AIR){
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if(meta == null){
+            return false;
+        }
+        return meta.getPersistentDataContainer().has(Constants.versionKey, PersistentDataType.STRING);
+    }
+
+    public void InitializeMaterialPermissions(){
+        // This grabs a file from the plugin's data folder called "materials.yml"
+        // and reads through it, saving the material id and the permission node required to
+        // use it to a map. This is used for some plugin integrations to deny the ability for a player to
+        // use a SkysongItem they shouldn't be able to.
+        File materialFile = new File(getPlugin().getDataFolder(), "materials.yml");
+        YamlConfiguration yaml = new YamlConfiguration();
+        if(!materialFile.exists()){
+            try {
+                materialFile.createNewFile();
+                yaml.set("materials.IRON_INGOT", "skysongitems.use.iron");
+                yaml.set("materials.DIAMOND", "skysongitems.use.diamond");
+                yaml.save(materialFile);
+            } catch (IOException e) {
+                getPlugin().getLogger().severe("Failed to create materials.yml: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        yaml = YamlConfiguration.loadConfiguration(materialFile);
+        if (yaml.getConfigurationSection("materials") == null) {
+            getPlugin().getLogger().warning("No materials section found in materials.yml.");
+            return;
+        }
+
+        List<String> set = yaml.getConfigurationSection("materials").getKeys(false).stream().toList();
+        for(String material : set){
+            String permission = yaml.getString("materials." + material);
+            if(permission != null){
+                Constants.materialPermissions.put(material, permission);
+                getPlugin().getLogger().info("Added material permission: " + material + " -> " + permission);
+            } else {
+                getPlugin().getLogger().warning("No permission found for material: " + material);
+            }
+        }
+    }
+
+    public static ArrayList<ItemStack> consumeItem(ItemStack item){
+        if(item == null || item.getType() == Material.AIR){
+            return null;
+        }
+        ArrayList<ItemStack> returnItems = new ArrayList<>();
+        if(item.hasItemMeta()){
+            PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+            if(pdc.has(Constants.onConsumptionKey)){
+                String[] commands = pdc.get(Constants.onConsumptionKey, PersistentDataType.STRING).split(";");
+                boolean stopAfterCommand = false;
+                int commandIndex = 0;
+
+                while(!stopAfterCommand && commandIndex < commands.length){
+                    String[] parts = commands[commandIndex].split(":");
+                    if (parts[0].equals("charge")) {
+                        if(!item.getItemMeta().getPersistentDataContainer().has(Constants.chargesKey, PersistentDataType.INTEGER)){
+                            getPlugin().getLogger().warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
+                            continue;
+                        }
+                        if (item.getAmount() > 1) {
+                            ItemStack remainingItem = item.clone();
+                            remainingItem.setAmount(remainingItem.getAmount() - 1);
+                            returnItems.add(remainingItem);
+                        }
+                        int chargesToConsume;
+                        try {
+                            chargesToConsume = Integer.parseInt(parts[1]);
+                        } catch (NumberFormatException e) {
+                            getPlugin().getLogger().warning("Invalid number format for charges to consume: " + parts[1]);
+                            chargesToConsume = 1;
+                        }
+                        int currentCharges = item.getItemMeta().getPersistentDataContainer().get(Constants.chargesKey, PersistentDataType.INTEGER);
+                        int newCharges = currentCharges - chargesToConsume;
+                        if (newCharges > 0) {
+                            ItemStack chargedItem = item.clone();
+                            chargedItem.setAmount(1);
+                            ItemMeta meta = chargedItem.getItemMeta();
+                            meta.getPersistentDataContainer().set(Constants.chargesKey, PersistentDataType.INTEGER, newCharges);
+                            chargedItem.setItemMeta(meta);
+                            chargedItem = updateItemLore(chargedItem);
+                            returnItems.add(chargedItem);
+                        }
+                        if (parts[2].equals("stop") && newCharges > 0) {
+                            stopAfterCommand = true;
+                        }
+                    } else {
+                        item.setAmount(item.getAmount() - 1);
+                        if (item.getAmount() > 0)
+                            returnItems.add(item);
+
+                        String returnedItem = parts[0];
+                        File itemFile = getPlugin().getDataFolder().toPath().resolve("GeneratedItems").resolve(returnedItem + ".yml").toFile();
+                        if (itemFile.exists()) {
+                            SkysongItem skysongItem = LoadSkysongItem(itemFile);
+                            returnItems.add(getPlugin().getUtils().GenerateSkysongItem(skysongItem));
+                        }
+                    }
+                    commandIndex++;
+                }
+            }
+        }
+        return returnItems;
+
     }
 }

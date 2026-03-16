@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
@@ -28,24 +29,24 @@ public class RemoveTag implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Usage: /properties add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /properties add <property>"));
             return true;
         }
 
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You must hold an item in your main hand to use this command."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
 
         if(!(Utils.isATag(strings[0]))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Invalid Tag!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid Tag!"));
             return true;
         }
 
         NamespacedKey tag = Utils.getTag(strings[0]);
 
-        PersistentDataType<?,?> tagValue = Utils.tagList.get(tag);
+        PersistentDataType<?,?> tagValue = Constants.tagList.get(tag);
 
         ItemMeta meta = itemInMainHand.getItemMeta();
 
@@ -54,7 +55,7 @@ public class RemoveTag implements TabExecutor {
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
         if(!(container.has(tag, tagValue))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>This item does not have this tag."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this tag."));
             return true;
         }
 
@@ -66,7 +67,7 @@ public class RemoveTag implements TabExecutor {
 
         itemInMainHand.setItemMeta(meta);
 
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Tag removed successfully!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Tag removed successfully!"));
 
         return true;
     }
@@ -80,7 +81,7 @@ public class RemoveTag implements TabExecutor {
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
         for(NamespacedKey tag : meta.getPersistentDataContainer().getKeys()){
-            if(!Utils.tagList.containsKey(tag)){
+            if(!Constants.tagList.containsKey(tag)){
                 continue;
             }
             if(tag.getKey().startsWith(strings[0].toLowerCase())){

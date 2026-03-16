@@ -5,7 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +20,7 @@ public class TagCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
 
         if(strings.length < 1){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<gray>Usage: /properties <sub-command>"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<gray>Usage: /properties <sub-command>"));
             return true;
         }
         String[] subArgs = Arrays.copyOfRange(strings, 1, strings.length);

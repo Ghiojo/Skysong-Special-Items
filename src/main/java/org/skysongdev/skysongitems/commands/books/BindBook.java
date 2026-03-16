@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands.books;
 
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,11 +10,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.sql.SQLException;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
-import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class BindBook implements CommandExecutor {
     @Override
@@ -54,7 +54,7 @@ public class BindBook implements CommandExecutor {
         PersistentDataContainer itemDataContainer = buffer.getPersistentDataContainer();
         itemDataContainer.set(boundKey, PersistentDataType.INTEGER, id);
         item.setItemMeta(buffer);
-        commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(SkysongItems.getPlugin().getUtils().pluginTag + "<green>Book with id " + id + " bound successfully!"));
+        commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Book with id " + id + " bound successfully!"));
 
         return true;
     }

@@ -12,7 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
 
-import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class SetRightClickBook implements CommandExecutor {
     public static NamespacedKey rightClickKey = new NamespacedKey(SkysongItems.getPlugin(), "is_right_clickable");

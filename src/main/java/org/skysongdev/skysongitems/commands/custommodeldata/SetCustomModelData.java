@@ -10,7 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,20 +21,20 @@ public class SetCustomModelData implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] strings) {
         if(strings.length != 3){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Usage: /addcmd <custom_model_data_id> <value>"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Usage: /addcmd <custom_model_data_id> <value>"));
             return true;
         }
         Player player = (Player) commandSender;
 
         if(player.getInventory().getItemInMainHand().getType() == org.bukkit.Material.AIR){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>You must be holding an item to use this command!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You must be holding an item to use this command!"));
             return true;
         }
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         ItemMeta meta = itemInHand.getItemMeta();
 
         if(!meta.hasCustomModelDataComponent()){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>This item does not have custom model data!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have custom model data!"));
             return true;
         }
 
@@ -42,11 +42,11 @@ public class SetCustomModelData implements TabExecutor {
         try {
             customModelDataIndex = Integer.parseInt(strings[1]);
         } catch (NumberFormatException e){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Please enter a numeric value."));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Please enter a numeric value."));
             return true;
         }
         if(customModelDataIndex < 1){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Custom model data index must be 1 or higher."));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Custom model data index must be 1 or higher."));
             return true;
         }
 
@@ -70,7 +70,7 @@ public class SetCustomModelData implements TabExecutor {
                 try{
                     Boolean.parseBoolean(strings[2]);
                 } catch (Exception e){
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Please enter a boolean value (true/false)."));
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Please enter a boolean value (true/false)."));
                     return true;
                 }
                 if(customModelDataIndex > flagList.size()){
@@ -88,7 +88,7 @@ public class SetCustomModelData implements TabExecutor {
                 try{
                     Float.parseFloat(strings[2]);
                 } catch (Exception e){
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Please enter a numeric value."));
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Please enter a numeric value."));
                     return true;
                 }
                 if(customModelDataIndex > floatList.size()){
@@ -105,7 +105,7 @@ public class SetCustomModelData implements TabExecutor {
                 ArrayList<Color> colorList = new ArrayList<>(meta.getCustomModelDataComponent().getColors());
                 String[] rgb = strings[2].split(",");
                 if(rgb.length != 3){
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Please enter a color in the format R,G,B (e.g. 255,0,0 for red)."));
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Please enter a color in the format R,G,B (e.g. 255,0,0 for red)."));
                     return true;
                 }
                 int r, g, b;
@@ -114,7 +114,7 @@ public class SetCustomModelData implements TabExecutor {
                     g = Integer.parseInt(rgb[1].trim());
                     b = Integer.parseInt(rgb[2].trim());
                 } catch (NumberFormatException e){
-                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid value provided. Please enter a color in the format R,G,B (e.g. 255,0,0 for red)."));
+                    commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid value provided. Please enter a color in the format R,G,B (e.g. 255,0,0 for red)."));
                     return true;
                 }
                 if(customModelDataIndex > colorList.size()){
@@ -128,7 +128,7 @@ public class SetCustomModelData implements TabExecutor {
                 itemInHand.setItemMeta(meta);
                 break;
             default:
-                commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Invalid custom model data type. Valid types are: strings, floats, flags, colors."));
+                commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid custom model data type. Valid types are: strings, floats, flags, colors."));
                 return true;
         }
 

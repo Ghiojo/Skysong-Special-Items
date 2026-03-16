@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
 
@@ -41,12 +42,12 @@ public class ViewProperties implements TabExecutor {
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(Utils.propertiesKey, PersistentDataType.STRING) == null){
+        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING) == null){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no properties!"));
             return true;
         }
 
-        if(!(Utils.propertyTypes.contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
+        if(!(Constants.propertyTypes.contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Invalid property type!"));
             return true;
         }
@@ -54,8 +55,8 @@ public class ViewProperties implements TabExecutor {
         StringBuilder bufferString = new StringBuilder();
 
         if(proptype.equalsIgnoreCase("all")){
-            for(String prop : Utils.propertyTypes){
-                for(String string : bufferDataContainer.get(Utils.propertiesKey, PersistentDataType.STRING).split(";")){
+            for(String prop : Constants.propertyTypes){
+                for(String string : bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
                     if(!Objects.equals(Utils.getProperty(string).getPropType(), prop)){
                         continue;
                     }
@@ -71,7 +72,7 @@ public class ViewProperties implements TabExecutor {
             }
         } else {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<gold><u><b>" + proptype));
-            for(String string : bufferDataContainer.get(Utils.propertiesKey, PersistentDataType.STRING).split(";")){
+            for(String string : bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
                 if(!Objects.equals(Utils.getProperty(string).getPropType(), proptype)){
                     continue;
                 }
@@ -87,6 +88,6 @@ public class ViewProperties implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return Utils.propertyTypes.stream().filter(a -> a.startsWith(strings[0])).toList();
+        return Constants.propertyTypes.stream().filter(a -> a.startsWith(strings[0])).toList();
     }
 }

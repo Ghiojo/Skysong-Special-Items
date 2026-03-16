@@ -13,10 +13,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
-import org.skysongdev.skysongitems.utils.PrintableProperty;
-import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.RenameProperty;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,14 +30,14 @@ public class UpdateItem implements CommandExecutor {
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        ArrayList<String> itemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        ArrayList<String> itemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
 
         if(item == null || item.getType() == Material.AIR){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>Please hold the item you wish to update!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold the item you wish to update!"));
             return true;
         }
 
-        for(Property property : Utils.properties){
+        for(Property property : Constants.properties){
             if(property instanceof PrintableProperty || property instanceof RenameProperty){
                 continue;
             }
@@ -48,7 +45,7 @@ public class UpdateItem implements CommandExecutor {
             Pattern pattern = Pattern.compile("(" + patternName + ")");
             Matcher matcher = pattern.matcher(itemLore.get(1).toLowerCase());
             if(matcher.find()){
-                String propertyString = bufferDataContainer.get(Utils.propertiesKey, PersistentDataType.STRING);
+                String propertyString = bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING);
                 if(propertyString != null && propertyString.contains(property.getId())){
                     continue;
                 }
@@ -57,7 +54,7 @@ public class UpdateItem implements CommandExecutor {
                 } else {
                     propertyString = propertyString + ";" + property.getId();
                 }
-                bufferDataContainer.set(Utils.propertiesKey, PersistentDataType.STRING, propertyString);
+                bufferDataContainer.set(Constants.propertiesKey, PersistentDataType.STRING, propertyString);
             }
         }
         item.setItemMeta(buffer);

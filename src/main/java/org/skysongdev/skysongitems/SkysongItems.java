@@ -1,5 +1,7 @@
 package org.skysongdev.skysongitems;
 
+import dev.jsinco.brewery.bukkit.TheBrewingProject;
+import dev.jsinco.brewery.bukkit.api.TheBrewingProjectApi;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -12,10 +14,10 @@ import org.skysongdev.skysongitems.commands.lore.physicaldesc.PhysicalDesc;
 import org.skysongdev.skysongitems.commands.lore.skilldesc.SkillDesc;
 import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.Pinger;
-import org.skysongdev.skysongitems.listeners.DisableItemUse;
-import org.skysongdev.skysongitems.listeners.OpenDescRightClick;
-import org.skysongdev.skysongitems.listeners.PermissionItemListener;
-import org.skysongdev.skysongitems.listeners.UpdateItemListener;
+import org.skysongdev.skysongitems.integration.TBPSkysongIntegration;
+import org.skysongdev.skysongitems.integration.listeners.SkysongItemReloader;
+import org.skysongdev.skysongitems.listeners.*;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.io.File;
@@ -29,6 +31,8 @@ public final class SkysongItems extends JavaPlugin {
     private Utils utils;
     private MiniMessage miniMessage = MiniMessage.miniMessage();
     private LuckPerms luckPerms;
+    private TheBrewingProjectApi tbp;
+    private TBPSkysongIntegration tbpIntegration = new TBPSkysongIntegration();
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -39,6 +43,10 @@ public final class SkysongItems extends JavaPlugin {
 
     public MiniMessage getMiniMessage() {
         return miniMessage;
+    }
+
+    public TheBrewingProjectApi getTbp() {
+        return tbp;
     }
 
     public LuckPerms getLuckPerms() {
@@ -64,13 +72,22 @@ public final class SkysongItems extends JavaPlugin {
     }
 
     @Override
+    public void onLoad(){
+        try {
+            tbpIntegration.loadIfPossible();
+        } catch (NoClassDefFoundError ignored){
+            Bukkit.getLogger().warning("The Brewing Project not found, skipping integration.");
+        }
+    }
+
+    @Override
     public void onEnable() {
         plugin = this;
         utils = new Utils();
+        tbp = TheBrewingProject.getInstance();
         saveDefaultConfig();
 
         InitializeDatabase();
-
 
         super.onEnable();
         mainCommand = new SkysongItemsCommand();
@@ -80,6 +97,8 @@ public final class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
+        getServer().getPluginManager().registerEvents(new SkysongItemReloader(), this);
+        getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
         getCommand("physdesc").setExecutor(new PhysicalDesc());
         getCommand("funcdesc").setExecutor(new FunctionalDesc());
         getCommand("skilldesc").setExecutor(new SkillDesc());
@@ -88,10 +107,12 @@ public final class SkysongItems extends JavaPlugin {
 
         utils.setupTags();
         utils.setupProperties();
+        utils.InitializeMaterialPermissions();
         fixFilePaths();
 
 
         luckPerms = LuckPermsProvider.get();
+        tbpIntegration.registerComplete();
     }
 
     public void fixFilePaths(){
@@ -102,10 +123,10 @@ public final class SkysongItems extends JavaPlugin {
         }
         File folder = Utils.getOrGenerateOutputFile();
         File[] files = folder.listFiles();
-        Utils.itemFileNames.clear();
+        Constants.itemFileNames.clear();
         if(files != null){
             for(File file : files){
-                Utils.itemFileNames.add(file.getName().replace(".yml", ""));
+                Constants.itemFileNames.add(file.getName().replace(".yml", ""));
             }
         }
     }

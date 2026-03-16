@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.commands.properties;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -10,6 +11,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.events.ItemEditEvent;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
@@ -28,18 +31,18 @@ public class RemoveProperty implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Usage: /properties add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /properties add <property>"));
             return true;
         }
 
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "You must hold an item in your main hand to use this command."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
 
         if(!Utils.isAProperty(strings[0])){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "Invalid property!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
         }
 
         getPlugin().getUpdater().UpdateItem(player);
@@ -47,25 +50,28 @@ public class RemoveProperty implements TabExecutor {
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(!(container.has(Utils.propertiesKey))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>This item has no properties."));
+        if(!(container.has(Constants.propertiesKey))){
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;
         }
 
-        ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(Utils.propertiesKey, PersistentDataType.STRING).split(";")).toList());
+        ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")).toList());
 
         if(!currentProperties.contains(strings[0])){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>This item does not have this property."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
             return true;
         }
 
         currentProperties.remove(strings[0]);
 
-        container.set(Utils.propertiesKey, PersistentDataType.STRING, String.join(";", currentProperties));
+        container.set(Constants.propertiesKey, PersistentDataType.STRING, String.join(";", currentProperties));
 
         itemInMainHand.setItemMeta(meta);
+        player.updateInventory();
 
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Property removed successfully!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Property removed successfully!"));
+
+        Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
 
         return true;
     }
@@ -78,10 +84,10 @@ public class RemoveProperty implements TabExecutor {
             return List.of("NO ITEM IN MAIN HAND");
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
-        if(!(meta.getPersistentDataContainer().has(Utils.propertiesKey)))
+        if(!(meta.getPersistentDataContainer().has(Constants.propertiesKey)))
             return List.of();
 
-        for(String property : meta.getPersistentDataContainer().get(Utils.propertiesKey, PersistentDataType.STRING).split(";")){
+        for(String property : meta.getPersistentDataContainer().get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
             if(property.toLowerCase().startsWith(strings[0].toLowerCase())){
                 properties.add(property);
             }

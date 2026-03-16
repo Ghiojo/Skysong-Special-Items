@@ -50,18 +50,18 @@ public class SkysongItem {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
 
-        this.name = dataContainer.get(Utils.nameKey, PersistentDataType.STRING);
-        this.lore = new ArrayList<String>(Arrays.asList(dataContainer.get(Utils.loreKey, PersistentDataType.STRING).split(String.valueOf(ChatColor.COLOR_CHAR))));
+        this.name = dataContainer.get(Constants.nameKey, PersistentDataType.STRING);
+        this.lore = new ArrayList<String>(Arrays.asList(dataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(String.valueOf(ChatColor.COLOR_CHAR))));
         this.type = item.getType().name();
         this.itemModel = meta.getItemModel();
-        this.deleted = dataContainer.get(Utils.deletedKey, PersistentDataType.STRING);
-        this.properties = dataContainer.get(Utils.propertiesKey, PersistentDataType.STRING);
+        this.deleted = dataContainer.get(Constants.deletedKey, PersistentDataType.STRING);
+        this.properties = dataContainer.get(Constants.propertiesKey, PersistentDataType.STRING);
         this.tags = new ArrayList<NamespacedKey>(Utils.getAllTagsInItem(item));
 
         ArrayList<String> valuesList = new ArrayList<>();
 
         for(NamespacedKey tag : tags) {
-            Object returnValue = dataContainer.get(tag, Utils.tagList.get(tag));
+            Object returnValue = dataContainer.get(tag, Constants.tagList.get(tag));
             if (returnValue instanceof String) {
                 valuesList.add((String) returnValue);
             } else if (returnValue instanceof Integer) {

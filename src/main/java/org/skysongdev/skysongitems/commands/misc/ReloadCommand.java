@@ -6,9 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.SkysongItems;
-import org.skysongdev.skysongitems.utils.Utils;
-
-import java.io.File;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -18,7 +16,7 @@ public class ReloadCommand implements CommandExecutor {
         Player player = (Player) commandSender;
 
         if (!player.hasPermission("skysongitems.reload")) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<red>You don't have permission to use this command!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You don't have permission to use this command!"));
             return true;
         }
         getPlugin().reloadConfig();
@@ -26,7 +24,7 @@ public class ReloadCommand implements CommandExecutor {
         getPlugin().getUtils().setupProperties();
         getPlugin().getUtils().setupTags();
 
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Utils.pluginTag + "<green>Config reloaded!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Config reloaded!"));
         // Reload item files
         SkysongItems.getPlugin().fixFilePaths();
 

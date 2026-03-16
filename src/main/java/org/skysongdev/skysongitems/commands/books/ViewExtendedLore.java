@@ -11,7 +11,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 
-import static org.skysongdev.skysongitems.utils.Utils.boundKey;
+import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class ViewExtendedLore implements CommandExecutor {
     SkysongItemsCommand parent;
