@@ -23,6 +23,7 @@ public class Constants {
     public static NamespacedKey isShiftRightclickableKey = new NamespacedKey(getPlugin(), "is_shift_rightclickable");
     public static NamespacedKey materialIdKey = new NamespacedKey(getPlugin(), "material_id");
     public static NamespacedKey onConsumptionKey = new NamespacedKey(getPlugin(), "on_consumption");
+    public static NamespacedKey dyeColorKey = new NamespacedKey(getPlugin(), "dye_color");
     public static String ITEM_VERSION = "1.1";
     public static NamespacedKey propertiesKey = new NamespacedKey(getPlugin(), "properties");
     public static HashMap<NamespacedKey, PersistentDataType> tagList = new HashMap<NamespacedKey,PersistentDataType>();

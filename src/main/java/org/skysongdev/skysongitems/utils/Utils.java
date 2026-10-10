@@ -110,6 +110,7 @@ public class Utils {
         Constants.tagList.put(Constants.isShiftRightclickableKey, PersistentDataType.BOOLEAN);
         Constants.tagList.put(Constants.materialIdKey, PersistentDataType.STRING);
         Constants.tagList.put(Constants.onConsumptionKey, PersistentDataType.STRING);
+        Constants.tagList.put(Constants.dyeColorKey, PersistentDataType.INTEGER);
     }
 
     public static boolean isAProperty(String id){
