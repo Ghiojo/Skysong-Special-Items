@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.utils;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -9,7 +8,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class SkysongItem {
     private String name;
@@ -49,13 +47,14 @@ public class SkysongItem {
     public SkysongItem(ItemStack item){
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
+        ItemData data = new ItemData(dataContainer);
 
         this.name = dataContainer.get(ItemKeys.NAME, PersistentDataType.STRING);
-        this.lore = new ArrayList<String>(Arrays.asList(dataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(String.valueOf(ChatColor.COLOR_CHAR))));
+        this.lore = new ArrayList<String>(data.getLoreSections());
         this.type = item.getType().name();
         this.itemModel = meta.getItemModel();
-        this.deleted = dataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING);
-        this.properties = dataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
+        this.deleted = data.getDeletedLines();
+        this.properties = data.getPropertiesText();
         this.tags = new ArrayList<NamespacedKey>(Utils.getAllTagsInItem(item));
 
         ArrayList<String> valuesList = new ArrayList<>();

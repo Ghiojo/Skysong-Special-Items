@@ -1,21 +1,17 @@
 package org.skysongdev.skysongitems.commands.lore.physicaldesc;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.skysongdev.skysongitems.utils.TextParser;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -35,24 +31,12 @@ public class DelPhys implements CommandExecutor {
 
         ItemMeta buffer = item.getItemMeta();
         assert buffer != null;
-        PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        if (bufferDataContainer.has(ItemKeys.DELETED_LINES, PersistentDataType.STRING)) {
-            String bufferString = bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING);
-            StringBuilder builder = new StringBuilder(bufferString);
-            if (builder.charAt(0) == '0') {
-                builder.setCharAt(0, '1');
-            } else {
-                builder.setCharAt(0, '0');
-            }
-            bufferDataContainer.set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, builder.toString());
+        ItemData data = ItemData.from(buffer);
+        data.toggleSectionDeleted(0);
 
-        } else {
-            bufferDataContainer.set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, "100");
-        }
+        itemLore.addAll(data.getLoreSections());
 
-        itemLore.addAll(Arrays.asList(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")));
-
-        buffer.lore(TextParser.TranslateToLore(itemLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(itemLore, data.getDeletedLines()));
         item.setItemMeta(buffer);
         return true;
     }

@@ -6,10 +6,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
-import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.ItemData;
+
+import java.util.List;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -35,8 +36,9 @@ public class DetailsCommand implements CommandExecutor {
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize("<#864811>Item properties:"));
 
-        if(meta.getPersistentDataContainer().has(ItemKeys.PROPERTIES)) {
-            String[] currentProperties = meta.getPersistentDataContainer().get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";");
+        ItemData data = ItemData.from(meta);
+        if(data.hasProperties()) {
+            List<String> currentProperties = data.getProperties();
             StringBuilder returnMessage = new StringBuilder();
             for (String property : currentProperties) {
                 Property prop = Utils.getProperty(property);

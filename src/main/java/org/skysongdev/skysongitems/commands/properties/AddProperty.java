@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.PrintableProperty;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
@@ -55,19 +56,13 @@ public class AddProperty implements TabExecutor {
         ItemMeta meta = itemInMainHand.getItemMeta();
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
+        ItemData data = new ItemData(container);
 
-        if(container.has(ItemKeys.PROPERTIES)){
-            String[] currentProperties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";");
-            for(String property : currentProperties){
-                if(property.equals(args[0])){
-                    player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
-                    return true;
-                }
-            }
-            container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING) + ";" + args[0]);
-        } else {
-            container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, args[0]);
+        if(data.hasProperty(args[0])){
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
+            return true;
         }
+        data.addProperty(args[0]);
 
         if(Utils.getProperty(args[0]) != null){
             Property property = Utils.getProperty(args[0]);

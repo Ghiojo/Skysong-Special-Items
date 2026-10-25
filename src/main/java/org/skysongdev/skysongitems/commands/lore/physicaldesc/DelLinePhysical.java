@@ -2,6 +2,7 @@ package org.skysongdev.skysongitems.commands.lore.physicaldesc;
 
 import org.bukkit.Material;
 import org.skysongdev.skysongitems.utils.TextParser;
+import org.skysongdev.skysongitems.utils.ItemData;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,13 +10,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static java.lang.Integer.parseInt;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -28,7 +25,6 @@ public class DelLinePhysical implements CommandExecutor {
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer;
         List<String> newItemLore = new ArrayList<String>();
-        String bufferString = "";
         try{
             parseInt(strings[0]);
         } catch(NumberFormatException e){
@@ -42,16 +38,10 @@ public class DelLinePhysical implements CommandExecutor {
         }
 
         buffer = item.getItemMeta();
-        PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-
-
-        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
-        newItemLore = TextParser.deleteLine(0, parseInt(strings[0]), newItemLore);
-        for(String string : newItemLore){
-            bufferString += ChatColor.COLOR_CHAR + string;
-        }
-        bufferDataContainer.set(ItemKeys.LORE, PersistentDataType.STRING, bufferString.substring(1));
-        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
+        ItemData data = ItemData.from(buffer);
+        newItemLore = TextParser.deleteLine(0, parseInt(strings[0]), data.getLoreSections());
+        data.setLoreSections(newItemLore);
+        buffer.lore(TextParser.TranslateToLore(newItemLore, data.getDeletedLines()));
 
         item.setItemMeta(buffer);
         return true;

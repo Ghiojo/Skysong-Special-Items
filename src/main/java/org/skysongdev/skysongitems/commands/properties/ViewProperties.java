@@ -7,17 +7,15 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.Property;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.List;
 import java.util.Objects;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -41,9 +39,9 @@ public class ViewProperties implements TabExecutor {
         }
 
         buffer = item.getItemMeta();
-        PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
+        ItemData data = ItemData.from(buffer);
 
-        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING) == null){
+        if(!data.hasProperties()){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no properties!"));
             return true;
         }
@@ -57,7 +55,7 @@ public class ViewProperties implements TabExecutor {
 
         if(proptype.equalsIgnoreCase("all")){
             for(String prop : Constants.propertyTypes){
-                for(String string : bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
+                for(String string : data.getProperties()){
                     if(!Objects.equals(Utils.getProperty(string).getPropType(), prop)){
                         continue;
                     }
@@ -73,7 +71,7 @@ public class ViewProperties implements TabExecutor {
             }
         } else {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<gold><u><b>" + proptype));
-            for(String string : bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
+            for(String string : data.getProperties()){
                 if(!Objects.equals(Utils.getProperty(string).getPropType(), proptype)){
                     continue;
                 }

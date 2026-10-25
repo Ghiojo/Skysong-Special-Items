@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands.lore;
 
 import net.kyori.adventure.text.format.TextDecoration;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -9,8 +8,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.TextParser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -53,20 +54,21 @@ public class Updater {
         ItemStack newItem = item;
         ItemMeta buffer = newItem.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
+        ItemData data = new ItemData(bufferDataContainer);
         List<String> parsedLore;
-        StringBuilder newProperty = new StringBuilder();
+        List<String> loreSections = new ArrayList<>();
         parsedLore = buffer.getLore();
 
-        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING));
+        parsedLore = TextParser.TranslateFromLore(parsedLore, data.getDeletedLines());
 
-        newProperty.append(parsedLore.get(0));
+        loreSections.add(parsedLore.get(0));
         for(String section : parsedLore){
             if(section.equals(parsedLore.get(0))){
                 continue;
             }
-            newProperty.append(ChatColor.COLOR_CHAR + section);
+            loreSections.add(section);
         }
-        bufferDataContainer.set(ItemKeys.LORE, PersistentDataType.STRING, newProperty.toString());
+        data.setLoreSections(loreSections);
         bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, "1.0");
 
         if(buffer.displayName() != null){
@@ -76,11 +78,11 @@ public class Updater {
         }
 
 
-        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(parsedLore, data.getDeletedLines()));
 
 
         if(bufferDataContainer.has(ItemKeys.CHARGES)){
-            bufferDataContainer.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges");
+            data.setProperties(List.of("charges"));
         }
         newItem.setItemMeta(buffer);
 

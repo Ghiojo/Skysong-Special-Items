@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -46,13 +47,10 @@ public class SetMaxCharges implements CommandExecutor {
         PersistentDataContainer container = buffer.getPersistentDataContainer();
         if(!container.has(ItemKeys.CHARGES)) {
             container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, num);
-            if(container.has(ItemKeys.PROPERTIES)){
-                String properties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
-                if(!properties.contains("charges"))
-                    container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, properties + ";charges");
-            }
-            else
-                container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges");
+            ItemData data = new ItemData(container);
+            // Matches on the stored text, so any property id containing "charges" counts.
+            if(!data.hasProperties() || !data.getPropertiesText().contains("charges"))
+                data.addProperty("charges");
         }
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, num);
 
