@@ -14,6 +14,7 @@ import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
+import org.skysongdev.skysongitems.commands.properties.DetailsCommand;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 import org.skysongdev.skysongitems.database.BookQueries;
@@ -78,9 +79,10 @@ public class SkysongItemsCommand implements TabExecutor {
         registerItemEdit(Subcommand.builder("dbreload", new DBReload()));
         registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE).playerOnly());
         registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand));
-        // prop and update check their own permissions.
+        // prop and update check their own permissions; details only reads the held item.
         registry.register(Subcommand.builder("prop", propertiesCommand).alias("property")
                 .tabCompleter(propertiesCommand).build());
+        registry.register(Subcommand.builder("details", new DetailsCommand()).listedToEveryone().playerOnly().build());
         registry.register(Subcommand.builder("update", updateItem).listedToEveryone().playerOnly().build());
         registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());
         registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).listedToEveryone().playerOnly());
