@@ -48,8 +48,7 @@ public class SetMaxCharges implements CommandExecutor {
         if(!container.has(ItemKeys.CHARGES)) {
             container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, num);
             ItemData data = new ItemData(container);
-            // Matches on the stored text, so any property id containing "charges" counts.
-            if(!data.hasProperties() || !data.getPropertiesText().contains("charges"))
+            if(!data.hasProperty("charges"))
                 data.addProperty("charges");
         }
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, num);
