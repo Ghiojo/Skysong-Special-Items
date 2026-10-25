@@ -7,18 +7,15 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -49,14 +46,14 @@ public class RemoveProperty implements TabExecutor {
         getPlugin().getUpdater().UpdateItem(player);
         ItemMeta meta = itemInMainHand.getItemMeta();
 
-        PersistentDataContainer container = meta.getPersistentDataContainer();
+        ItemData data = ItemData.from(meta);
 
-        if(!(container.has(ItemKeys.PROPERTIES))){
+        if(!data.hasProperties()){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;
         }
 
-        ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")).toList());
+        List<String> currentProperties = data.getProperties();
 
         if(!currentProperties.contains(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
@@ -65,7 +62,7 @@ public class RemoveProperty implements TabExecutor {
 
         currentProperties.remove(strings[0]);
 
-        container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, String.join(";", currentProperties));
+        data.setProperties(currentProperties);
 
         itemInMainHand.setItemMeta(meta);
         player.updateInventory();
@@ -85,10 +82,11 @@ public class RemoveProperty implements TabExecutor {
             return List.of("NO ITEM IN MAIN HAND");
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
-        if(!(meta.getPersistentDataContainer().has(ItemKeys.PROPERTIES)))
+        ItemData data = ItemData.from(meta);
+        if(!data.hasProperties())
             return List.of();
 
-        for(String property : meta.getPersistentDataContainer().get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
+        for(String property : data.getProperties()){
             if(property.toLowerCase().startsWith(strings[0].toLowerCase())){
                 properties.add(property);
             }

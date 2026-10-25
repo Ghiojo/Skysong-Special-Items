@@ -191,17 +191,13 @@ public class Utils {
         meta.displayName(getPlugin().getMiniMessage().deserialize(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", name))).decoration(TextDecoration.ITALIC, false));
         meta.getPersistentDataContainer().set(ItemKeys.NAME, PersistentDataType.STRING, name);
 
-        String bufferString = "";
-        for(String string : lore){
-            bufferString += ChatColor.COLOR_CHAR + string;
-        }
-
-        meta.getPersistentDataContainer().set(ItemKeys.LORE, PersistentDataType.STRING, bufferString.substring(1));
+        ItemData data = ItemData.from(meta);
+        data.setLoreSections(lore);
 
         meta.lore(TextParser.TranslateToLore(lore, deleted));
 
         if(deleted != null && !deleted.isEmpty()){
-            meta.getPersistentDataContainer().set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, deleted);
+            data.setDeletedLines(deleted);
         }
 
         if(itemModel != null)
@@ -210,7 +206,7 @@ public class Utils {
         getPlugin().getLogger().warning("custommodeldata: " + itemModel);
 
         if(properties != null && !properties.isEmpty())
-            meta.getPersistentDataContainer().set(ItemKeys.PROPERTIES, PersistentDataType.STRING, properties);
+            data.setPropertiesText(properties);
 
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
 
@@ -403,15 +399,15 @@ public class Utils {
         if(meta == null){
             return null;
         }
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(ItemKeys.LORE, PersistentDataType.STRING).split(net.md_5.bungee.api.ChatColor.COLOR_CHAR + "")).toList(), container.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING));
+        ItemData data = ItemData.from(meta);
+        List<Component> lore = TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines());
 
-        if(container.has(ItemKeys.PROPERTIES)){
+        if(data.hasProperties()){
             lore.add(getPlugin().getMiniMessage().deserialize(""));
 
             //Update Printable Properties
 
-            String[] currentProperties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";");
+            List<String> currentProperties = data.getProperties();
             StringBuilder returnMessage = new StringBuilder();
             ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
             for(String property : currentProperties){

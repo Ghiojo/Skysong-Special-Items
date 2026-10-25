@@ -9,12 +9,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -35,13 +34,14 @@ public class RemoveCharges implements CommandExecutor {
             container.remove(ItemKeys.CHARGES);
         if(container.has(ItemKeys.MAX_CHARGES))
             container.remove(ItemKeys.MAX_CHARGES);
-        if(container.has(ItemKeys.PROPERTIES)){
-            ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")).toList());
+        ItemData data = new ItemData(container);
+        if(data.hasProperties()){
+            List<String> currentProperties = data.getProperties();
             currentProperties.remove("charges");
-            if(currentProperties.size() == 0)
-                container.remove(ItemKeys.PROPERTIES);
+            if(currentProperties.isEmpty())
+                data.clearProperties();
             else
-                container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, String.join(";", currentProperties));
+                data.setProperties(currentProperties);
         }
 
         item.setItemMeta(buffer);
