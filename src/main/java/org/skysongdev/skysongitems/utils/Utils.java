@@ -346,28 +346,27 @@ public class Utils {
 
         String deleted = yaml.getString("deleted", "");
         String properties = yaml.getString("properties", "");
-        ArrayList<String> tags = new ArrayList<>(yaml.getStringList("tags"));
-        ArrayList<NamespacedKey> finalTags = new ArrayList<>();
-        for (String tag : tags) {
-            if (isATag(tag)) {
-                finalTags.add(getTag(tag));
-            }
+        List<String> tagIds = yaml.getStringList("tags");
+        List<String> values = yaml.getStringList("values");
+        if (tagIds.size() != values.size()) {
+            getPlugin().getLogger().warning("Item file " + file.getName() + " has " + tagIds.size()
+                    + " tags but " + values.size() + " values; tags without a value are ignored.");
         }
-        ArrayList<String> values = new ArrayList<>(yaml.getStringList("values"));
+        LinkedHashMap<NamespacedKey, String> tagValues = SkysongItem.pairTagValues(tagIds, values);
 
         if(type.equals(Material.PLAYER_HEAD.toString())) {
             String id = yaml.getString("id", "");
             String playerName = yaml.getString("playername", "");
             String texture = yaml.getString("texture", "");
-            return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, finalTags, values, id, playerName, texture, customModelData);
+            return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, tagValues, id, playerName, texture, customModelData);
         }
 
         if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
             Color color = Color.fromRGB(yaml.getInt("potionColor"));
-            return new SkysongPotionItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData, color);
+            return new SkysongPotionItem(name, lore, type, itemModel, deleted, properties, tagValues, customModelData, color);
         }
 
-        return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
+        return new SkysongItem(name, lore, type, itemModel, deleted, properties, tagValues, customModelData);
     }
 
     /** Grants or revokes a permission item's permission. Does nothing without LuckPerms. */

@@ -7,21 +7,22 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class SkysongSkullItem extends SkysongItem{
     private String id;
     private String playerName;
     private String texture;
 
-    public SkysongSkullItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, String uuid, String playerName, String texture) {
-        super(name, lore, type, itemModel, deleted, properties, tags, values);
+    public SkysongSkullItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, String uuid, String playerName, String texture) {
+        super(name, lore, type, itemModel, deleted, properties, tagValues);
         this.id = uuid;
         this.playerName = playerName;
         this.texture = texture;
     }
 
-    public SkysongSkullItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, String uuid, String playerName, String texture, CustomModelData customModelData) {
-        super(name, lore, type, itemModel, deleted, properties, tags, values, customModelData);
+    public SkysongSkullItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, String uuid, String playerName, String texture, CustomModelData customModelData) {
+        super(name, lore, type, itemModel, deleted, properties, tagValues, customModelData);
         this.id = uuid;
         this.playerName = playerName;
         this.texture = texture;

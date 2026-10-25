@@ -7,17 +7,18 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class SkysongPotionItem extends SkysongItem{
     Color color;
 
-    public SkysongPotionItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, Color color) {
-        super(name, lore, type, itemModel, deleted, properties, tags, values);
+    public SkysongPotionItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, Color color) {
+        super(name, lore, type, itemModel, deleted, properties, tagValues);
         this.color = color;
     }
 
-    public SkysongPotionItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, CustomModelData customModelData, Color color) {
-        super(name, lore, type, itemModel, deleted, properties, tags, values, customModelData);
+    public SkysongPotionItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, CustomModelData customModelData, Color color) {
+        super(name, lore, type, itemModel, deleted, properties, tagValues, customModelData);
         this.color = color;
     }
 

@@ -8,6 +8,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SkysongItem {
     private String name;
@@ -16,31 +20,29 @@ public class SkysongItem {
     private NamespacedKey itemModel;
     private String deleted;
     private String properties;
-    private ArrayList<NamespacedKey> tags;
-    private ArrayList<String> values;
+    // Each tag is stored with its own value so the two can never get out of step.
+    private LinkedHashMap<NamespacedKey, String> tagValues;
     private CustomModelData customModelData;
 
-    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values) {
+    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues) {
         this.name = name;
         this.lore = lore;
         this.type = type;
         this.itemModel = itemModel;
         this.deleted = deleted;
         this.properties = properties;
-        this.tags = tags;
-        this.values = values;
+        this.tagValues = new LinkedHashMap<>(tagValues);
         this.customModelData = null;
     }
 
-    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, ArrayList<NamespacedKey> tags, ArrayList<String> values, CustomModelData customModelData) {
+    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, CustomModelData customModelData) {
         this.name = name;
         this.lore = lore;
         this.type = type;
         this.itemModel = itemModel;
         this.deleted = deleted;
         this.properties = properties;
-        this.tags = tags;
-        this.values = values;
+        this.tagValues = new LinkedHashMap<>(tagValues);
         this.customModelData = customModelData;
     }
 
@@ -55,23 +57,14 @@ public class SkysongItem {
         this.itemModel = meta.getItemModel();
         this.deleted = data.getDeletedLines();
         this.properties = data.getPropertiesText();
-        this.tags = new ArrayList<NamespacedKey>(Utils.getAllTagsInItem(item));
-
-        ArrayList<String> valuesList = new ArrayList<>();
-
-        for(NamespacedKey tag : tags) {
+        this.tagValues = new LinkedHashMap<>();
+        for(NamespacedKey tag : Utils.getAllTagsInItem(item)) {
             Object returnValue = dataContainer.get(tag, Constants.tagList.get(tag));
-            if (returnValue instanceof String) {
-                valuesList.add((String) returnValue);
-            } else if (returnValue instanceof Integer) {
-                valuesList.add(String.valueOf(returnValue));
-            } else if (returnValue instanceof Float) {
-                valuesList.add(String.valueOf(returnValue));
-            } else if (returnValue instanceof Boolean) {
-                valuesList.add(String.valueOf(returnValue));
+            if (returnValue instanceof String || returnValue instanceof Integer
+                    || returnValue instanceof Float || returnValue instanceof Boolean) {
+                tagValues.put(tag, String.valueOf(returnValue));
             }
         }
-        this.values = valuesList;
 
         this.customModelData = meta.hasCustomModelDataComponent() ? new CustomModelData(meta.getCustomModelDataComponent()) : null;
     }
@@ -114,20 +107,42 @@ public class SkysongItem {
         return properties;
     }
 
+    /**
+     * Pairs the tag ids and values read from an item file by position. Tags
+     * that are not configured in config.yml are skipped together with their
+     * value, and a tag without a value is skipped.
+     */
+    public static LinkedHashMap<NamespacedKey, String> pairTagValues(List<String> tagIds, List<String> values) {
+        LinkedHashMap<NamespacedKey, String> pairs = new LinkedHashMap<>();
+        for (int i = 0; i < tagIds.size() && i < values.size(); i++) {
+            NamespacedKey tag = Utils.getTag(tagIds.get(i));
+            if (tag != null) {
+                pairs.put(tag, values.get(i));
+            }
+        }
+        return pairs;
+    }
+
+    /** The item's tags and their values, in the order they were added. */
+    public Map<NamespacedKey, String> getTagValues() {
+        return Collections.unmodifiableMap(tagValues);
+    }
+
     public ArrayList<NamespacedKey> getTags() {
-        return tags;
+        return new ArrayList<>(tagValues.keySet());
     }
 
     public ArrayList<String> getTagsAsStrings(){
         ArrayList<String> tagStrings = new ArrayList<>();
-        for (NamespacedKey tag : tags) {
+        for (NamespacedKey tag : tagValues.keySet()) {
             tagStrings.add(tag.value());
         }
         return tagStrings;
     }
 
+    /** The tag values, in the same order as {@link #getTags()}. */
     public ArrayList<String> getValues() {
-        return values;
+        return new ArrayList<>(tagValues.values());
     }
 
     public CustomModelData getCustomModelData() {
