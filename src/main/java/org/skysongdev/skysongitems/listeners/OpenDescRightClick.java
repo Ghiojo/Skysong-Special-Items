@@ -34,40 +34,40 @@ public class OpenDescRightClick implements Listener {
         if(action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK){
             return;
         }
-        if (item.getItemMeta().getPersistentDataContainer().has(ItemKeys.RIGHT_CLICKABLE)) {
-            if (item.getItemMeta().getPersistentDataContainer().get(ItemKeys.RIGHT_CLICKABLE, PersistentDataType.BOOLEAN)){
-                int idToOpen = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
-                BookDescriptions book;
-                try {
-                    book = plugin.getDatabase().findBookByID(idToOpen);
-                    if(book == null){
-                        event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
-                        return;
-                    }
-                }catch (SQLException e){
-                    event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
-                    e.printStackTrace();
-                    return;
-                }
-
-                if(item.getItemMeta().getPersistentDataContainer().has(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN) && item.getItemMeta().getPersistentDataContainer().get(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN)){
-                    if(!event.getPlayer().hasPermission("skysongspecialitems.dm")){
-                        event.getPlayer().sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("RED").toString() + "You do not have permission to view this lore");
-                        return;
-                    }
-                }
-
-                ItemStack tempBook = new ItemStack(Material.WRITTEN_BOOK);
-                BookMeta tempMeta = (BookMeta) tempBook.getItemMeta();
-                List<String> pages = Arrays.asList(book.getBookcontent().split("\\[PageEnd\\]"));
-                tempMeta.setPages(pages);
-                tempMeta.setTitle(book.getName());
-                tempMeta.setAuthor("Skysong");
-                tempBook.setItemMeta(tempMeta);
-
-                event.getPlayer().openBook(tempBook);
-            }
+        if (!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.RIGHT_CLICKABLE)
+                || !item.getItemMeta().getPersistentDataContainer().get(ItemKeys.RIGHT_CLICKABLE, PersistentDataType.BOOLEAN)) {
+            return;
         }
+        int idToOpen = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
+        BookDescriptions book;
+        try {
+            book = plugin.getDatabase().findBookByID(idToOpen);
+            if(book == null){
+                event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
+                return;
+            }
+        }catch (SQLException e){
+            event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
+            e.printStackTrace();
+            return;
+        }
+
+        if(item.getItemMeta().getPersistentDataContainer().has(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN)
+                && item.getItemMeta().getPersistentDataContainer().get(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN)
+                && !event.getPlayer().hasPermission("skysongspecialitems.dm")){
+            event.getPlayer().sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("RED").toString() + "You do not have permission to view this lore");
+            return;
+        }
+
+        ItemStack tempBook = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta tempMeta = (BookMeta) tempBook.getItemMeta();
+        List<String> pages = Arrays.asList(book.getBookcontent().split("\\[PageEnd\\]"));
+        tempMeta.setPages(pages);
+        tempMeta.setTitle(book.getName());
+        tempMeta.setAuthor("Skysong");
+        tempBook.setItemMeta(tempMeta);
+
+        event.getPlayer().openBook(tempBook);
     }
 
 }

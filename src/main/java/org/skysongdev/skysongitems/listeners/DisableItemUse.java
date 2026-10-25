@@ -15,9 +15,9 @@ public class DisableItemUse implements Listener {
         if (item == null || !item.hasItemMeta()) {
             return;
         }
-        if (item.getItemMeta().getPersistentDataContainer().has(ItemKeys.DISABLED)) {
-            if (item.getItemMeta().getPersistentDataContainer().get(ItemKeys.DISABLED, PersistentDataType.BOOLEAN))
-                event.setCancelled(true);
+        if (item.getItemMeta().getPersistentDataContainer().has(ItemKeys.DISABLED)
+                && item.getItemMeta().getPersistentDataContainer().get(ItemKeys.DISABLED, PersistentDataType.BOOLEAN)) {
+            event.setCancelled(true);
         }
     }
 }
