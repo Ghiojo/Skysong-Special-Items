@@ -51,11 +51,7 @@ public class PermissionItemListener implements Listener {
 
     private boolean willInventoryAcceptItem(ItemStack item, Inventory inventory){
         Map<Integer, ItemStack> leftover = inventory.addItem(item.clone());
-        if(leftover.isEmpty()) {
-            return true;
-        } else {
-            return false;
-        }
+        return leftover.isEmpty();
     }
 
     private boolean isItemAPermissionItem(ItemStack item){

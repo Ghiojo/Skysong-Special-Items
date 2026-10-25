@@ -48,39 +48,6 @@ public class Updater {
         player.getInventory().setItemInMainHand(item);
     }
 
-    public ItemStack UpdateWithoutProperties(ItemStack item){
-        ItemStack newItem = item;
-        ItemMeta buffer = newItem.getItemMeta();
-        PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        List<String> parsedLore;
-        StringBuilder newProperty = new StringBuilder();
-        parsedLore = buffer.getLore();
-
-
-        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING));
-
-        newProperty.append(parsedLore.get(0));
-        for(String section : parsedLore){
-            if(section.equals(parsedLore.get(0))){
-                continue;
-            }
-            newProperty.append(ChatColor.COLOR_CHAR + section);
-        }
-        bufferDataContainer.set(Constants.loreKey, PersistentDataType.STRING, newProperty.toString());
-        bufferDataContainer.set(Constants.versionKey, PersistentDataType.STRING, Constants.ITEM_VERSION);
-
-        if(buffer.displayName() != null){
-            String name = buffer.getDisplayName();
-            name = TextParser.revertColor(name);
-            bufferDataContainer.set(Constants.nameKey, PersistentDataType.STRING, name);
-        }
-
-
-        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
-
-        return newItem;
-    }
-
     public ItemStack UpdateZero(ItemStack item){
         ItemStack newItem = item;
         ItemMeta buffer = newItem.getItemMeta();
