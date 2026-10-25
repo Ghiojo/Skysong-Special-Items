@@ -33,8 +33,8 @@ class ItemKeysTest extends MockBukkitTest {
 
     /** Reads the name line of the plugin.yml that ships in the jar. */
     private static String pluginNameFromPluginYml() throws IOException {
-        try (InputStream in = ItemKeysTest.class.getResourceAsStream("/plugin.yml")) {
-            String yml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        try (InputStream stream = ItemKeysTest.class.getResourceAsStream("/plugin.yml")) {
+            String yml = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
             return yml.lines()
                     .filter(line -> line.startsWith("name:"))
                     .map(line -> line.substring("name:".length()).trim())
@@ -77,8 +77,8 @@ class ItemKeysTest extends MockBukkitTest {
     }
 
     @Test
-    void ofBuildsAKeyInThePluginNamespace() {
-        assertEquals(new NamespacedKey(plugin, "custom_tag"), ItemKeys.of("custom_tag"));
+    void namedBuildsAKeyInThePluginNamespace() {
+        assertEquals(new NamespacedKey(plugin, "custom_tag"), ItemKeys.named("custom_tag"));
     }
 
     @Test

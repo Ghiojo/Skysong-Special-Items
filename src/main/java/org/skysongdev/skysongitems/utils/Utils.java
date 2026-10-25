@@ -93,7 +93,7 @@ public class Utils {
                     type = PersistentDataType.BOOLEAN;
                     break;
             }
-            Constants.tagList.put(ItemKeys.of(getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
+            Constants.tagList.put(ItemKeys.named(getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
         }
     }
 

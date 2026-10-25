@@ -74,15 +74,15 @@ public class AddProperty implements TabExecutor {
             if(property instanceof PrintableProperty){
                 ArrayList<String> values = ((PrintableProperty) property).getValuetags();
                 for(String value : values) {
-                    PersistentDataType type = Constants.tagList.get(ItemKeys.of(value));
+                    PersistentDataType type = Constants.tagList.get(ItemKeys.named(value));
                     if (type == PersistentDataType.STRING) {
-                        container.set(ItemKeys.of(value), PersistentDataType.STRING, "");
+                        container.set(ItemKeys.named(value), PersistentDataType.STRING, "");
                     } else if (type == PersistentDataType.INTEGER) {
-                        container.set(ItemKeys.of(value), PersistentDataType.INTEGER, 0);
+                        container.set(ItemKeys.named(value), PersistentDataType.INTEGER, 0);
                     } else if (type == PersistentDataType.FLOAT) {
-                        container.set(ItemKeys.of(value), PersistentDataType.FLOAT, 0.0f);
+                        container.set(ItemKeys.named(value), PersistentDataType.FLOAT, 0.0f);
                     } else if (type == PersistentDataType.BOOLEAN) {
-                        container.set(ItemKeys.of(value), PersistentDataType.BOOLEAN, false);
+                        container.set(ItemKeys.named(value), PersistentDataType.BOOLEAN, false);
                     }
                 }
             }
