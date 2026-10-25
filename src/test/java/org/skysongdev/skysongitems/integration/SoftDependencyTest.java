@@ -27,7 +27,7 @@ class SoftDependencyTest extends MockBukkitTest {
         logger.addHandler(new Handler() {
             @Override
             public void publish(LogRecord logRecord) {
-                if (logRecord.getLevel() == Level.WARNING) {
+                if (Level.WARNING.equals(logRecord.getLevel())) {
                     warnings.add(logRecord);
                 }
             }
