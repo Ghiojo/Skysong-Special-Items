@@ -1,10 +1,6 @@
 package org.skysongdev.skysongitems;
 
-import dev.jsinco.brewery.bukkit.TheBrewingProject;
-import dev.jsinco.brewery.bukkit.api.TheBrewingProjectApi;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
@@ -14,25 +10,28 @@ import org.skysongdev.skysongitems.commands.lore.physicaldesc.PhysicalDesc;
 import org.skysongdev.skysongitems.commands.lore.skilldesc.SkillDesc;
 import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.Pinger;
-import org.skysongdev.skysongitems.integration.TBPSkysongIntegration;
-import org.skysongdev.skysongitems.integration.listeners.SkysongItemReloader;
+import org.skysongdev.skysongitems.integration.BrewingProjectIntegration;
+import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
+import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Optional;
 
-public final class SkysongItems extends JavaPlugin {
+// Not final: MockBukkit loads a plugin through a generated subclass of its main class.
+public class SkysongItems extends JavaPlugin {
     private File ItemOutputDirectory;
     private static SkysongItems plugin;
     private Database database;
     private Updater updater;
     private Utils utils;
     private MiniMessage miniMessage = MiniMessage.miniMessage();
-    private LuckPerms luckPerms;
-    private TheBrewingProjectApi tbp;
-    private TBPSkysongIntegration tbpIntegration = new TBPSkysongIntegration();
+    // Each integration is null when its plugin is not installed.
+    private LuckPermsIntegration luckPerms;
+    private BrewingProjectIntegration brewingProject;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -45,12 +44,14 @@ public final class SkysongItems extends JavaPlugin {
         return miniMessage;
     }
 
-    public TheBrewingProjectApi getTbp() {
-        return tbp;
+    /** TheBrewingProject integration, empty when TheBrewingProject is not installed. */
+    public Optional<BrewingProjectIntegration> getBrewingProject() {
+        return Optional.ofNullable(brewingProject);
     }
 
-    public LuckPerms getLuckPerms() {
-        return luckPerms;
+    /** LuckPerms integration, empty when LuckPerms is not installed. */
+    public Optional<LuckPermsIntegration> getLuckPerms() {
+        return Optional.ofNullable(luckPerms);
     }
 
     public Utils getUtils() {
@@ -73,10 +74,10 @@ public final class SkysongItems extends JavaPlugin {
 
     @Override
     public void onLoad(){
-        try {
-            tbpIntegration.loadIfPossible();
-        } catch (NoClassDefFoundError ignored){
-            Bukkit.getLogger().warning("The Brewing Project not found, skipping integration.");
+        if (SoftDependency.isInstalled(getServer().getPluginManager(), SoftDependency.BREWING_PROJECT,
+                "brewing ingredients and brew score printing", getLogger())) {
+            brewingProject = new BrewingProjectIntegration();
+            brewingProject.registerItemIntegration();
         }
     }
 
@@ -84,7 +85,9 @@ public final class SkysongItems extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         utils = new Utils();
-        tbp = TheBrewingProject.getInstance();
+        if (brewingProject != null) {
+            brewingProject.enable(this);
+        }
         saveDefaultConfig();
 
         InitializeDatabase();
@@ -97,7 +100,6 @@ public final class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
-        getServer().getPluginManager().registerEvents(new SkysongItemReloader(), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
         getCommand("physdesc").setExecutor(new PhysicalDesc());
         getCommand("funcdesc").setExecutor(new FunctionalDesc());
@@ -111,8 +113,13 @@ public final class SkysongItems extends JavaPlugin {
         fixFilePaths();
 
 
-        luckPerms = LuckPermsProvider.get();
-        tbpIntegration.registerComplete();
+        if (SoftDependency.isInstalled(getServer().getPluginManager(), SoftDependency.LUCK_PERMS,
+                "permission items", getLogger())) {
+            luckPerms = new LuckPermsIntegration();
+        }
+        if (brewingProject != null) {
+            brewingProject.markItemsReady();
+        }
     }
 
     public void fixFilePaths(){

@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
-    implementation 'net.luckperms:api:5.4'
+    compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.github.BreweryTeam:TheBrewingProject:v2.8.2'
 
     // Tests run on JUnit 5. MockBukkit 4.54.0 is the last release built against

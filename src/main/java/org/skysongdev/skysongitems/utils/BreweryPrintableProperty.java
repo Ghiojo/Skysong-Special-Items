@@ -4,6 +4,7 @@ import dev.jsinco.brewery.api.brew.Brew;
 import dev.jsinco.brewery.api.brew.BrewScore;
 import dev.jsinco.brewery.api.recipe.Recipe;
 import dev.jsinco.brewery.api.recipe.RecipeRegistry;
+import dev.jsinco.brewery.bukkit.api.TheBrewingProjectApi;
 import dev.jsinco.brewery.bukkit.brew.BrewAdapter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentBuilder;
@@ -28,11 +29,12 @@ public class BreweryPrintableProperty extends PrintableProperty{
 
         Optional<Brew> itemBrew = BrewAdapter.fromItem(item);
         Brew brew = itemBrew.get();
-        RecipeRegistry<ItemStack> registry = getPlugin().getTbp().getRecipeRegistry();
+        TheBrewingProjectApi tbp = getPlugin().getBrewingProject().orElseThrow().getApi();
+        RecipeRegistry<ItemStack> registry = tbp.getRecipeRegistry();
         Optional<Recipe<ItemStack>> recipe = brew.closestRecipe(registry);
         if(recipe.isPresent()){
             BrewScore score = brew.score(recipe.get());
-            return base.append(GlobalTranslator.render(score.displayName(), getPlugin().getTbp().getConfiguration().language()).color(NamedTextColor.GOLD)).append(end).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false));
+            return base.append(GlobalTranslator.render(score.displayName(), tbp.getConfiguration().language()).color(NamedTextColor.GOLD)).append(end).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false));
         }
         return null;
     }
