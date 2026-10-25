@@ -1,0 +1,63 @@
+package org.skysongdev.skysongitems.utils;
+
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * The permission a player needs to use a SkysongItem, keyed by the item's material id,
+ * read from materials.yml. Some plugin integrations use it to stop a player from using
+ * an item they should not be able to.
+ */
+public class MaterialPermissions {
+    private static final String FILE_NAME = "materials.yml";
+
+    private final Map<String, String> permissions = new HashMap<>();
+
+    /** Reads materials.yml from the data folder, creating it with example entries when missing. */
+    public void load(File dataFolder, Logger logger) {
+        File materialFile = new File(dataFolder, FILE_NAME);
+        if (!materialFile.exists()) {
+            createDefaultFile(materialFile, logger);
+        }
+
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(materialFile);
+        ConfigurationSection materials = yaml.getConfigurationSection("materials");
+        if (materials == null) {
+            logger.warning("No materials section found in materials.yml.");
+            return;
+        }
+
+        for (String material : materials.getKeys(false)) {
+            String permission = materials.getString(material);
+            if (permission != null) {
+                permissions.put(material, permission);
+                logger.info("Added material permission: " + material + " -> " + permission);
+            } else {
+                logger.warning("No permission found for material: " + material);
+            }
+        }
+    }
+
+    private static void createDefaultFile(File materialFile, Logger logger) {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("materials.IRON_INGOT", "skysongitems.use.iron");
+        yaml.set("materials.DIAMOND", "skysongitems.use.diamond");
+        try {
+            yaml.save(materialFile);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to create materials.yml: " + e.getMessage(), e);
+        }
+    }
+
+    /** The permission needed to use items with this material id, or null when none is configured. */
+    public String getPermission(String materialId) {
+        return permissions.get(materialId);
+    }
+}

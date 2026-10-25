@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class PrintableProperty extends Property {
     protected String printable;
     protected ArrayList<String> valuetags;
@@ -29,7 +31,7 @@ public class PrintableProperty extends Property {
         while(matcher.find()){
             int index = Integer.parseInt(matcher.group().substring(1)) - 1;
             if (index >= 0 && index < valuetags.size()) {
-                PersistentDataType<?,?> type = Constants.tagList.get(ItemKeys.named(valuetags.get(index)));
+                PersistentDataType<?,?> type = getPlugin().getTagRegistry().getType(ItemKeys.named(valuetags.get(index)));
                 if(item.getItemMeta().getPersistentDataContainer().has(ItemKeys.named(valuetags.get(index)), type)) {
                     String value = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.named(valuetags.get(index)), type).toString();
                     matcher.appendReplacement(result, value);

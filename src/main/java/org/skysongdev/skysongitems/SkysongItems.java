@@ -15,6 +15,9 @@ import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
+import org.skysongdev.skysongitems.utils.MaterialPermissions;
+import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TagRegistry;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.io.File;
@@ -28,6 +31,9 @@ public class SkysongItems extends JavaPlugin {
     private Database database;
     private Updater updater;
     private Utils utils;
+    private final PropertyRegistry propertyRegistry = new PropertyRegistry();
+    private final TagRegistry tagRegistry = new TagRegistry();
+    private final MaterialPermissions materialPermissions = new MaterialPermissions();
     private MiniMessage miniMessage = MiniMessage.miniMessage();
     // Each integration is null when its plugin is not installed.
     private LuckPermsIntegration luckPerms;
@@ -56,6 +62,21 @@ public class SkysongItems extends JavaPlugin {
 
     public Utils getUtils() {
         return utils;
+    }
+
+    /** The item properties configured in config.yml. */
+    public PropertyRegistry getPropertyRegistry() {
+        return propertyRegistry;
+    }
+
+    /** The item tags, built-in and configured in config.yml. */
+    public TagRegistry getTagRegistry() {
+        return tagRegistry;
+    }
+
+    /** The permissions needed to use items, by material id, from materials.yml. */
+    public MaterialPermissions getMaterialPermissions() {
+        return materialPermissions;
     }
 
     public Updater getUpdater() {
@@ -107,9 +128,9 @@ public class SkysongItems extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
 
-        utils.setupTags();
-        utils.setupProperties();
-        utils.InitializeMaterialPermissions();
+        tagRegistry.load(getConfig());
+        propertyRegistry.load(getConfig(), getLogger());
+        materialPermissions.load(getDataFolder(), getLogger());
         fixFilePaths();
 
 

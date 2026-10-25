@@ -25,7 +25,7 @@ public class SkysongItemReloader implements Listener {
             ItemMeta meta = event.getItemSource().itemStack().getItemMeta();
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             String itemId = pdc.get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
-            String permission = Constants.materialPermissions.get(itemId);
+            String permission = getPlugin().getMaterialPermissions().getPermission(itemId);
             if(itemId != null && permission != null){
                 if(!event.getPlayer().hasPermission(permission) && event.getPlayer().hasPermission("skysongspecialitems.cit")){
                     event.setCancelled(true);

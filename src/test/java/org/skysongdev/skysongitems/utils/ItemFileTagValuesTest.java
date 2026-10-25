@@ -39,7 +39,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     }
 
     private static NamespacedKey tag(String id) {
-        return Utils.getTag(id);
+        return SkysongItems.getPlugin().getTagRegistry().getKey(id);
     }
 
     private static YamlConfiguration itemYaml(String type, List<String> tagIds, List<String> values) {

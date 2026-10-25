@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,12 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
-import org.skysongdev.skysongitems.utils.BreweryPrintableProperty;
-import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -52,9 +50,15 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
 
     @Test
     void breweryPropertiesAreLeftOutOfTheLoreWithoutTheBrewingProject() {
-        BreweryPrintableProperty brewQuality = new BreweryPrintableProperty(
-                "brew_quality", "quality", "POTION", "Quality", "Brew quality", "Quality: ;!", new ArrayList<>(), 1);
-        Constants.properties.add(brewQuality);
+        FileConfiguration config = plugin.getConfig();
+        config.set("properties.brew_quality.type", "breweryprintable");
+        config.set("properties.brew_quality.proptype", "quality");
+        config.set("properties.brew_quality.item", "POTION");
+        config.set("properties.brew_quality.name", "Quality");
+        config.set("properties.brew_quality.description", "Brew quality");
+        config.set("properties.brew_quality.printable", "Quality: ;!");
+        config.set("properties.brew_quality.weight", 1);
+        plugin.getPropertyRegistry().load(config, plugin.getLogger());
         ItemStack item = new ItemStack(Material.POTION);
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);

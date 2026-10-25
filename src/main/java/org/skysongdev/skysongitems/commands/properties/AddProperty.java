@@ -16,7 +16,6 @@ import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.PrintableProperty;
 import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,9 +46,9 @@ public class AddProperty implements TabExecutor {
             return true;
         }
 
-        if(!Utils.isAProperty(args[0])){
+        if(!getPlugin().getPropertyRegistry().contains(args[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + Constants.properties.stream().map(Property::getId).toList()));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + getPlugin().getPropertyRegistry().getAll().stream().map(Property::getId).toList()));
             return true;
         }
 
@@ -64,19 +63,19 @@ public class AddProperty implements TabExecutor {
         }
         data.addProperty(args[0]);
 
-        if(Utils.getProperty(args[0]) != null){
-            Property property = Utils.getProperty(args[0]);
+        Property property = getPlugin().getPropertyRegistry().get(args[0]);
+        if(property != null){
             if(property instanceof PrintableProperty){
                 ArrayList<String> values = ((PrintableProperty) property).getValuetags();
                 for(String value : values) {
-                    PersistentDataType type = Constants.tagList.get(ItemKeys.named(value));
-                    if (type == PersistentDataType.STRING) {
+                    PersistentDataType<?, ?> type = getPlugin().getTagRegistry().getType(ItemKeys.named(value));
+                    if (PersistentDataType.STRING.equals(type)) {
                         container.set(ItemKeys.named(value), PersistentDataType.STRING, "");
-                    } else if (type == PersistentDataType.INTEGER) {
+                    } else if (PersistentDataType.INTEGER.equals(type)) {
                         container.set(ItemKeys.named(value), PersistentDataType.INTEGER, 0);
-                    } else if (type == PersistentDataType.FLOAT) {
+                    } else if (PersistentDataType.FLOAT.equals(type)) {
                         container.set(ItemKeys.named(value), PersistentDataType.FLOAT, 0.0f);
-                    } else if (type == PersistentDataType.BOOLEAN) {
+                    } else if (PersistentDataType.BOOLEAN.equals(type)) {
                         container.set(ItemKeys.named(value), PersistentDataType.BOOLEAN, false);
                     }
                 }
@@ -96,7 +95,7 @@ public class AddProperty implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         ArrayList<String> properties = new ArrayList<>();
-        for(Property property : Constants.properties){
+        for(Property property : getPlugin().getPropertyRegistry().getAll()){
             properties.add(property.getId());
         }
         return properties.stream().filter(a -> a.startsWith(args[0])).toList();

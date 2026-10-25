@@ -9,10 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +44,7 @@ public class ViewProperties implements TabExecutor {
             return true;
         }
 
-        if(!(Constants.propertyTypes.contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
+        if(!(getPlugin().getPropertyRegistry().getPropertyTypes().contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Invalid property type!"));
             return true;
         }
@@ -54,12 +52,12 @@ public class ViewProperties implements TabExecutor {
         StringBuilder bufferString = new StringBuilder();
 
         if(proptype.equalsIgnoreCase("all")){
-            for(String prop : Constants.propertyTypes){
+            for(String prop : getPlugin().getPropertyRegistry().getPropertyTypes()){
                 for(String string : data.getProperties()){
-                    if(!Objects.equals(Utils.getProperty(string).getPropType(), prop)){
+                    if(!Objects.equals(getPlugin().getPropertyRegistry().get(string).getPropType(), prop)){
                         continue;
                     }
-                    Property property = Utils.getProperty(string);
+                    Property property = getPlugin().getPropertyRegistry().get(string);
                     bufferString.append("<hover:show_text:\"<gray>").append(property.getDescription()).append("\"><gray>").append(property.getName()).append("</hover>, ");
                 }
                 if(bufferString.length() > 0) {
@@ -72,10 +70,10 @@ public class ViewProperties implements TabExecutor {
         } else {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<gold><u><b>" + proptype));
             for(String string : data.getProperties()){
-                if(!Objects.equals(Utils.getProperty(string).getPropType(), proptype)){
+                if(!Objects.equals(getPlugin().getPropertyRegistry().get(string).getPropType(), proptype)){
                     continue;
                 }
-                Property property = Utils.getProperty(string);
+                Property property = getPlugin().getPropertyRegistry().get(string);
                 bufferString.append("<hover:show_text:\"<gray>").append(property.getDescription()).append("\"><gray>").append(property.getName()).append("<reset>, ");
                 bufferString.replace(0, bufferString.length(), bufferString.substring(0, bufferString.length() - 2)) ;
             }
@@ -87,6 +85,6 @@ public class ViewProperties implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return Constants.propertyTypes.stream().filter(a -> a.startsWith(strings[0])).toList();
+        return getPlugin().getPropertyRegistry().getPropertyTypes().stream().filter(a -> a.startsWith(strings[0])).toList();
     }
 }

@@ -7,7 +7,6 @@ import io.papermc.paper.datacomponent.item.PotionContents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -16,155 +15,12 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 public class Utils {
-    public void setupProperties(){
-        Constants.properties.clear();
-        Logger logger = getPlugin().getLogger();
-        if (getPlugin().getConfig().getConfigurationSection("properties") == null) {
-            logger.warning("No properties section found in the configuration.");
-            return;
-        }
-        List<String> set = getPlugin().getConfig().getConfigurationSection("properties").getKeys(false).stream().toList();
-        for (String property : set) {
-            logger.warning("Adding property: " + property);
-            String type = getPlugin().getConfig().getString("properties." + property + ".type");
-            String proptype = getPlugin().getConfig().getString("properties." + property + ".proptype");
-            String item = getPlugin().getConfig().getString("properties." + property + ".item");
-            String name = getPlugin().getConfig().getString("properties." + property + ".name");
-            String description = getPlugin().getConfig().getString("properties." + property + ".description");
-
-            switch(type.toLowerCase()){
-                case "rename":
-                    String tag = getPlugin().getConfig().getString("properties." + property + ".tag");
-                    Constants.properties.add(new RenameProperty(property, proptype, item, name, description, tag));
-                    logger.info("Added RenameProperty: " + property);
-                    break;
-                case "printable":
-                    String printable = getPlugin().getConfig().getString("properties." + property + ".printable");
-                    ArrayList<String> tags = new ArrayList<>(getPlugin().getConfig().getStringList("properties." + property + ".valuetags"));
-                    int weight = getPlugin().getConfig().getInt("properties." + property + ".weight");
-                    Constants.properties.add(new PrintableProperty(property, proptype, item, name, description, printable, tags, weight));
-                    logger.info("Added PrintableProperty: " + property);
-                    break;
-                case "breweryprintable":
-                    String brewPrintable = getPlugin().getConfig().getString("properties." + property + ".printable");
-                    ArrayList<String> brewTags = new ArrayList<>(getPlugin().getConfig().getStringList("properties." + property + ".valuetags"));
-                    int brewWeight = getPlugin().getConfig().getInt("properties." + property + ".weight");
-                    Constants.properties.add(new BreweryPrintableProperty(property, proptype, item, name, description, brewPrintable, brewTags, brewWeight));
-                    logger.info("Added BreweryPrintableProperty: " + property);
-                    break;
-                default:
-                    Constants.properties.add(new Property(property, proptype, item, name, description));
-                    logger.info("Added Property: " + property);
-
-            }
-
-            if(!Constants.propertyTypes.contains(proptype)){
-                Constants.propertyTypes.add(proptype);
-            }
-        }
-        logger.info("Total properties added: " + Constants.properties.size());
-    }
-
-    public void setupTags(){
-        Constants.tagList.clear();
-        List<String> set = getPlugin().getConfig().getConfigurationSection("tags").getKeys(false).stream().toList();
-        addStaticTags();
-        for(String tag : set){
-            PersistentDataType type = null;
-            switch(getPlugin().getConfig().getString("tags."+tag+".type").toLowerCase()){
-                case "int":
-                    type = PersistentDataType.INTEGER;
-                    break;
-                case "string":
-                    type = PersistentDataType.STRING;
-                    break;
-                case "float":
-                    type = PersistentDataType.FLOAT;
-                    break;
-                case "bool":
-                    type = PersistentDataType.BOOLEAN;
-                    break;
-            }
-            Constants.tagList.put(ItemKeys.named(getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
-        }
-    }
-
-    public void addStaticTags(){
-        Constants.tagList.put(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        Constants.tagList.put(ItemKeys.CHARGES, PersistentDataType.INTEGER);
-        Constants.tagList.put(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN);
-        Constants.tagList.put(ItemKeys.VERSION, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.LORE, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.NAME, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
-        Constants.tagList.put(ItemKeys.PERMISSION, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.FURNITURE_MODEL, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.SHIFT_RIGHT_CLICKABLE, PersistentDataType.BOOLEAN);
-        Constants.tagList.put(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING);
-        Constants.tagList.put(ItemKeys.DYE_COLOR, PersistentDataType.INTEGER);
-    }
-
-    public static boolean isAProperty(String id){
-        for(Property property : Constants.properties){
-            if(property.getId().equalsIgnoreCase(id)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isATag(String id){
-        for(NamespacedKey key : Constants.tagList.keySet()){
-            if(key.getKey().equalsIgnoreCase(id)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static NamespacedKey getTag(String id){
-        for(NamespacedKey key : Constants.tagList.keySet()){
-            if(key.getKey().equalsIgnoreCase(id)){
-                return key;
-            }
-        }
-        return null;
-    }
-
-    public static ArrayList<NamespacedKey> getAllTagsInItem(ItemStack item){
-        ArrayList<NamespacedKey> tags = new ArrayList<>();
-        if(item == null || item.getType() == Material.AIR){
-            return tags;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if(meta == null){
-            return tags;
-        }
-        for(NamespacedKey key : meta.getPersistentDataContainer().getKeys()){
-            if(Constants.tagList.containsKey(key)){
-                tags.add(key);
-            }
-        }
-        return tags;
-    }
-
-    public static Property getProperty(String id){
-        for(Property property : Constants.properties){
-            if(property.getId().equalsIgnoreCase(id)){
-                return property;
-            }
-        }
-        return null;
-    }
-
     public ItemStack GenerateSkysongItem(SkysongItem item){
         if(Objects.equals(item.getType(), Material.PLAYER_HEAD.toString())) {
             SkysongSkullItem skullItem = (SkysongSkullItem) item;
@@ -209,26 +65,29 @@ public class Utils {
 
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
 
+        TagRegistry tagRegistry = getPlugin().getTagRegistry();
         if(!tags.isEmpty())
             for(int i = 0; i < tags.size(); i++){
-                if(!isATag(tags.get(i))){
+                if(!tagRegistry.contains(tags.get(i))){
                     continue;
                 }
-                if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.BOOLEAN){
+                NamespacedKey tag = tagRegistry.getKey(tags.get(i));
+                PersistentDataType<?, ?> tagType = tagRegistry.getType(tag);
+                if(PersistentDataType.BOOLEAN.equals(tagType)){
                     boolean value = Boolean.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(tag, PersistentDataType.BOOLEAN, value);
                 }
-                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.INTEGER){
+                else if(PersistentDataType.INTEGER.equals(tagType)){
                     int value = Integer.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(tag, PersistentDataType.INTEGER, value);
                 }
-                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.FLOAT){
+                else if(PersistentDataType.FLOAT.equals(tagType)){
                     float value = Float.valueOf(values.get(i));
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(tag, PersistentDataType.FLOAT, value);
                 }
-                else if(Constants.tagList.get(getTag(tags.get(i))) == PersistentDataType.STRING){
+                else if(PersistentDataType.STRING.equals(tagType)){
                     String value = values.get(i);
-                    meta.getPersistentDataContainer().set(getTag(tags.get(i)), Constants.tagList.get(getTag(tags.get(i))), value);
+                    meta.getPersistentDataContainer().set(tag, PersistentDataType.STRING, value);
                 } else {
                     getPlugin().getLogger().warning("Unknown tag type for tag: " + tags.get(i));
                 }
@@ -285,7 +144,7 @@ public class Utils {
             StringBuilder returnMessage = new StringBuilder();
             ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
             for(String property : currentProperties){
-                Property bufferProp = Utils.getProperty(property);
+                Property bufferProp = getPlugin().getPropertyRegistry().get(property);
                 if(!(bufferProp instanceof PrintableProperty prop)){
                     continue;
                 }
@@ -335,7 +194,7 @@ public class Utils {
             }
 
             for(String property : currentProperties){
-                Property bufferProp = Utils.getProperty(property);
+                Property bufferProp = getPlugin().getPropertyRegistry().get(property);
                 if(!(bufferProp instanceof RenameProperty)){
                     continue;
                 }
@@ -364,43 +223,6 @@ public class Utils {
             return false;
         }
         return meta.getPersistentDataContainer().has(ItemKeys.VERSION, PersistentDataType.STRING);
-    }
-
-    public void InitializeMaterialPermissions(){
-        // This grabs a file from the plugin's data folder called "materials.yml"
-        // and reads through it, saving the material id and the permission node required to
-        // use it to a map. This is used for some plugin integrations to deny the ability for a player to
-        // use a SkysongItem they shouldn't be able to.
-        File materialFile = new File(getPlugin().getDataFolder(), "materials.yml");
-        YamlConfiguration yaml = new YamlConfiguration();
-        if(!materialFile.exists()){
-            try {
-                materialFile.createNewFile();
-                yaml.set("materials.IRON_INGOT", "skysongitems.use.iron");
-                yaml.set("materials.DIAMOND", "skysongitems.use.diamond");
-                yaml.save(materialFile);
-            } catch (IOException e) {
-                getPlugin().getLogger().severe("Failed to create materials.yml: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-
-        yaml = YamlConfiguration.loadConfiguration(materialFile);
-        if (yaml.getConfigurationSection("materials") == null) {
-            getPlugin().getLogger().warning("No materials section found in materials.yml.");
-            return;
-        }
-
-        List<String> set = yaml.getConfigurationSection("materials").getKeys(false).stream().toList();
-        for(String material : set){
-            String permission = yaml.getString("materials." + material);
-            if(permission != null){
-                Constants.materialPermissions.put(material, permission);
-                getPlugin().getLogger().info("Added material permission: " + material + " -> " + permission);
-            } else {
-                getPlugin().getLogger().warning("No permission found for material: " + material);
-            }
-        }
     }
 
     public static ArrayList<ItemStack> consumeItem(ItemStack item){
