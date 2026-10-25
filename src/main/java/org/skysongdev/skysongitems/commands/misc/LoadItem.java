@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 
@@ -49,7 +50,7 @@ public class LoadItem implements TabExecutor {
 
         SkysongItem item = ItemTemplateRepository.load(itemFile);
 
-        player.getInventory().addItem(SkysongItems.getPlugin().getUtils().GenerateSkysongItem(item));
+        player.getInventory().addItem(ItemFactory.create(item));
 
         player.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Item loaded successfully!"));
 

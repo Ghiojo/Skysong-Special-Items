@@ -18,7 +18,6 @@ import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.MaterialPermissions;
 import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -30,7 +29,6 @@ public class SkysongItems extends JavaPlugin {
     private static SkysongItems plugin;
     private Database database;
     private Updater updater;
-    private Utils utils;
     private final PropertyRegistry propertyRegistry = new PropertyRegistry();
     private final TagRegistry tagRegistry = new TagRegistry();
     private final MaterialPermissions materialPermissions = new MaterialPermissions();
@@ -58,10 +56,6 @@ public class SkysongItems extends JavaPlugin {
     /** LuckPerms integration, empty when LuckPerms is not installed. */
     public Optional<LuckPermsIntegration> getLuckPerms() {
         return Optional.ofNullable(luckPerms);
-    }
-
-    public Utils getUtils() {
-        return utils;
     }
 
     /** The item properties configured in config.yml. */
@@ -105,7 +99,6 @@ public class SkysongItems extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
-        utils = new Utils();
         if (brewingProject != null) {
             brewingProject.enable(this);
         }

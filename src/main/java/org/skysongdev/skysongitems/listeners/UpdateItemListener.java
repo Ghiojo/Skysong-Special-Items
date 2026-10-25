@@ -19,7 +19,7 @@ public class UpdateItemListener implements Listener {
         plugin.getUpdater().UpdateItem(event.getPlayer());
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
 
-        item = Utils.updateItemLore(item);
+        item = ItemLoreRenderer.refresh(item);
         event.getPlayer().getInventory().setItemInMainHand(item);
         event.getPlayer().updateInventory();
     }

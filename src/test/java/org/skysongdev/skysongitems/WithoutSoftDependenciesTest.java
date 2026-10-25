@@ -12,7 +12,8 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
+import org.skysongdev.skysongitems.utils.PermissionItems;
 
 import java.util.List;
 
@@ -44,8 +45,17 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
     void permissionItemsGrantNothingWithoutLuckPerms() {
         PlayerMock player = server.addPlayer();
 
-        assertDoesNotThrow(() -> Utils.updatePlayerPermissions(player, true, "skysongitems.test"));
+        assertDoesNotThrow(() -> PermissionItems.grant(player, "skysongitems.test"));
         assertFalse(player.hasPermission("skysongitems.test"));
+    }
+
+    @Test
+    void permissionItemsRevokeNothingWithoutLuckPerms() {
+        PlayerMock player = server.addPlayer();
+        player.addAttachment(plugin, "skysongitems.test", true);
+
+        assertDoesNotThrow(() -> PermissionItems.revoke(player, "skysongitems.test"));
+        assertTrue(player.hasPermission("skysongitems.test"));
     }
 
     @Test
@@ -66,7 +76,7 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
         data.setPropertiesText("brew_quality");
         item.setItemMeta(meta);
 
-        ItemStack updated = assertDoesNotThrow(() -> Utils.updateItemLore(item));
+        ItemStack updated = assertDoesNotThrow(() -> ItemLoreRenderer.refresh(item));
 
         List<Component> lore = updated.getItemMeta().lore();
         assertTrue(lore.stream()

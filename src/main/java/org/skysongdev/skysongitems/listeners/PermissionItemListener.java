@@ -16,7 +16,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.PermissionItems;
 
 import java.util.Map;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -27,7 +27,7 @@ public class PermissionItemListener implements Listener {
     public void onItemDrop(PlayerDropItemEvent event){
         if(isItemAPermissionItem(event.getItemDrop().getItemStack())){
             String permission = event.getItemDrop().getItemStack().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-            Utils.updatePlayerPermissions(event.getPlayer(), false, permission);
+            PermissionItems.revoke(event.getPlayer(), permission);
         }
     }
 
@@ -36,7 +36,7 @@ public class PermissionItemListener implements Listener {
         if(event.getEntity() instanceof Player player){
             if(isItemAPermissionItem(event.getItem().getItemStack())){
                 String permission = event.getItem().getItemStack().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-                Utils.updatePlayerPermissions(player, true, permission);
+                PermissionItems.grant(player, permission);
             }
         }
     }
@@ -45,7 +45,7 @@ public class PermissionItemListener implements Listener {
     public void onItemConsumption(PlayerItemConsumeEvent event){
         if(event.getItem().hasItemMeta() && event.getItem().getItemMeta().getPersistentDataContainer().has(ItemKeys.PERMISSION)){
             String permission = event.getItem().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-            Utils.updatePlayerPermissions(event.getPlayer(), false, permission);
+            PermissionItems.revoke(event.getPlayer(), permission);
         }
     }
 
@@ -74,11 +74,11 @@ public class PermissionItemListener implements Listener {
                 return;
             if(isItemAPermissionItem(hotbarItem)){
                 ItemMeta meta = hotbarItem.getItemMeta();
-                Utils.updatePlayerPermissions(player, false, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
             }
             if(isItemAPermissionItem(event.getCurrentItem())){
                 ItemMeta meta = event.getCurrentItem().getItemMeta();
-                Utils.updatePlayerPermissions(player, true, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
             }
         }
 
@@ -88,11 +88,11 @@ public class PermissionItemListener implements Listener {
                 meta = event.getCurrentItem().getItemMeta();
                 if(event.getClickedInventory() == player.getInventory()) {
                     if (willInventoryAcceptItem(event.getCurrentItem(), event.getView().getTopInventory()))
-                        Utils.updatePlayerPermissions(player, false, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                        PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
                 }
                 else {
                     if(willInventoryAcceptItem(event.getCurrentItem(), player.getInventory()))
-                        Utils.updatePlayerPermissions(player, true, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                        PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
                 }
             }
         } else {
@@ -101,11 +101,11 @@ public class PermissionItemListener implements Listener {
             ItemMeta meta;
             if(isItemAPermissionItem(event.getCurrentItem())){
                 meta = event.getCurrentItem().getItemMeta();
-                Utils.updatePlayerPermissions(player, false, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
             }
             if(isItemAPermissionItem(event.getCursor())){
                 meta = event.getCursor().getItemMeta();
-                Utils.updatePlayerPermissions(player, true, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
             }
         }
     }
@@ -123,7 +123,7 @@ public class PermissionItemListener implements Listener {
 
         for (int slotIndex : event.getNewItems().keySet()) {
             if (slotIndex >= topSize) {
-                Utils.updatePlayerPermissions(player, true, event.getNewItems().get(slotIndex).getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+                PermissionItems.grant(player, event.getNewItems().get(slotIndex).getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
             }
         }
     }

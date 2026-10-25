@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ConsumptionHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class ConsumptionListener implements Listener {
         }
         PersistentDataContainer pdc = event.getItem().getItemMeta().getPersistentDataContainer();
         if(pdc.has(ItemKeys.ON_CONSUMPTION)){
-            ArrayList<ItemStack> remainingItems = Utils.consumeItem(event.getItem());
+            ArrayList<ItemStack> remainingItems = ConsumptionHandler.consume(event.getItem());
             if(!remainingItems.isEmpty()){
                 event.setReplacement(remainingItems.getFirst());
                 if(remainingItems.size() > 1) {
