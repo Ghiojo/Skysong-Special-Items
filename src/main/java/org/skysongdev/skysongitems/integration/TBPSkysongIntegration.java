@@ -10,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 import org.skysongdev.skysongitems.utils.TextParser;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
@@ -72,8 +71,8 @@ public class TBPSkysongIntegration implements ItemIntegration {
         //checks for the item's id in its corresponding material_id tag. If it doesn't have one, return null
         getPlugin().getLogger().warning("Getting item id for " + itemStack);
         if(itemStack.getItemMeta() != null && itemStack.getItemMeta().getPersistentDataContainer().has(ItemKeys.MATERIAL_ID)){
-            getPlugin().getLogger().warning("Found material id key for item: " + itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, Constants.tagList.get(ItemKeys.MATERIAL_ID)));
-            return (String) itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, Constants.tagList.get(ItemKeys.MATERIAL_ID));
+            getPlugin().getLogger().warning("Found material id key for item: " + itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, getPlugin().getTagRegistry().getType(ItemKeys.MATERIAL_ID)));
+            return (String) itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, getPlugin().getTagRegistry().getType(ItemKeys.MATERIAL_ID));
         }
         getPlugin().getLogger().warning("No material id key found. meta" + itemStack.getItemMeta() + " pdc " + itemStack.getItemMeta().getPersistentDataContainer());
         return null;

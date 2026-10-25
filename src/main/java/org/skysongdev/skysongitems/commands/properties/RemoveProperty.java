@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public class RemoveProperty implements TabExecutor {
             return true;
         }
 
-        if(!Utils.isAProperty(strings[0])){
+        if(!getPlugin().getPropertyRegistry().contains(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
         }
 

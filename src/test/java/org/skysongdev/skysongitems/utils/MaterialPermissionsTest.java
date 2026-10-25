@@ -28,11 +28,11 @@ class MaterialPermissionsTest extends MockBukkitTest {
     }
 
     private void reloadMaterialPermissions() {
-        plugin.getUtils().InitializeMaterialPermissions();
+        plugin.getMaterialPermissions().load(plugin.getDataFolder(), plugin.getLogger());
     }
 
-    private static String permissionFor(String materialId) {
-        return Constants.materialPermissions.get(materialId);
+    private String permissionFor(String materialId) {
+        return plugin.getMaterialPermissions().getPermission(materialId);
     }
 
     @Test

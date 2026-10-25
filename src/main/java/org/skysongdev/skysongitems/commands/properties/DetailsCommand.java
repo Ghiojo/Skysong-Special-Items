@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.Utils;
 import org.skysongdev.skysongitems.utils.ItemData;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class DetailsCommand implements CommandExecutor {
             List<String> currentProperties = data.getProperties();
             StringBuilder returnMessage = new StringBuilder();
             for (String property : currentProperties) {
-                Property prop = Utils.getProperty(property);
+                Property prop = getPlugin().getPropertyRegistry().get(property);
                 returnMessage.append("<gold><hover:show_text:\"<gold>").append(prop.getName()).append("<newline><gray><i>").append(prop.getType()).append("property<newline><newline><gray>").append(prop.getDescription()).append("\">").append(prop.getName()).append("</hover></gold>").append("<#864811>, ");
             }
             player.sendMessage(getPlugin().getMiniMessage().deserialize(returnMessage.toString()));

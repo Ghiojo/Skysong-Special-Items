@@ -33,27 +33,27 @@ class TagRegistryTest extends MockBukkitTest {
     }
 
     private void reloadTags() {
-        plugin.getUtils().setupTags();
+        plugin.getTagRegistry().load(plugin.getConfig());
     }
 
-    private static NamespacedKey tag(String id) {
-        return Utils.getTag(id);
+    private NamespacedKey tag(String id) {
+        return plugin.getTagRegistry().getKey(id);
     }
 
-    private static boolean isTag(String id) {
-        return Utils.isATag(id);
+    private boolean isTag(String id) {
+        return plugin.getTagRegistry().contains(id);
     }
 
-    private static PersistentDataType<?, ?> typeOf(NamespacedKey key) {
-        return Constants.tagList.get(key);
+    private PersistentDataType<?, ?> typeOf(NamespacedKey key) {
+        return plugin.getTagRegistry().getType(key);
     }
 
-    private static boolean isRegistered(NamespacedKey key) {
-        return Constants.tagList.containsKey(key);
+    private boolean isRegistered(NamespacedKey key) {
+        return plugin.getTagRegistry().contains(key);
     }
 
-    private static List<NamespacedKey> tagsIn(ItemStack item) {
-        return Utils.getAllTagsInItem(item);
+    private List<NamespacedKey> tagsIn(ItemStack item) {
+        return plugin.getTagRegistry().getTagsIn(item);
     }
 
     private void configureOnlyTag(String id, String type) {

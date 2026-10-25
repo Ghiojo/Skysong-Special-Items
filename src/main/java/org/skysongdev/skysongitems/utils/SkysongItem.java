@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+
 public class SkysongItem {
     private String name;
     private ArrayList<String> lore;
@@ -66,8 +68,8 @@ public class SkysongItem {
         this.deleted = data.getDeletedLines();
         this.properties = data.getPropertiesText();
         this.tagValues = new LinkedHashMap<>();
-        for(NamespacedKey tag : Utils.getAllTagsInItem(item)) {
-            Object returnValue = dataContainer.get(tag, Constants.tagList.get(tag));
+        for(NamespacedKey tag : getPlugin().getTagRegistry().getTagsIn(item)) {
+            Object returnValue = dataContainer.get(tag, getPlugin().getTagRegistry().getType(tag));
             if (returnValue instanceof String || returnValue instanceof Integer
                     || returnValue instanceof Float || returnValue instanceof Boolean) {
                 tagValues.put(tag, String.valueOf(returnValue));
@@ -123,7 +125,7 @@ public class SkysongItem {
     public static LinkedHashMap<NamespacedKey, String> pairTagValues(List<String> tagIds, List<String> values) {
         LinkedHashMap<NamespacedKey, String> pairs = new LinkedHashMap<>();
         for (int i = 0; i < tagIds.size() && i < values.size(); i++) {
-            NamespacedKey tag = Utils.getTag(tagIds.get(i));
+            NamespacedKey tag = getPlugin().getTagRegistry().getKey(tagIds.get(i));
             if (tag != null) {
                 pairs.put(tag, values.get(i));
             }

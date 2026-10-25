@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.TagRegistry;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
@@ -40,47 +41,49 @@ public class SetTag implements TabExecutor {
             return true;
         }
 
-        if(!(Utils.isATag(strings[0]))){
+        TagRegistry tagRegistry = getPlugin().getTagRegistry();
+        if(!(tagRegistry.contains(strings[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid Tag!"));
             return true;
         }
 
-        PersistentDataType<?, ?> tagValue = Constants.tagList.get(Utils.getTag(strings[0]));
+        NamespacedKey tag = tagRegistry.getKey(strings[0]);
+        PersistentDataType<?, ?> tagValue = tagRegistry.getType(tag);
 
         ItemMeta meta = itemInMainHand.getItemMeta();
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(tagValue == PersistentDataType.INTEGER){
+        if(PersistentDataType.INTEGER.equals(tagValue)){
             try{
                 Integer.parseInt(strings[1]);
             } catch (NumberFormatException e){
                 player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires a Number)"));
                 return true;
             }
-            container.set(Utils.getTag(strings[0]), Constants.tagList.get(Utils.getTag(strings[0])), Integer.parseInt(strings[1]));
-        } else if(tagValue == PersistentDataType.BOOLEAN){
+            container.set(tag, PersistentDataType.INTEGER, Integer.parseInt(strings[1]));
+        } else if(PersistentDataType.BOOLEAN.equals(tagValue)){
             if(!(strings[1].equalsIgnoreCase("true") || strings[1].equalsIgnoreCase("false"))){
                 player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires True or False)"));
                 return true;
             }
-            container.set(Utils.getTag(strings[0]), Constants.tagList.get(Utils.getTag(strings[0])), strings[1].equalsIgnoreCase("true"));
-        }  else if (tagValue == PersistentDataType.FLOAT){
+            container.set(tag, PersistentDataType.BOOLEAN, strings[1].equalsIgnoreCase("true"));
+        }  else if (PersistentDataType.FLOAT.equals(tagValue)){
             try{
                 Float.parseFloat(strings[1]);
             } catch (NumberFormatException e){
                 player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires a Number)"));
                 return true;
             }
-            container.set(Utils.getTag(strings[0]), Constants.tagList.get(Utils.getTag(strings[0])), Float.parseFloat(strings[1]));
-        } else if (tagValue == PersistentDataType.STRING){
+            container.set(tag, PersistentDataType.FLOAT, Float.parseFloat(strings[1]));
+        } else if (PersistentDataType.STRING.equals(tagValue)){
             if(strings[0].equals("permission")){
-                if(container.has(Utils.getTag("permission"), PersistentDataType.STRING)){
-                    Utils.updatePlayerPermissions(player, false, container.get(Utils.getTag("permission"), PersistentDataType.STRING));
+                if(container.has(tag, PersistentDataType.STRING)){
+                    Utils.updatePlayerPermissions(player, false, container.get(tag, PersistentDataType.STRING));
                 }
                 Utils.updatePlayerPermissions(player, true, strings[1]);
             }
-            container.set(Utils.getTag(strings[0]), Constants.tagList.get(Utils.getTag(strings[0])), strings[1]);
+            container.set(tag, PersistentDataType.STRING, strings[1]);
         }
 
         itemInMainHand.setItemMeta(meta);
@@ -98,7 +101,7 @@ public class SetTag implements TabExecutor {
             return List.of("NO ITEM IN HAND");
 
         if(strings.length == 1){
-            for(NamespacedKey tag : Constants.tagList.keySet()){
+            for(NamespacedKey tag : getPlugin().getTagRegistry().getKeys()){
                     tags.add(tag.getKey());
             }
             return tags.stream().filter(a -> a.startsWith(strings[0])).toList();

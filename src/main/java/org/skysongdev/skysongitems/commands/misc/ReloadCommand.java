@@ -21,8 +21,8 @@ public class ReloadCommand implements CommandExecutor {
         }
         getPlugin().reloadConfig();
 
-        getPlugin().getUtils().setupProperties();
-        getPlugin().getUtils().setupTags();
+        getPlugin().getPropertyRegistry().load(getPlugin().getConfig(), getPlugin().getLogger());
+        getPlugin().getTagRegistry().load(getPlugin().getConfig());
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Config reloaded!"));
         // Reload item files

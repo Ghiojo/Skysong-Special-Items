@@ -33,23 +33,23 @@ class PropertyRegistryTest extends MockBukkitTest {
     }
 
     private void reloadProperties() {
-        plugin.getUtils().setupProperties();
+        plugin.getPropertyRegistry().load(plugin.getConfig(), plugin.getLogger());
     }
 
-    private static Property property(String id) {
-        return Utils.getProperty(id);
+    private Property property(String id) {
+        return plugin.getPropertyRegistry().get(id);
     }
 
-    private static boolean isProperty(String id) {
-        return Utils.isAProperty(id);
+    private boolean isProperty(String id) {
+        return plugin.getPropertyRegistry().contains(id);
     }
 
-    private static List<Property> allProperties() {
-        return Constants.properties;
+    private List<Property> allProperties() {
+        return plugin.getPropertyRegistry().getAll();
     }
 
-    private static List<String> propertyTypes() {
-        return Constants.propertyTypes;
+    private List<String> propertyTypes() {
+        return plugin.getPropertyRegistry().getPropertyTypes();
     }
 
     /** Replaces the properties section with a single property of the given type. */

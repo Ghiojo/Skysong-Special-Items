@@ -33,7 +33,7 @@ public class UpdateItem implements CommandExecutor {
             return true;
         }
 
-        for(Property property : Constants.properties){
+        for(Property property : getPlugin().getPropertyRegistry().getAll()){
             if(property instanceof PrintableProperty || property instanceof RenameProperty){
                 continue;
             }

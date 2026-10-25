@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.TagRegistry;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
@@ -39,14 +40,15 @@ public class RemoveTag implements TabExecutor {
             return true;
         }
 
-        if(!(Utils.isATag(strings[0]))){
+        TagRegistry tagRegistry = getPlugin().getTagRegistry();
+        if(!(tagRegistry.contains(strings[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid Tag!"));
             return true;
         }
 
-        NamespacedKey tag = Utils.getTag(strings[0]);
+        NamespacedKey tag = tagRegistry.getKey(strings[0]);
 
-        PersistentDataType<?,?> tagValue = Constants.tagList.get(tag);
+        PersistentDataType<?,?> tagValue = tagRegistry.getType(tag);
 
         ItemMeta meta = itemInMainHand.getItemMeta();
 
@@ -81,7 +83,7 @@ public class RemoveTag implements TabExecutor {
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
         for(NamespacedKey tag : meta.getPersistentDataContainer().getKeys()){
-            if(!Constants.tagList.containsKey(tag)){
+            if(!getPlugin().getTagRegistry().contains(tag)){
                 continue;
             }
             if(tag.getKey().startsWith(strings[0].toLowerCase())){

@@ -8,7 +8,6 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
-import org.skysongdev.skysongitems.utils.Utils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,9 +48,9 @@ class ReloadCommandTest extends MockBukkitTest {
 
         runReload();
 
-        assertTrue(Utils.isAProperty("added"));
-        assertTrue(Utils.isATag("added_tag"));
-        assertTrue(Utils.isAProperty("charges"));
+        assertTrue(plugin.getPropertyRegistry().contains("added"));
+        assertTrue(plugin.getTagRegistry().contains("added_tag"));
+        assertTrue(plugin.getPropertyRegistry().contains("charges"));
     }
 
     @Test
@@ -60,7 +59,7 @@ class ReloadCommandTest extends MockBukkitTest {
 
         runReload();
 
-        assertFalse(Utils.isAProperty("added"));
-        assertFalse(Utils.isATag("added_tag"));
+        assertFalse(plugin.getPropertyRegistry().contains("added"));
+        assertFalse(plugin.getTagRegistry().contains("added_tag"));
     }
 }
