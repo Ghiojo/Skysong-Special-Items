@@ -4,10 +4,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
+import org.skysongdev.skysongitems.commands.lore.LoreSection;
+import org.skysongdev.skysongitems.commands.lore.LoreSectionCommand;
 import org.skysongdev.skysongitems.commands.lore.Updater;
-import org.skysongdev.skysongitems.commands.lore.funcionaldesc.FunctionalDesc;
-import org.skysongdev.skysongitems.commands.lore.physicaldesc.PhysicalDesc;
-import org.skysongdev.skysongitems.commands.lore.skilldesc.SkillDesc;
 import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.Pinger;
 import org.skysongdev.skysongitems.integration.BrewingProjectIntegration;
@@ -101,9 +100,9 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
-        getCommand("physdesc").setExecutor(new PhysicalDesc());
-        getCommand("funcdesc").setExecutor(new FunctionalDesc());
-        getCommand("skilldesc").setExecutor(new SkillDesc());
+        for (LoreSection section : LoreSection.values()) {
+            getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
+        }
 
         getServer().getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
 
