@@ -9,22 +9,18 @@ package org.skysongdev.skysongitems.commands.lore;
  * command name and permission must match the ones declared in plugin.yml.
  */
 public enum LoreSection {
-    PHYSICAL("physdesc", "skysongitems.pd", 0, 0),
-    FUNCTIONAL("funcdesc", "skysongitems.fd", 1, 1),
-    // Known bug, kept as it was: /skilldesc dl deletes a line from the
-    // functional section. The fix is to change the last argument to 2.
-    SKILL("skilldesc", "skysongitems.sd", 2, 1);
+    PHYSICAL("physdesc", "skysongitems.pd", 0),
+    FUNCTIONAL("funcdesc", "skysongitems.fd", 1),
+    SKILL("skilldesc", "skysongitems.sd", 2);
 
     private final String commandName;
     private final String permission;
     private final int index;
-    private final int deleteLineIndex;
 
-    LoreSection(String commandName, String permission, int index, int deleteLineIndex) {
+    LoreSection(String commandName, String permission, int index) {
         this.commandName = commandName;
         this.permission = permission;
         this.index = index;
-        this.deleteLineIndex = deleteLineIndex;
     }
 
     public String getCommandName() {
@@ -37,11 +33,6 @@ public enum LoreSection {
 
     public int getIndex() {
         return index;
-    }
-
-    /** The index of the section that "dl" deletes a line from. */
-    public int getDeleteLineIndex() {
-        return deleteLineIndex;
     }
 
     // The three commands started as copies of each other and drifted apart.

@@ -50,13 +50,12 @@ class LoreSectionCommandsTest extends MockBukkitTest {
 
     private PlayerMock player;
 
-    /** Command name, alias, section index, and the section that "dl" deletes from. */
+    /** Command name, alias and section index. */
     static Stream<Arguments> commands() {
         return Stream.of(
-                Arguments.of("physdesc", "pd", 0, 0),
-                Arguments.of("funcdesc", "fd", 1, 1),
-                // Known bug, kept as is: /skilldesc dl deletes from the functional section.
-                Arguments.of("skilldesc", "sd", 2, 1));
+                Arguments.of("physdesc", "pd", 0),
+                Arguments.of("funcdesc", "fd", 1),
+                Arguments.of("skilldesc", "sd", 2));
     }
 
     @BeforeEach
@@ -115,20 +114,29 @@ class LoreSectionCommandsTest extends MockBukkitTest {
 
     @ParameterizedTest
     @MethodSource("commands")
-    void deleteLineRemovesTheGivenLine(String name, String alias, int index, int deleteLineIndex) {
+    void deleteLineRemovesTheGivenLine(String name, String alias, int index) {
         player.performCommand(name + " dl 1");
 
-        List<String> expected = TextParser.deleteLine(deleteLineIndex, 1, new ArrayList<>(SECTIONS));
+        List<String> expected = TextParser.deleteLine(index, 1, new ArrayList<>(SECTIONS));
         assertEquals(expected, storedSections());
     }
 
     @ParameterizedTest
     @MethodSource("commands")
-    void deleteLineLongFormRemovesTheGivenLine(String name, String alias, int index, int deleteLineIndex) {
+    void deleteLineLongFormRemovesTheGivenLine(String name, String alias, int index) {
         player.performCommand(name + " delline 2");
 
-        List<String> expected = TextParser.deleteLine(deleteLineIndex, 2, new ArrayList<>(SECTIONS));
+        List<String> expected = TextParser.deleteLine(index, 2, new ArrayList<>(SECTIONS));
         assertEquals(expected, storedSections());
+    }
+
+    @Test
+    void skillDeleteLineLeavesTheFunctionalSectionAlone() {
+        // /skilldesc dl used to delete the line from the functional section.
+        player.performCommand("skilldesc dl 1");
+
+        assertEquals(SECTIONS.get(1), storedSections().get(1));
+        assertEquals("<#81a871>Skill two", storedSections().get(2));
     }
 
     @ParameterizedTest
