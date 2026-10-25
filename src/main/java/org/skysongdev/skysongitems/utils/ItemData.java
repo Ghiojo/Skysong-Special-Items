@@ -79,13 +79,23 @@ public final class ItemData {
         return container.has(ItemKeys.PROPERTIES);
     }
 
-    /** Returns the item's property ids as a list the caller may change, empty if it has none. */
+    /**
+     * Returns the item's property ids as a list the caller may change, empty if
+     * it has none. Blank ids, left behind on items whose last property was
+     * removed by older versions of the plugin, are skipped.
+     */
     public List<String> getProperties() {
         String properties = getPropertiesText();
+        List<String> propertyIds = new ArrayList<>();
         if (properties == null) {
-            return new ArrayList<>();
+            return propertyIds;
         }
-        return new ArrayList<>(Arrays.asList(properties.split(PROPERTY_SEPARATOR)));
+        for (String propertyId : properties.split(PROPERTY_SEPARATOR)) {
+            if (!propertyId.isBlank()) {
+                propertyIds.add(propertyId);
+            }
+        }
+        return propertyIds;
     }
 
     public boolean hasProperty(String propertyId) {
@@ -96,6 +106,25 @@ public final class ItemData {
     public void addProperty(String propertyId) {
         String properties = getPropertiesText();
         setPropertiesText(properties == null ? propertyId : properties + PROPERTY_SEPARATOR + propertyId);
+    }
+
+    /**
+     * Removes a property id. Removing the last one removes the properties entry
+     * altogether, so the item no longer counts as having properties.
+     *
+     * @return whether the item had the property
+     */
+    public boolean removeProperty(String propertyId) {
+        List<String> propertyIds = getProperties();
+        if (!propertyIds.remove(propertyId)) {
+            return false;
+        }
+        if (propertyIds.isEmpty()) {
+            clearProperties();
+        } else {
+            setProperties(propertyIds);
+        }
+        return true;
     }
 
     public void setProperties(List<String> propertyIds) {

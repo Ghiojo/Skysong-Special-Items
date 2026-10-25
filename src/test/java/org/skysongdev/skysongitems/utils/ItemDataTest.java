@@ -132,6 +132,48 @@ class ItemDataTest extends MockBukkitTest {
     }
 
     @Test
+    void blankIdsLeftByOlderVersionsAreSkipped() {
+        data.setPropertiesText(";charges;;spell");
+
+        assertEquals(List.of("charges", "spell"), data.getProperties());
+    }
+
+    @Test
+    void anEmptyEntryCountsAsNoPropertyIds() {
+        data.setPropertiesText("");
+
+        assertEquals(List.of(), data.getProperties());
+    }
+
+    @Test
+    void removePropertyKeepsTheOtherIds() {
+        data.setPropertiesText("charges;spell;test");
+
+        assertTrue(data.removeProperty("spell"));
+
+        assertEquals("charges;test", storedString(ItemKeys.PROPERTIES));
+    }
+
+    @Test
+    void removingTheLastPropertyRemovesTheEntry() {
+        data.setPropertiesText("charges");
+
+        assertTrue(data.removeProperty("charges"));
+
+        assertFalse(data.hasProperties());
+        assertFalse(container.has(ItemKeys.PROPERTIES));
+    }
+
+    @Test
+    void removingAMissingPropertyChangesNothing() {
+        data.setPropertiesText("charges");
+
+        assertFalse(data.removeProperty("spell"));
+
+        assertEquals("charges", storedString(ItemKeys.PROPERTIES));
+    }
+
+    @Test
     void clearPropertiesRemovesTheEntry() {
         data.setPropertiesText("charges");
 

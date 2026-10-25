@@ -94,6 +94,18 @@ class ItemLoreRendererTest extends MockBukkitTest {
     }
 
     @Test
+    void renderingWithoutPropertiesDropsPropertyLinesAndTags() {
+        ItemStack item = ItemLoreRenderer.refresh(itemWithProperties("charges;spell"));
+        ItemMeta meta = item.getItemMeta();
+
+        ItemLoreRenderer.renderWithoutProperties(meta);
+        item.setItemMeta(meta);
+
+        assertEquals(List.of("physical", "", "functional", "", "skill"), plainLore(item));
+        assertEquals("Sword", plain(item.getItemMeta().displayName()));
+    }
+
+    @Test
     void storedNameReplacesTheDisplayName() {
         ItemStack refreshed = ItemLoreRenderer.refresh(itemWithProperties("test"));
 

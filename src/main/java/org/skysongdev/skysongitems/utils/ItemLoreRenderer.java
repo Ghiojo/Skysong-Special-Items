@@ -47,6 +47,18 @@ public final class ItemLoreRenderer {
         return item;
     }
 
+    /**
+     * Rewrites the lore from the stored lore sections and the display name from
+     * the stored name, without any property lines or tags. {@link #refresh}
+     * leaves items without properties alone, so call this when an item loses
+     * its last property.
+     */
+    public static void renderWithoutProperties(ItemMeta meta) {
+        ItemData data = ItemData.from(meta);
+        meta.lore(TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines()));
+        applyStoredName(meta);
+    }
+
     /** Adds one lore line per printable property, heaviest first. */
     private static void addPrintableProperties(List<Component> lore, ItemStack item, List<String> propertyIds) {
         for (PrintableProperty property : printablePropertiesByWeight(propertyIds)) {
@@ -86,10 +98,7 @@ public final class ItemLoreRenderer {
 
     /** Rebuilds the display name from the stored name, prefixed by the tag of each rename property. */
     private static void applyRenameProperties(ItemMeta meta, ItemStack item, List<String> propertyIds) {
-        String storedName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
-        if (storedName != null) {
-            meta.displayName(nameComponent(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", storedName))));
-        }
+        applyStoredName(meta);
         for (String propertyId : propertyIds) {
             if (getPlugin().getPropertyRegistry().get(propertyId) instanceof RenameProperty property && item.getItemMeta().displayName() != null) {
                 String newName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
@@ -97,6 +106,14 @@ public final class ItemLoreRenderer {
                 newName = TextParser.translateColorCodes(newName);
                 meta.displayName(nameComponent(property.getTag() + " " + newName));
             }
+        }
+    }
+
+    /** Sets the display name to the stored name, if the item has one. */
+    private static void applyStoredName(ItemMeta meta) {
+        String storedName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
+        if (storedName != null) {
+            meta.displayName(nameComponent(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", storedName))));
         }
     }
 
