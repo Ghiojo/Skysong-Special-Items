@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems.commands.lore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -194,6 +197,9 @@ class LoreSectionCommandsTest extends MockBukkitTest {
         assertTrue(receivedMessages().contains(PLUGIN_TAG + HOLD_ITEM));
     }
 
+    // The three commands started as copies and drifted apart in the next four
+    // cases. The merged command keeps each one's behaviour; see LoreSection.
+
     @Test
     void functionalAndSkillSetAskForAnItemWithThePluginTag() {
         player.getInventory().setItemInMainHand(null);
@@ -230,6 +236,16 @@ class LoreSectionCommandsTest extends MockBukkitTest {
 
         assertTrue(receivedMessages().isEmpty());
         assertEquals(SECTIONS, storedSections());
+    }
+
+    @ParameterizedTest
+    @EnumSource(LoreSection.class)
+    void eachCommandEditsItsOwnSection(LoreSection section) {
+        PluginCommand command = server.getPluginCommand(section.getCommandName());
+
+        LoreSectionCommand executor = assertInstanceOf(LoreSectionCommand.class, command.getExecutor());
+        assertEquals(section, executor.getSection());
+        assertEquals(section.getPermission(), command.getPermission());
     }
 
     private static ItemStack loredItem() {
