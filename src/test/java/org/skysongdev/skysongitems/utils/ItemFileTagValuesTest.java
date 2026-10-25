@@ -1,8 +1,11 @@
 package org.skysongdev.skysongitems.utils;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -25,14 +28,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * configured in the bundled config.yml: arcrot, charged_arcrot and fictis.
  */
 class ItemFileTagValuesTest extends MockBukkitTest {
-    private SkysongItems plugin;
-
     @TempDir
     File folder;
 
     @BeforeEach
     void loadPlugin() {
-        plugin = MockBukkit.load(SkysongItems.class);
+        MockBukkit.load(SkysongItems.class);
     }
 
     private static NamespacedKey tag(String id) {
@@ -117,12 +118,16 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     }
 
     @Test
-    void generatedItemStackReadsBackWithTheSameTagValues() {
-        Map<NamespacedKey, String> tagValues = Map.of(tag("arcrot"), "1", tag("fictis"), "3");
+    void itemStackTagsAreReadWithTheirOwnValues() {
+        // Built by hand: MockBukkit cannot run GenerateSkysongItem, which sets Paper data components.
+        ItemStack stack = new ItemStack(Material.STONE);
+        ItemMeta meta = stack.getItemMeta();
+        ItemData.from(meta).setLoreSections(List.of("physical", "functional", "skill"));
+        meta.getPersistentDataContainer().set(tag("arcrot"), PersistentDataType.INTEGER, 1);
+        meta.getPersistentDataContainer().set(tag("fictis"), PersistentDataType.INTEGER, 3);
+        stack.setItemMeta(meta);
 
-        ItemStack stack = plugin.getUtils().GenerateSkysongItem(itemWithTags(tagValues));
-
-        assertEquals(tagValues, new SkysongItem(stack).getTagValues());
+        assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3"), new SkysongItem(stack).getTagValues());
     }
 
     private File savedFile() {
