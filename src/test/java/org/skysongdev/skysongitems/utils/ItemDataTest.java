@@ -21,13 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ItemDataTest extends MockBukkitTest {
-    private ItemMeta meta;
     private PersistentDataContainer container;
     private ItemData data;
 
     @BeforeEach
     void createItemData() {
-        meta = new ItemStack(Material.STONE).getItemMeta();
+        ItemMeta meta = new ItemStack(Material.STONE).getItemMeta();
         container = meta.getPersistentDataContainer();
         data = ItemData.from(meta);
     }
