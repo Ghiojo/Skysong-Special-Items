@@ -6,12 +6,14 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.PermissionItems;
 
@@ -56,6 +58,19 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
 
         assertDoesNotThrow(() -> PermissionItems.revoke(player, "skysongitems.test"));
         assertTrue(player.hasPermission("skysongitems.test"));
+    }
+
+    @Test
+    void joiningWithAPermissionItemGrantsNothingWithoutLuckPerms() {
+        PlayerMock player = new PlayerMock(server, "Holder");
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ItemKeys.PERMISSION, PersistentDataType.STRING, "skysongitems.test");
+        item.setItemMeta(meta);
+        player.getInventory().addItem(item);
+
+        assertDoesNotThrow(() -> server.addPlayer(player));
+        assertFalse(player.hasPermission("skysongitems.test"));
     }
 
     @Test

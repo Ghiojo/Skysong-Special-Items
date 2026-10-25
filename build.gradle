@@ -45,6 +45,37 @@ dependencies {
     testImplementation 'com.h2database:h2:2.3.232'
 }
 
+// LuckPerms is kept off the main test classpath so those tests run the plugin as a
+// server without LuckPerms would (see WithoutSoftDependenciesTest). The LuckPerms
+// integration is tested in this separate suite, which has the LuckPerms API.
+testing {
+    suites {
+        luckPermsTest(JvmTestSuite) {
+            useJUnitJupiter('5.13.1')
+            dependencies {
+                implementation project()
+                implementation 'net.luckperms:api:5.4'
+                implementation 'org.mockito:mockito-core:5.14.2'
+                runtimeOnly 'org.junit.platform:junit-platform-launcher:1.13.1'
+            }
+            targets {
+                all {
+                    testTask.configure {
+                        testLogging {
+                            events 'failed'
+                            exceptionFormat 'full'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn(testing.suites.luckPermsTest)
+}
+
 def targetJavaVersion = 21
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
