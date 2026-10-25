@@ -29,7 +29,7 @@ public class ListBooks implements CommandExecutor {
         }
 
         try {
-            books = getPlugin().getDatabase().listAllBooks();
+            books = getPlugin().getBookRepository().listAll();
             if(books.isEmpty()){
                 commandSender.sendMessage(ChatColor.of("RED") + "There are no books on the database!");
                 return true;

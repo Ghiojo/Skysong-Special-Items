@@ -31,8 +31,8 @@ public class SaveBook implements CommandExecutor {
         }
         int bookSaveID;
         try {
-            getPlugin().getDatabase().createBookDescription(bookDescriptions);
-            bookSaveID = getPlugin().getDatabase().findLatestId();
+            getPlugin().getBookRepository().create(bookDescriptions);
+            bookSaveID = getPlugin().getBookRepository().findLatestId();
         }catch(SQLException e){
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
             e.printStackTrace();

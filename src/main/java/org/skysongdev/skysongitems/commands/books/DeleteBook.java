@@ -27,7 +27,7 @@ public class DeleteBook implements CommandExecutor {
         }
 
         try {
-            getPlugin().getDatabase().deleteBookDescription(id);
+            getPlugin().getBookRepository().delete(id);
         }catch (SQLException e){
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Cannot find book with this id");
             e.printStackTrace();

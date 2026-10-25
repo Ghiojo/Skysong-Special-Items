@@ -41,7 +41,7 @@ public class BindBook implements CommandExecutor {
         }
 
         try {
-            if(getPlugin().getDatabase().findBookByID(id) == null){
+            if(getPlugin().getBookRepository().findById(id) == null){
                 commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
                 return true;
             }
