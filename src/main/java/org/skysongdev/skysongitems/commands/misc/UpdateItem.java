@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -30,7 +31,7 @@ public class UpdateItem implements CommandExecutor {
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        ArrayList<String> itemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        ArrayList<String> itemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
 
         if(item == null || item.getType() == Material.AIR){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold the item you wish to update!"));
@@ -45,7 +46,7 @@ public class UpdateItem implements CommandExecutor {
             Pattern pattern = Pattern.compile("(" + patternName + ")");
             Matcher matcher = pattern.matcher(itemLore.get(1).toLowerCase());
             if(matcher.find()){
-                String propertyString = bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING);
+                String propertyString = bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
                 if(propertyString != null && propertyString.contains(property.getId())){
                     continue;
                 }
@@ -54,7 +55,7 @@ public class UpdateItem implements CommandExecutor {
                 } else {
                     propertyString = propertyString + ";" + property.getId();
                 }
-                bufferDataContainer.set(Constants.propertiesKey, PersistentDataType.STRING, propertyString);
+                bufferDataContainer.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, propertyString);
             }
         }
         item.setItemMeta(buffer);

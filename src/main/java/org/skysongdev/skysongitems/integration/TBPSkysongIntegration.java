@@ -18,6 +18,7 @@ import org.skysongdev.skysongitems.utils.Utils;
 import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -70,9 +71,9 @@ public class TBPSkysongIntegration implements ItemIntegration {
     public @Nullable String getItemId(ItemStack itemStack) {
         //checks for the item's id in its corresponding material_id tag. If it doesn't have one, return null
         getPlugin().getLogger().warning("Getting item id for " + itemStack);
-        if(itemStack.getItemMeta() != null && itemStack.getItemMeta().getPersistentDataContainer().has(Constants.materialIdKey)){
-            getPlugin().getLogger().warning("Found material id key for item: " + itemStack.getItemMeta().getPersistentDataContainer().get(Constants.materialIdKey, Constants.tagList.get(Constants.materialIdKey)));
-            return (String) itemStack.getItemMeta().getPersistentDataContainer().get(Constants.materialIdKey, Constants.tagList.get(Constants.materialIdKey));
+        if(itemStack.getItemMeta() != null && itemStack.getItemMeta().getPersistentDataContainer().has(ItemKeys.MATERIAL_ID)){
+            getPlugin().getLogger().warning("Found material id key for item: " + itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, Constants.tagList.get(ItemKeys.MATERIAL_ID)));
+            return (String) itemStack.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, Constants.tagList.get(ItemKeys.MATERIAL_ID));
         }
         getPlugin().getLogger().warning("No material id key found. meta" + itemStack.getItemMeta() + " pdc " + itemStack.getItemMeta().getPersistentDataContainer());
         return null;

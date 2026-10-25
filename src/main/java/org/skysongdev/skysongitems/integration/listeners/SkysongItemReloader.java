@@ -13,6 +13,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -23,7 +24,7 @@ public class SkysongItemReloader implements Listener {
         if(Utils.isSkysongItem(event.getItemSource().itemStack())){
             ItemMeta meta = event.getItemSource().itemStack().getItemMeta();
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            String itemId = pdc.get(Constants.materialIdKey, PersistentDataType.STRING);
+            String itemId = pdc.get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
             String permission = Constants.materialPermissions.get(itemId);
             if(itemId != null && permission != null){
                 if(!event.getPlayer().hasPermission(permission) && event.getPlayer().hasPermission("skysongspecialitems.cit")){

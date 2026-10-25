@@ -16,6 +16,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -54,13 +55,13 @@ public class AddSkill implements CommandExecutor {
         buffer = item.getItemMeta();
         bufferDataContainer = buffer.getPersistentDataContainer();
         bufferString = "";
-        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
         newItemLore = TextParser.manipulateSection(newItemLore, input, 2, mode);
         for(String string : newItemLore){
             bufferString += ChatColor.COLOR_CHAR + string;
         }
-        bufferDataContainer.set(Constants.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
+        bufferDataContainer.set(ItemKeys.LORE, PersistentDataType.STRING, bufferString.substring(1));
+        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
 
         item.setItemMeta(buffer);
         player.updateInventory();

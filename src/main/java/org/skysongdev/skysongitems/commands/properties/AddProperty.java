@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands.properties;
 
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -20,6 +19,7 @@ import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -56,17 +56,17 @@ public class AddProperty implements TabExecutor {
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(container.has(Constants.propertiesKey)){
-            String[] currentProperties = container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";");
+        if(container.has(ItemKeys.PROPERTIES)){
+            String[] currentProperties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";");
             for(String property : currentProperties){
                 if(property.equals(args[0])){
                     player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
                     return true;
                 }
             }
-            container.set(Constants.propertiesKey, PersistentDataType.STRING, container.get(Constants.propertiesKey, PersistentDataType.STRING) + ";" + args[0]);
+            container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING) + ";" + args[0]);
         } else {
-            container.set(Constants.propertiesKey, PersistentDataType.STRING, args[0]);
+            container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, args[0]);
         }
 
         if(Utils.getProperty(args[0]) != null){
@@ -74,15 +74,15 @@ public class AddProperty implements TabExecutor {
             if(property instanceof PrintableProperty){
                 ArrayList<String> values = ((PrintableProperty) property).getValuetags();
                 for(String value : values) {
-                    PersistentDataType type = Constants.tagList.get(new NamespacedKey(getPlugin(), value));
+                    PersistentDataType type = Constants.tagList.get(ItemKeys.named(value));
                     if (type == PersistentDataType.STRING) {
-                        container.set(new NamespacedKey(getPlugin(), value), PersistentDataType.STRING, "");
+                        container.set(ItemKeys.named(value), PersistentDataType.STRING, "");
                     } else if (type == PersistentDataType.INTEGER) {
-                        container.set(new NamespacedKey(getPlugin(), value), PersistentDataType.INTEGER, 0);
+                        container.set(ItemKeys.named(value), PersistentDataType.INTEGER, 0);
                     } else if (type == PersistentDataType.FLOAT) {
-                        container.set(new NamespacedKey(getPlugin(), value), PersistentDataType.FLOAT, 0.0f);
+                        container.set(ItemKeys.named(value), PersistentDataType.FLOAT, 0.0f);
                     } else if (type == PersistentDataType.BOOLEAN) {
-                        container.set(new NamespacedKey(getPlugin(), value), PersistentDataType.BOOLEAN, false);
+                        container.set(ItemKeys.named(value), PersistentDataType.BOOLEAN, false);
                     }
                 }
             }

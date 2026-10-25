@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -25,16 +26,16 @@ public class SetAddable implements CommandExecutor {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(!container.has(Constants.maxchargesKey) || !container.has(Constants.chargesKey)){
+        if(!container.has(ItemKeys.MAX_CHARGES) || !container.has(ItemKeys.CHARGES)){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
             return true;
         }
 
-        if (container.has(Constants.addablechargesKey) && container.get(Constants.addablechargesKey, PersistentDataType.BOOLEAN)) {
-            container.set(Constants.addablechargesKey, PersistentDataType.BOOLEAN, false);
+        if (container.has(ItemKeys.CAN_ADD_CHARGES) && container.get(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN)) {
+            container.set(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN, false);
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<light_gray>Item charge adding is now <red>disabled") );
         } else {
-            container.set(Constants.addablechargesKey, PersistentDataType.BOOLEAN, true);
+            container.set(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN, true);
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<light_gray>Item charge adding is now <green>enabled") );
         }
         item.setItemMeta(meta);

@@ -13,6 +13,7 @@ import org.skysongdev.skysongitems.utils.TextParser;
 
 import java.util.List;
 import java.util.Objects;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -29,11 +30,11 @@ public class Updater {
         buffer = item.getItemMeta();
         bufferDataContainer = buffer.getPersistentDataContainer();
 
-        if(Objects.equals(bufferDataContainer.get(Constants.versionKey, PersistentDataType.STRING), Constants.ITEM_VERSION))
+        if(Objects.equals(bufferDataContainer.get(ItemKeys.VERSION, PersistentDataType.STRING), Constants.ITEM_VERSION))
             return;
 
         //Uncomment and add more cases when a new version for items is added
-        String version = bufferDataContainer.get(Constants.versionKey, PersistentDataType.STRING);
+        String version = bufferDataContainer.get(ItemKeys.VERSION, PersistentDataType.STRING);
         if(version == null || version.isEmpty()){
             version = "0";
         }
@@ -56,7 +57,7 @@ public class Updater {
         StringBuilder newProperty = new StringBuilder();
         parsedLore = buffer.getLore();
 
-        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING));
+        parsedLore = TextParser.TranslateFromLore(parsedLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING));
 
         newProperty.append(parsedLore.get(0));
         for(String section : parsedLore){
@@ -65,21 +66,21 @@ public class Updater {
             }
             newProperty.append(ChatColor.COLOR_CHAR + section);
         }
-        bufferDataContainer.set(Constants.loreKey, PersistentDataType.STRING, newProperty.toString());
-        bufferDataContainer.set(Constants.versionKey, PersistentDataType.STRING, "1.0");
+        bufferDataContainer.set(ItemKeys.LORE, PersistentDataType.STRING, newProperty.toString());
+        bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, "1.0");
 
         if(buffer.displayName() != null){
             String name = buffer.getDisplayName();
             name = TextParser.revertColor(name);
-            bufferDataContainer.set(Constants.nameKey, PersistentDataType.STRING, name);
+            bufferDataContainer.set(ItemKeys.NAME, PersistentDataType.STRING, name);
         }
 
 
-        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(parsedLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
 
 
-        if(bufferDataContainer.has(Constants.chargesKey)){
-            bufferDataContainer.set(Constants.propertiesKey, PersistentDataType.STRING, "charges");
+        if(bufferDataContainer.has(ItemKeys.CHARGES)){
+            bufferDataContainer.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges");
         }
         newItem.setItemMeta(buffer);
 
@@ -91,8 +92,8 @@ public class Updater {
         ItemMeta buffer = newItem.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        if(bufferDataContainer.has(Constants.nameKey, PersistentDataType.STRING)) {
-            String bufferString = bufferDataContainer.get(Constants.nameKey, PersistentDataType.STRING);
+        if(bufferDataContainer.has(ItemKeys.NAME, PersistentDataType.STRING)) {
+            String bufferString = bufferDataContainer.get(ItemKeys.NAME, PersistentDataType.STRING);
 
             bufferString = TextParser.translateHexColorCodes("&#", "", bufferString);
             bufferString = TextParser.translateColorCodes(bufferString);
@@ -100,7 +101,7 @@ public class Updater {
             buffer.displayName(getPlugin().getMiniMessage().deserialize(bufferString.trim()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
         }
 
-        bufferDataContainer.set(Constants.versionKey, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
 
         newItem.setItemMeta(buffer);
 

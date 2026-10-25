@@ -17,6 +17,7 @@ import org.skysongdev.skysongitems.utils.Utils;
 
 import java.util.List;
 import java.util.Objects;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -42,7 +43,7 @@ public class ViewProperties implements TabExecutor {
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING) == null){
+        if(bufferDataContainer.isEmpty() || bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING) == null){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no properties!"));
             return true;
         }
@@ -56,7 +57,7 @@ public class ViewProperties implements TabExecutor {
 
         if(proptype.equalsIgnoreCase("all")){
             for(String prop : Constants.propertyTypes){
-                for(String string : bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
+                for(String string : bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
                     if(!Objects.equals(Utils.getProperty(string).getPropType(), prop)){
                         continue;
                     }
@@ -72,7 +73,7 @@ public class ViewProperties implements TabExecutor {
             }
         } else {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<gold><u><b>" + proptype));
-            for(String string : bufferDataContainer.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
+            for(String string : bufferDataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
                 if(!Objects.equals(Utils.getProperty(string).getPropType(), proptype)){
                     continue;
                 }

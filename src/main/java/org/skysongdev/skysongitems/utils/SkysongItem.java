@@ -50,12 +50,12 @@ public class SkysongItem {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
 
-        this.name = dataContainer.get(Constants.nameKey, PersistentDataType.STRING);
-        this.lore = new ArrayList<String>(Arrays.asList(dataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(String.valueOf(ChatColor.COLOR_CHAR))));
+        this.name = dataContainer.get(ItemKeys.NAME, PersistentDataType.STRING);
+        this.lore = new ArrayList<String>(Arrays.asList(dataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(String.valueOf(ChatColor.COLOR_CHAR))));
         this.type = item.getType().name();
         this.itemModel = meta.getItemModel();
-        this.deleted = dataContainer.get(Constants.deletedKey, PersistentDataType.STRING);
-        this.properties = dataContainer.get(Constants.propertiesKey, PersistentDataType.STRING);
+        this.deleted = dataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING);
+        this.properties = dataContainer.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
         this.tags = new ArrayList<NamespacedKey>(Utils.getAllTagsInItem(item));
 
         ArrayList<String> valuesList = new ArrayList<>();
