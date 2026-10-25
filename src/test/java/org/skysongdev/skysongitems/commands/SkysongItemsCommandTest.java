@@ -65,7 +65,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
             "disable", "openbook", "savebook", "setbook", "bindbook", "viewdesc", "setdm", "setrc",
-            "unbind", "updatelore", "details", "update", "reload", "rename");
+            "unbind", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd");
 
     private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -183,6 +183,38 @@ class SkysongItemsCommandTest extends MockBukkitTest {
             assertEquals("[SkysongItems] This command can only be used by players!", message, "/si " + name);
         }
         assertTrue(updateItem.calls.isEmpty(), "/si update must not reach its handler from the console");
+    }
+
+    /** The tag, charges and cmd handlers cast the sender to a player, so these used to throw from the console. */
+    static Stream<Arguments> itemRouterCommands() {
+        return Stream.of(
+                Arguments.of((Object) new String[]{"tag", "set", "colour", "red"}),
+                Arguments.of((Object) new String[]{"tag", "remove", "colour"}),
+                Arguments.of((Object) new String[]{"charges", "set", "5"}),
+                Arguments.of((Object) new String[]{"charges", "add", "1"}),
+                Arguments.of((Object) new String[]{"cmd", "list"}),
+                Arguments.of((Object) new String[]{"cmd", "set", "1"}));
+    }
+
+    @ParameterizedTest
+    @MethodSource("itemRouterCommands")
+    void itemRoutersRefuseTheConsoleInsteadOfCrashing(String[] args) {
+        ConsoleCommandSenderMock console = server.getConsoleSender();
+
+        assertDoesNotThrow(() -> siCommand.onCommand(console, new StubCommand(), "si", args));
+
+        String message = PlainTextComponentSerializer.plainText().serialize(console.nextComponentMessage());
+        assertEquals("[SkysongItems] This command can only be used by players!", message);
+    }
+
+    @Test
+    void tabCompletionOfPlayerOnlyArgumentsIsBlankForTheConsole() {
+        ConsoleCommandSenderMock console = server.getConsoleSender();
+
+        List<String> completions = assertDoesNotThrow(
+                () -> siCommand.onTabComplete(console, new StubCommand(), "si", new String[]{"tag", "remove", ""}));
+
+        assertEquals(List.of(""), completions);
     }
 
     @Test
