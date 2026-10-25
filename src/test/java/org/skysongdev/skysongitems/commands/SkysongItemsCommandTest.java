@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.commands.books.BindBook;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,6 +60,11 @@ class SkysongItemsCommandTest extends MockBukkitTest {
 
     /** Subcommands anyone may run; every other one needs the item edit permission. */
     private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "update");
+
+    /** Subcommands whose handlers act on the sender's own player and inventory. */
+    private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
+            "disable", "openbook", "savebook", "setbook", "bindbook", "viewdesc", "setdm", "setrc",
+            "unbind", "updatelore", "update", "reload", "rename");
 
     private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -154,6 +161,29 @@ class SkysongItemsCommandTest extends MockBukkitTest {
 
             assertEquals("[SkysongItems] You don't have permissions to do that command!", nextPlainMessage(), "/si " + name);
         }
+    }
+
+    @Test
+    void playerOnlySubcommandsAreRefusedToTheConsole() {
+        ConsoleCommandSenderMock console = server.getConsoleSender();
+
+        for (String name : PLAYER_ONLY_SUBCOMMANDS) {
+            assertDoesNotThrow(() -> siCommand.onCommand(console, new StubCommand(), "si", new String[]{name, "1"}), "/si " + name);
+
+            String message = PlainTextComponentSerializer.plainText().serialize(console.nextComponentMessage());
+            assertEquals("[SkysongItems] This command can only be used by players!", message, "/si " + name);
+        }
+        assertTrue(updateItem.calls.isEmpty(), "/si update must not reach its handler from the console");
+    }
+
+    @Test
+    void playerOnlyListMatchesTheRegistry() {
+        List<String> registered = siCommand.getRegistry().all().stream()
+                .filter(Subcommand::isPlayerOnly)
+                .map(subcommand -> subcommand.listedNames().get(0))
+                .toList();
+
+        assertEquals(PLAYER_ONLY_SUBCOMMANDS, registered);
     }
 
     @Test

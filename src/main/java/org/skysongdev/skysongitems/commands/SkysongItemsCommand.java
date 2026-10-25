@@ -27,7 +27,8 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 /**
  * The {@code /si} command. Each subcommand is registered once in
  * {@link #registerSubcommands}; this class only looks the subcommand up, checks
- * that the sender may run it, and hands it the remaining arguments.
+ * that the sender may run it (permission, and being a player where the handler
+ * needs one), and hands it the remaining arguments.
  */
 public class SkysongItemsCommand implements TabExecutor {
     /** Needed for every subcommand that edits items, books or the plugin's data. */
@@ -61,26 +62,26 @@ public class SkysongItemsCommand implements TabExecutor {
         LoadItem loadItem = new LoadItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
 
-        registerItemEdit(Subcommand.builder("disable", new DisableFunc()).hiddenAlias("dis"));
-        registerItemEdit(Subcommand.builder("openbook", openBook));
-        registerItemEdit(Subcommand.builder("savebook", new SaveBook()));
-        registerItemEdit(Subcommand.builder("setbook", new SetBookContent()));
+        registerItemEdit(Subcommand.builder("disable", new DisableFunc()).hiddenAlias("dis").playerOnly());
+        registerItemEdit(Subcommand.builder("openbook", openBook).playerOnly());
+        registerItemEdit(Subcommand.builder("savebook", new SaveBook()).playerOnly());
+        registerItemEdit(Subcommand.builder("setbook", new SetBookContent()).playerOnly());
         registerItemEdit(Subcommand.builder("delbook", new DeleteBook()));
-        registerItemEdit(Subcommand.builder("bindbook", new BindBook()));
-        registry.register(Subcommand.builder("viewdesc", new ViewExtendedLore(openBook)).listedToEveryone().build());
+        registerItemEdit(Subcommand.builder("bindbook", new BindBook()).playerOnly());
+        registry.register(Subcommand.builder("viewdesc", new ViewExtendedLore(openBook)).listedToEveryone().playerOnly().build());
         registerItemEdit(Subcommand.builder("listbooks", new ListBooks()));
-        registerItemEdit(Subcommand.builder("setdm", new SetDMOnly()));
-        registerItemEdit(Subcommand.builder("setrc", new SetRightClickBook()));
-        registerItemEdit(Subcommand.builder("unbind", new UnbindBook()));
+        registerItemEdit(Subcommand.builder("setdm", new SetDMOnly()).playerOnly());
+        registerItemEdit(Subcommand.builder("setrc", new SetRightClickBook()).playerOnly());
+        registerItemEdit(Subcommand.builder("unbind", new UnbindBook()).playerOnly());
         registerItemEdit(Subcommand.builder("dbreload", new DBReload()));
-        registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE));
+        registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE).playerOnly());
         registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand));
         // prop and update check their own permissions.
         registry.register(Subcommand.builder("prop", propertiesCommand).alias("property")
                 .tabCompleter(propertiesCommand).build());
-        registry.register(Subcommand.builder("update", updateItem).listedToEveryone().build());
-        registerItemEdit(Subcommand.builder("reload", new ReloadCommand()));
-        registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).listedToEveryone());
+        registry.register(Subcommand.builder("update", updateItem).listedToEveryone().playerOnly().build());
+        registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());
+        registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).listedToEveryone().playerOnly());
         registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).listedToEveryone());
         registerItemEdit(Subcommand.builder("loaditem", loadItem).tabCompleter(loadItem));
         registerItemEdit(Subcommand.builder("saveitem", new SaveItem()));
@@ -111,6 +112,10 @@ public class SkysongItemsCommand implements TabExecutor {
         Subcommand subcommand = found.get();
         if (!subcommand.canRun(commandSender)) {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You don't have permissions to do that command!"));
+            return true;
+        }
+        if (subcommand.isPlayerOnly() && !(commandSender instanceof Player)) {
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This command can only be used by players!"));
             return true;
         }
         subcommand.executor().onCommand(commandSender, command, s, argumentsAfterName(strings));

@@ -24,6 +24,7 @@ public final class Subcommand {
     private final List<String> hiddenAliases;
     private final @Nullable String permission;
     private final boolean listedToEveryone;
+    private final boolean playerOnly;
     private final CommandExecutor executor;
     private final @Nullable TabCompleter tabCompleter;
 
@@ -33,6 +34,7 @@ public final class Subcommand {
         this.hiddenAliases = List.copyOf(builder.hiddenAliases);
         this.permission = builder.permission;
         this.listedToEveryone = builder.listedToEveryone;
+        this.playerOnly = builder.playerOnly;
         this.executor = builder.executor;
         this.tabCompleter = builder.tabCompleter;
     }
@@ -65,6 +67,11 @@ public final class Subcommand {
         return listedToEveryone;
     }
 
+    /** True when the handler works on the sender's own player, so the console cannot run it. */
+    public boolean isPlayerOnly() {
+        return playerOnly;
+    }
+
     public CommandExecutor executor() {
         return executor;
     }
@@ -81,6 +88,7 @@ public final class Subcommand {
         private final List<String> hiddenAliases = new ArrayList<>();
         private @Nullable String permission;
         private boolean listedToEveryone;
+        private boolean playerOnly;
         private @Nullable TabCompleter tabCompleter;
 
         private Builder(String name, CommandExecutor executor) {
@@ -109,6 +117,12 @@ public final class Subcommand {
         /** Offers the subcommand in tab completion even to senders without the item edit permission. */
         public Builder listedToEveryone() {
             this.listedToEveryone = true;
+            return this;
+        }
+
+        /** Refuses the subcommand to senders that are not players, such as the console. */
+        public Builder playerOnly() {
+            this.playerOnly = true;
             return this;
         }
 
