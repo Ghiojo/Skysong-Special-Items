@@ -23,8 +23,12 @@ public class MaterialPermissions {
 
     private final Map<String, String> permissions = new HashMap<>();
 
-    /** Reads materials.yml from the data folder, creating it with example entries when missing. */
+    /**
+     * Replaces the loaded permissions with the ones in materials.yml from the data folder,
+     * creating the file with example entries when missing.
+     */
     public void load(File dataFolder, Logger logger) {
+        permissions.clear();
         File materialFile = new File(dataFolder, FILE_NAME);
         if (!materialFile.exists()) {
             createDefaultFile(materialFile, logger);

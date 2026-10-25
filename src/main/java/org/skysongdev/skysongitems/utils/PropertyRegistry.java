@@ -12,12 +12,10 @@ public class PropertyRegistry {
     private final List<Property> properties = new ArrayList<>();
     private final List<String> propertyTypes = new ArrayList<>();
 
-    /**
-     * Replaces the loaded properties with the ones in the config. Property types are
-     * only ever added, so a type removed from the config stays listed until restart.
-     */
+    /** Replaces the loaded properties, and the property types they use, with the ones in the config. */
     public void load(ConfigurationSection config, Logger logger) {
         properties.clear();
+        propertyTypes.clear();
         ConfigurationSection section = config.getConfigurationSection("properties");
         if (section == null) {
             logger.warning("No properties section found in the configuration.");
@@ -76,7 +74,7 @@ public class PropertyRegistry {
         return Collections.unmodifiableList(properties);
     }
 
-    /** Every property type seen since the plugin was enabled. */
+    /** Every property type used by a loaded property, in config order. */
     public List<String> getPropertyTypes() {
         return Collections.unmodifiableList(propertyTypes);
     }

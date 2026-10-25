@@ -37,7 +37,7 @@ class ItemFactoryTest extends MockBukkitTest {
         FileConfiguration config = plugin.getConfig();
         config.set("tags.weight.namespace", "weight");
         config.set("tags.weight.type", "float");
-        plugin.getTagRegistry().load(config);
+        plugin.getTagRegistry().load(config, plugin.getLogger());
     }
 
     private static SkysongItem template(String deleted, String properties, Map<NamespacedKey, String> tagValues) {

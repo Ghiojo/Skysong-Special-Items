@@ -131,7 +131,7 @@ public class SkysongItems extends JavaPlugin {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
 
-        tagRegistry.load(getConfig());
+        tagRegistry.load(getConfig(), getLogger());
         propertyRegistry.load(getConfig(), getLogger());
         materialPermissions.load(getDataFolder(), getLogger());
         fixFilePaths();

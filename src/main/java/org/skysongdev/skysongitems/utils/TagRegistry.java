@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * The tags an item can carry and the data type of each: the built-in tags the plugin
@@ -21,14 +22,24 @@ import java.util.Set;
 public class TagRegistry {
     private final Map<NamespacedKey, PersistentDataType<?, ?>> types = new HashMap<>();
 
-    /** Replaces the registered tags with the built-in ones and the ones in the config. */
-    public void load(ConfigurationSection config) {
+    /**
+     * Replaces the registered tags with the built-in ones and the ones in the config.
+     * A configured tag with a missing or unknown type is skipped with a warning, since
+     * its value could be neither stored nor read.
+     */
+    public void load(ConfigurationSection config, Logger logger) {
         types.clear();
         Set<String> ids = config.getConfigurationSection("tags").getKeys(false);
         registerBuiltInTags();
         for (String id : ids) {
+            String typeName = config.getString("tags." + id + ".type");
+            PersistentDataType<?, ?> type = parseType(typeName);
+            if (type == null) {
+                logger.warning("Skipping tag " + id + ": unknown type '" + typeName + "' (use int, string, float or bool).");
+                continue;
+            }
             NamespacedKey key = ItemKeys.named(config.getString("tags." + id + ".namespace"));
-            types.put(key, parseType(config.getString("tags." + id + ".type")));
+            types.put(key, type);
         }
     }
 
@@ -48,8 +59,11 @@ public class TagRegistry {
         types.put(ItemKeys.DYE_COLOR, PersistentDataType.INTEGER);
     }
 
-    /** The data type for a config type name; an unknown name gives null. */
+    /** The data type for a config type name; a missing or unknown name gives null. */
     private static PersistentDataType<?, ?> parseType(String typeName) {
+        if (typeName == null) {
+            return null;
+        }
         return switch (typeName.toLowerCase()) {
             case "int" -> PersistentDataType.INTEGER;
             case "string" -> PersistentDataType.STRING;
@@ -79,7 +93,7 @@ public class TagRegistry {
         return null;
     }
 
-    /** The data type of the tag with this key, or null when it is not registered or has no known type. */
+    /** The data type of the tag with this key, or null when it is not registered. */
     public PersistentDataType<?, ?> getType(NamespacedKey key) {
         return types.get(key);
     }
