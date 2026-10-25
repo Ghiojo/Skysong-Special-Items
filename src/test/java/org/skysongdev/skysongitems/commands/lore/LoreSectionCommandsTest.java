@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -151,9 +152,7 @@ class LoreSectionCommandsTest extends MockBukkitTest {
     @ParameterizedTest
     @MethodSource("commands")
     void unknownSubcommandShowsTheUsage(String name, String alias, int index) {
-        player.performCommand(name + " rename x");
-
-        assertTrue(receivedMessages().contains("/" + name + " add [LORE]"));
+        assertFalse(runExecutor(name, "rename", "x"), "returning false makes Bukkit show the usage");
         assertEquals(SECTIONS, storedSections());
     }
 
@@ -221,18 +220,16 @@ class LoreSectionCommandsTest extends MockBukkitTest {
 
     @Test
     void physicalAddAndSetWithoutTextShowTheUsage() {
-        player.performCommand("physdesc add");
-        player.performCommand("physdesc set");
-
-        assertEquals(2, receivedMessages().stream().filter("/physdesc add [LORE]"::equals).count());
+        assertFalse(runExecutor("physdesc", "add"), "returning false makes Bukkit show the usage");
+        assertFalse(runExecutor("physdesc", "set"), "returning false makes Bukkit show the usage");
     }
 
     @Test
     void functionalAndSkillAddAndSetWithoutTextDoNothing() {
-        player.performCommand("funcdesc add");
-        player.performCommand("funcdesc set");
-        player.performCommand("skilldesc add");
-        player.performCommand("skilldesc set");
+        assertTrue(runExecutor("funcdesc", "add"));
+        assertTrue(runExecutor("funcdesc", "set"));
+        assertTrue(runExecutor("skilldesc", "add"));
+        assertTrue(runExecutor("skilldesc", "set"));
 
         assertTrue(receivedMessages().isEmpty());
         assertEquals(SECTIONS, storedSections());
@@ -268,6 +265,16 @@ class LoreSectionCommandsTest extends MockBukkitTest {
 
     private String deletedLines() {
         return ItemData.from(player.getInventory().getItemInMainHand().getItemMeta()).getDeletedLines();
+    }
+
+    /**
+     * Runs the command's executor and returns its result. MockBukkit does not
+     * send the usage message when an executor returns false, so the tests that
+     * expect the usage check the return value instead.
+     */
+    private boolean runExecutor(String name, String... args) {
+        PluginCommand command = server.getPluginCommand(name);
+        return command.getExecutor().onCommand(player, command, name, args);
     }
 
     /** Drains the player's chat as plain text, one entry per message. */
