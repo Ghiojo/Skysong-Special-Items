@@ -2,6 +2,7 @@ package org.skysongdev.skysongitems;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 import org.skysongdev.skysongitems.commands.lore.LoreSection;
@@ -18,6 +19,7 @@ import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.MaterialPermissions;
+import org.skysongdev.skysongitems.utils.PermissionItemSync;
 import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
@@ -38,6 +40,8 @@ public class SkysongItems extends JavaPlugin {
     // Each integration is null when its plugin is not installed.
     private LuckPermsIntegration luckPerms;
     private BrewingProjectIntegration brewingProject;
+    // Null when LuckPerms is not installed, as permission items then grant nothing.
+    private PermissionItemListener permissionItemListener;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -122,7 +126,6 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
-        getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
@@ -137,9 +140,21 @@ public class SkysongItems extends JavaPlugin {
         if (SoftDependency.isInstalled(getServer().getPluginManager(), SoftDependency.LUCK_PERMS,
                 "permission items", getLogger())) {
             luckPerms = new LuckPermsIntegration();
+            permissionItemListener = new PermissionItemListener(this, new PermissionItemSync());
+            permissionItemListener.register();
         }
         if (brewingProject != null) {
             brewingProject.markItemsReady();
+        }
+    }
+
+    /**
+     * Grants or revokes the player's item permissions right away, after the plugin
+     * itself changes a permission item they hold. Does nothing without LuckPerms.
+     */
+    public void syncPermissionItems(Player player) {
+        if (permissionItemListener != null) {
+            permissionItemListener.syncNow(player);
         }
     }
 
@@ -161,6 +176,9 @@ public class SkysongItems extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (permissionItemListener != null) {
+            permissionItemListener.revokeOnlinePlayers();
+        }
         // Let the queries already submitted finish before their connections are closed.
         if (bookQueries != null) {
             bookQueries.shutdown();

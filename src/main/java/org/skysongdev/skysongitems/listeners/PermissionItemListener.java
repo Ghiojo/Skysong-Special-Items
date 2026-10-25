@@ -1,139 +1,175 @@
 package org.skysongdev.skysongitems.listeners;
 
-import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.utils.PermissionItems;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.plugin.Plugin;
+import org.skysongdev.skysongitems.utils.PermissionItemSync;
 
-import java.util.Map;
-import org.skysongdev.skysongitems.utils.ItemKeys;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
+/**
+ * Keeps a player's item permissions in step with the permission items in their
+ * inventory: they have an item's permission while the item is in their
+ * inventory, and only then.
+ *
+ * <p>The events below are the usual ways an inventory changes. Most of them fire
+ * before the change happens, and may still be cancelled by another plugin, so
+ * each one only asks for a {@link PermissionItemSync#sync} on the next tick, which
+ * then reads what the inventory really holds. Every online player is also
+ * checked once every {@link #CHECK_INTERVAL_TICKS} ticks, which catches the changes
+ * no event reports, such as /clear or another plugin taking the item. Those checks
+ * are spread over the interval, a share of the players each tick, so a full server
+ * never checks everyone in the same tick.
+ */
 public class PermissionItemListener implements Listener {
+    /** One second. */
+    static final long CHECK_INTERVAL_TICKS = 20L;
 
-    /** Item permissions end when the player logs out, so give back those of the items they still hold. */
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerJoin(PlayerJoinEvent event){
-        PermissionItems.grantHeldItems(event.getPlayer());
+    private final Plugin plugin;
+    private final PermissionItemSync sync;
+    private final Set<UUID> pendingSyncs = new HashSet<>();
+    private final Deque<Player> periodicChecks = new ArrayDeque<>();
+    private int checksPerTick;
+
+    public PermissionItemListener(Plugin plugin, PermissionItemSync sync) {
+        this.plugin = plugin;
+        this.sync = sync;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemDrop(PlayerDropItemEvent event){
-        if(isItemAPermissionItem(event.getItemDrop().getItemStack())){
-            String permission = event.getItemDrop().getItemStack().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-            PermissionItems.revoke(event.getPlayer(), permission);
+    /**
+     * Registers this listener, starts the periodic check, and syncs the players
+     * already online, who are there when the plugin is reloaded.
+     */
+    public void register() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::checkNextPlayers, 1L, 1L);
+        sync.syncAll(plugin.getServer().getOnlinePlayers());
+    }
+
+    /** Revokes every item permission of the online players. Call this when the plugin is disabled. */
+    public void revokeOnlinePlayers() {
+        plugin.getServer().getOnlinePlayers().forEach(sync::revokeAll);
+    }
+
+    /** Syncs the player now, for changes the plugin makes itself, such as setting an item's permission tag. */
+    public void syncNow(Player player) {
+        sync.sync(player);
+    }
+
+    /**
+     * Checks this tick's share of the online players. Once every player has had
+     * their turn, the next round starts with the players online at that moment.
+     */
+    private void checkNextPlayers() {
+        if (periodicChecks.isEmpty()) {
+            periodicChecks.addAll(plugin.getServer().getOnlinePlayers());
+            checksPerTick = (int) Math.ceil(periodicChecks.size() / (double) CHECK_INTERVAL_TICKS);
         }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemPickup(EntityPickupItemEvent event){
-        if(event.getEntity() instanceof Player player){
-            if(isItemAPermissionItem(event.getItem().getItemStack())){
-                String permission = event.getItem().getItemStack().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-                PermissionItems.grant(player, permission);
+        for (int checked = 0; checked < checksPerTick && !periodicChecks.isEmpty(); checked++) {
+            Player player = periodicChecks.poll();
+            if (player.isOnline()) {
+                sync.sync(player);
             }
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onItemConsumption(PlayerItemConsumeEvent event){
-        if(event.getItem().hasItemMeta() && event.getItem().getItemMeta().getPersistentDataContainer().has(ItemKeys.PERMISSION)){
-            String permission = event.getItem().getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
-            PermissionItems.revoke(event.getPlayer(), permission);
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        sync.sync(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        pendingSyncs.remove(event.getPlayer().getUniqueId());
+        sync.revokeAll(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onInventoryClick(InventoryClickEvent event) {
+        syncNextTick(event.getWhoClicked());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        syncNextTick(event.getWhoClicked());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onInventoryClose(InventoryCloseEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemDrop(PlayerDropItemEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemPickup(EntityPickupItemEvent event) {
+        syncNextTick(event.getEntity());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemConsume(PlayerItemConsumeEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemBreak(PlayerItemBreakEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        syncNextTick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (event.getEntity().getShooter() instanceof Entity shooter) {
+            syncNextTick(shooter);
         }
     }
 
-    private boolean willInventoryAcceptItem(ItemStack item, Inventory inventory){
-        Map<Integer, ItemStack> leftover = inventory.addItem(item.clone());
-        return leftover.isEmpty();
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        syncNextTick(event.getEntity());
     }
 
-    private boolean isItemAPermissionItem(ItemStack item){
-        return item != null && item.getType() != Material.AIR && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(ItemKeys.PERMISSION);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemMove(InventoryClickEvent event){
-        Player player;
-        if(!(event.getWhoClicked() instanceof Player))
-            return;
-        player = (Player) event.getWhoClicked();
-
-        if(event.getView().getTopInventory() == player.getInventory())
-            return;
-
-        if(event.getAction() == InventoryAction.HOTBAR_SWAP){
-            ItemStack hotbarItem = player.getInventory().getItem(event.getHotbarButton());
-            if(event.getClickedInventory() == player.getInventory())
-                return;
-            if(isItemAPermissionItem(hotbarItem)){
-                ItemMeta meta = hotbarItem.getItemMeta();
-                PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-            }
-            if(isItemAPermissionItem(event.getCurrentItem())){
-                ItemMeta meta = event.getCurrentItem().getItemMeta();
-                PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-            }
-        }
-
-        if(event.isShiftClick()){
-            ItemMeta meta;
-            if(isItemAPermissionItem(event.getCurrentItem())){
-                meta = event.getCurrentItem().getItemMeta();
-                if(event.getClickedInventory() == player.getInventory()) {
-                    if (willInventoryAcceptItem(event.getCurrentItem(), event.getView().getTopInventory()))
-                        PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
+    /** Syncs the player on the next tick, once, however many events ask for it in this tick. */
+    private void syncNextTick(Entity entity) {
+        if (entity instanceof Player player && pendingSyncs.add(player.getUniqueId())) {
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                pendingSyncs.remove(player.getUniqueId());
+                if (player.isOnline()) {
+                    sync.sync(player);
                 }
-                else {
-                    if(willInventoryAcceptItem(event.getCurrentItem(), player.getInventory()))
-                        PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-                }
-            }
-        } else {
-            if(event.getClickedInventory() != player.getInventory())
-                return;
-            ItemMeta meta;
-            if(isItemAPermissionItem(event.getCurrentItem())){
-                meta = event.getCurrentItem().getItemMeta();
-                PermissionItems.revoke(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-            }
-            if(isItemAPermissionItem(event.getCursor())){
-                meta = event.getCursor().getItemMeta();
-                PermissionItems.grant(player, meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-            }
+            });
         }
     }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onItemDrag(InventoryDragEvent event){
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-
-        if(!isItemAPermissionItem(event.getCursor()))
-            return;
-
-        InventoryView view = event.getView();
-        Inventory top = view.getTopInventory();
-        int topSize = top.getSize();
-
-        for (int slotIndex : event.getNewItems().keySet()) {
-            if (slotIndex >= topSize) {
-                PermissionItems.grant(player, event.getNewItems().get(slotIndex).getItemMeta().getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING));
-            }
-        }
-    }
-
-
 }
