@@ -12,7 +12,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
+import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -21,7 +22,7 @@ public class SkysongItemReloader implements Listener {
 
     @EventHandler
     public void onCauldronInsertion(CauldronInsertEvent event){
-        if(Utils.isSkysongItem(event.getItemSource().itemStack())){
+        if(ItemFactory.isSkysongItem(event.getItemSource().itemStack())){
             ItemMeta meta = event.getItemSource().itemStack().getItemMeta();
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             String itemId = pdc.get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
@@ -38,8 +39,8 @@ public class SkysongItemReloader implements Listener {
     @EventHandler
     public void onCauldronExtract(CauldronExtractEvent event){
         ItemStack item = event.getItemResult().get();
-        if(Utils.isSkysongItem(item)){
-            item = Utils.updateItemLore(item);
+        if(ItemFactory.isSkysongItem(item)){
+            item = ItemLoreRenderer.refresh(item);
         }
 
         event.setItemResult(item);
@@ -48,8 +49,8 @@ public class SkysongItemReloader implements Listener {
     @EventHandler
     public void onDistilleryExtract(DistilleryExtractEvent event){
         ItemStack item = event.getTransactionSession().getResult().itemStack();
-        if(Utils.isSkysongItem(item)){
-            item = Utils.updateItemLore(item);
+        if(ItemFactory.isSkysongItem(item)){
+            item = ItemLoreRenderer.refresh(item);
         }
         event.getTransactionSession().setResult(new ItemSource.ItemBasedSource(item));
     }
@@ -57,8 +58,8 @@ public class SkysongItemReloader implements Listener {
     @EventHandler
     public void onBarrelExtract(BarrelExtractEvent event){
         ItemStack item = event.getTransactionSession().getResult().itemStack();
-        if(Utils.isSkysongItem(item)){
-            item = Utils.updateItemLore(item);
+        if(ItemFactory.isSkysongItem(item)){
+            item = ItemLoreRenderer.refresh(item);
         }
         event.getTransactionSession().setResult(new ItemSource.ItemBasedSource(item));
     }

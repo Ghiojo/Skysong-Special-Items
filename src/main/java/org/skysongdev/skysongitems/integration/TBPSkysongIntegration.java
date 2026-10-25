@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 import org.skysongdev.skysongitems.utils.TextParser;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
@@ -33,7 +34,7 @@ public class TBPSkysongIntegration implements ItemIntegration {
         if (itemFile.exists()) {
             SkysongItem skysongitem = ItemTemplateRepository.load(itemFile);
             Bukkit.getLogger().warning("Item file found for id: " + s + ". Generating item...");
-            return Optional.of(getPlugin().getUtils().GenerateSkysongItem(skysongitem));
+            return Optional.of(ItemFactory.create(skysongitem));
         }
         Bukkit.getLogger().warning("Item file not found for id: " + s);
         return Optional.empty();

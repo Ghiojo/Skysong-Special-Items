@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TagRegistry;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.PermissionItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +79,9 @@ public class SetTag implements TabExecutor {
         } else if (PersistentDataType.STRING.equals(tagValue)){
             if(strings[0].equals("permission")){
                 if(container.has(tag, PersistentDataType.STRING)){
-                    Utils.updatePlayerPermissions(player, false, container.get(tag, PersistentDataType.STRING));
+                    PermissionItems.revoke(player, container.get(tag, PersistentDataType.STRING));
                 }
-                Utils.updatePlayerPermissions(player, true, strings[1]);
+                PermissionItems.grant(player, strings[1]);
             }
             container.set(tag, PersistentDataType.STRING, strings[1]);
         }
