@@ -47,6 +47,16 @@ public class SkysongItemsCommand implements TabExecutor {
     CustomModelDataCommand customModelDataCommand;
 
     public SkysongItemsCommand() {
+        this(new PropertiesCommand(), new UpdateItem());
+    }
+
+    /**
+     * Lets tests replace the handlers of the {@code prop} and {@code update}
+     * subcommands, so dispatch can be checked without running them.
+     */
+    SkysongItemsCommand(PropertiesCommand propertiesCommand, UpdateItem updateItem) {
+        this.propertiesCommand = propertiesCommand;
+        this.updateItem = updateItem;
         saveBook = new SaveBook();
         openBook = new OpenBook();
         setBookContent = new SetBookContent();
@@ -59,8 +69,6 @@ public class SkysongItemsCommand implements TabExecutor {
         unbindBook = new UnbindBook();
         dbReload = new DBReload();
         tagCommand = new TagCommand();
-        propertiesCommand = new PropertiesCommand();
-        updateItem = new UpdateItem();
         reloadCommand = new ReloadCommand();
         renameCommand = new RenameCommand();
         chargesCommand = new ChargesCommand();
@@ -169,6 +177,7 @@ public class SkysongItemsCommand implements TabExecutor {
             case "prop":
             case "property":
                 propertiesCommand.onCommand(commandSender, command, s, newArgs);
+                break;
             case "update":
                 updateItem.onCommand(commandSender, command, s, newArgs);
                 break;
