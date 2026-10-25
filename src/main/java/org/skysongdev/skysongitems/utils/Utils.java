@@ -526,6 +526,14 @@ public class Utils {
     }
 
     public static ArrayList<ItemStack> consumeItem(ItemStack item){
+        return consumeItem(item, getPlugin().getLogger());
+    }
+
+    /**
+     * Runs the item's onConsumption commands and returns the items the player should get back.
+     * Takes the logger as a parameter so the command loop can be tested without an enabled plugin.
+     */
+    static ArrayList<ItemStack> consumeItem(ItemStack item, Logger logger){
         if(item == null || item.getType() == Material.AIR){
             return null;
         }
@@ -535,13 +543,13 @@ public class Utils {
             if(pdc.has(ItemKeys.ON_CONSUMPTION)){
                 String[] commands = pdc.get(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING).split(";");
                 boolean stopAfterCommand = false;
-                int commandIndex = 0;
 
-                while(!stopAfterCommand && commandIndex < commands.length){
+                // A for loop so that "continue" still advances to the next command.
+                for(int commandIndex = 0; !stopAfterCommand && commandIndex < commands.length; commandIndex++){
                     String[] parts = commands[commandIndex].split(":");
                     if (parts[0].equals("charge")) {
                         if(!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.CHARGES, PersistentDataType.INTEGER)){
-                            getPlugin().getLogger().warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
+                            logger.warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
                             continue;
                         }
                         if (item.getAmount() > 1) {
@@ -553,7 +561,7 @@ public class Utils {
                         try {
                             chargesToConsume = Integer.parseInt(parts[1]);
                         } catch (NumberFormatException e) {
-                            getPlugin().getLogger().warning("Invalid number format for charges to consume: " + parts[1]);
+                            logger.warning("Invalid number format for charges to consume: " + parts[1]);
                             chargesToConsume = 1;
                         }
                         int currentCharges = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
@@ -582,7 +590,6 @@ public class Utils {
                             returnItems.add(getPlugin().getUtils().GenerateSkysongItem(skysongItem));
                         }
                     }
-                    commandIndex++;
                 }
             }
         }
