@@ -204,42 +204,23 @@ class LoreSectionCommandsTest extends MockBukkitTest {
         assertTrue(receivedMessages().contains(PLUGIN_TAG + HOLD_ITEM));
     }
 
-    // The three commands started as copies and drifted apart in the next four
-    // cases. The merged command keeps each one's behaviour; see LoreSection.
-
-    @Test
-    void functionalAndSkillSetAskForAnItemWithThePluginTag() {
+    @ParameterizedTest
+    @MethodSource("commands")
+    void setAsksForAnItemWithThePluginTagWhenTheHandIsEmpty(String name) {
+        // /physdesc set used to leave the plugin tag off this message.
         player.getInventory().setItemInMainHand(null);
 
-        player.performCommand("funcdesc set text");
-        player.performCommand("skilldesc set text");
+        player.performCommand(name + " set text");
 
-        assertEquals(2, receivedMessages().stream().filter((PLUGIN_TAG + HOLD_ITEM)::equals).count());
+        assertTrue(receivedMessages().contains(PLUGIN_TAG + HOLD_ITEM));
     }
 
-    @Test
-    void physicalSetAsksForAnItemWithoutThePluginTag() {
-        player.getInventory().setItemInMainHand(null);
-
-        player.performCommand("physdesc set text");
-
-        assertTrue(receivedMessages().contains(HOLD_ITEM));
-    }
-
-    @Test
-    void physicalAddAndSetWithoutTextShowTheUsage() {
-        assertFalse(runExecutor("physdesc", "add"), "returning false makes Bukkit show the usage");
-        assertFalse(runExecutor("physdesc", "set"), "returning false makes Bukkit show the usage");
-    }
-
-    @Test
-    void functionalAndSkillAddAndSetWithoutTextDoNothing() {
-        assertTrue(runExecutor("funcdesc", "add"));
-        assertTrue(runExecutor("funcdesc", "set"));
-        assertTrue(runExecutor("skilldesc", "add"));
-        assertTrue(runExecutor("skilldesc", "set"));
-
-        assertTrue(receivedMessages().isEmpty());
+    @ParameterizedTest
+    @MethodSource("commands")
+    void addAndSetWithoutTextShowTheUsage(String name) {
+        // /funcdesc and /skilldesc used to silently do nothing here.
+        assertFalse(runExecutor(name, "add"), "returning false makes Bukkit show the usage");
+        assertFalse(runExecutor(name, "set"), "returning false makes Bukkit show the usage");
         assertEquals(SECTIONS, storedSections());
     }
 

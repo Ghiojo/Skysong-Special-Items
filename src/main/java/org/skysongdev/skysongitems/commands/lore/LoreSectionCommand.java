@@ -61,10 +61,7 @@ public class LoreSectionCommand implements CommandExecutor {
         String subcommand = args[0].toLowerCase();
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
         boolean missingText = subArgs.length == 0 && takesText(subcommand);
-        if (missingText && section.showsUsageWhenTextIsMissing()) {
-            return false;
-        }
-        if (!missingText && !runSubcommand(player, subcommand, subArgs)) {
+        if (missingText || !runSubcommand(player, subcommand, subArgs)) {
             return false;
         }
         Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
@@ -78,7 +75,7 @@ public class LoreSectionCommand implements CommandExecutor {
     /** Runs the subcommand, or returns false if there is no such subcommand. */
     private boolean runSubcommand(Player player, String subcommand, String[] subArgs) {
         switch (subcommand) {
-            case "set" -> writeText(player, subArgs, REPLACE, setEmptyHandMessage());
+            case "set" -> writeText(player, subArgs, REPLACE);
             case "add" -> addText(player, subArgs);
             case "del", "delete" -> toggleHidden(player);
             case "delline", "dl" -> deleteLine(player, subArgs);
@@ -91,19 +88,15 @@ public class LoreSectionCommand implements CommandExecutor {
 
     private void addText(Player player, String[] words) {
         if (NEW_LINE_FLAG.equals(words[0])) {
-            writeText(player, Arrays.copyOfRange(words, 1, words.length), APPEND_BELOW, TAGGED_HOLD_ITEM);
+            writeText(player, Arrays.copyOfRange(words, 1, words.length), APPEND_BELOW);
         } else {
-            writeText(player, words, CONCATENATE, TAGGED_HOLD_ITEM);
+            writeText(player, words, CONCATENATE);
         }
     }
 
-    private String setEmptyHandMessage() {
-        return section.tagsEmptyHandMessageOnSet() ? TAGGED_HOLD_ITEM : HOLD_ITEM;
-    }
-
-    private void writeText(Player player, String[] words, int mode, String emptyHandMessage) {
+    private void writeText(Player player, String[] words, int mode) {
         getPlugin().getUpdater().UpdateItem(player);
-        ItemStack item = heldItem(player, emptyHandMessage);
+        ItemStack item = heldItem(player, TAGGED_HOLD_ITEM);
         if (item == null) {
             return;
         }

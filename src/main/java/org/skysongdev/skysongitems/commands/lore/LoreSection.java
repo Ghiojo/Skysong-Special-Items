@@ -34,24 +34,4 @@ public enum LoreSection {
     public int getIndex() {
         return index;
     }
-
-    // The three commands started as copies of each other and drifted apart.
-    // The two methods below keep each command's behaviour as it was; whether
-    // to unify them is a separate decision.
-
-    /**
-     * Whether "add" or "set" without any text shows the command's usage.
-     * Only /physdesc does; /funcdesc and /skilldesc silently do nothing.
-     */
-    public boolean showsUsageWhenTextIsMissing() {
-        return PHYSICAL.equals(this);
-    }
-
-    /**
-     * Whether "set" with an empty hand prefixes its message with the plugin
-     * tag. All sections do except /physdesc. ("add" always does.)
-     */
-    public boolean tagsEmptyHandMessageOnSet() {
-        return !PHYSICAL.equals(this);
-    }
 }
