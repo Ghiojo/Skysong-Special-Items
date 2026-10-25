@@ -171,6 +171,38 @@ class ConsumptionHandlerTest extends MockBukkitTest {
     }
 
     @Test
+    void chargeCommandWithoutSuffixStopsInsteadOfCrashing() {
+        ItemStack item = chargedItem("charge:1;charge:1:stop", 3, 1);
+
+        List<ItemStack> returned = consumeWithinTimeout(item);
+
+        assertEquals(1, returned.size());
+        assertEquals(2, chargesOf(returned.getFirst()));
+        assertEquals(1, warnings.size());
+    }
+
+    @Test
+    void chargeCommandWithoutAmountConsumesOneChargeInsteadOfCrashing() {
+        ItemStack item = chargedItem("charge", 3, 1);
+
+        List<ItemStack> returned = consumeWithinTimeout(item);
+
+        assertEquals(1, returned.size());
+        assertEquals(2, chargesOf(returned.getFirst()));
+        assertEquals(2, warnings.size());
+    }
+
+    @Test
+    void lastChargeWithoutSuffixRunsTheNextCommand() {
+        ItemStack item = chargedItem("charge:1;charge:5:stop", 1, 1);
+
+        List<ItemStack> returned = consumeWithinTimeout(item);
+
+        assertTrue(returned.isEmpty());
+        assertEquals(1, warnings.size());
+    }
+
+    @Test
     void itemCommandWithoutAMatchingFileOnlyUsesUpOneItem() {
         MockBukkit.load(SkysongItems.class);
         ItemStack item = itemWithConsumptionCommands("no_such_item");
