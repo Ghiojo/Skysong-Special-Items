@@ -13,20 +13,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.database.BookDescriptions;
+import org.skysongdev.skysongitems.database.BookQueries;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class OpenDescRightClick implements Listener {
-    SkysongItems plugin;
+    private final BookQueries bookQueries;
 
-    public OpenDescRightClick(SkysongItems plugin) {
-        this.plugin = plugin;
+    public OpenDescRightClick(BookQueries bookQueries) {
+        this.bookQueries = bookQueries;
     }
 
     @EventHandler
@@ -35,21 +34,27 @@ public class OpenDescRightClick implements Listener {
         if (idToOpen.isEmpty()) {
             return;
         }
-        BookDescriptions book;
-        try {
-            book = plugin.getBookRepository().findById(idToOpen.getAsInt());
-            if(book == null){
-                event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
-                return;
-            }
-        }catch (SQLException e){
-            event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
-            e.printStackTrace();
+        Player player = event.getPlayer();
+        boolean dmOnly = isDmOnly(event.getItem());
+        bookQueries.submit(books -> books.findById(idToOpen.getAsInt()),
+                book -> openIfAllowed(player, book, dmOnly),
+                e -> {
+                    player.sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
+                    e.printStackTrace();
+                });
+    }
+
+    private static void openIfAllowed(Player player, BookDescriptions book, boolean dmOnly) {
+        if (!player.isOnline()) {
+            return;
+        }
+        if(book == null){
+            player.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
             return;
         }
 
-        if(isDmOnly(event.getItem()) && !event.getPlayer().hasPermission("skysongspecialitems.dm")){
-            event.getPlayer().sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("RED").toString() + "You do not have permission to view this lore");
+        if(dmOnly && !player.hasPermission("skysongspecialitems.dm")){
+            player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("RED").toString() + "You do not have permission to view this lore");
             return;
         }
 
@@ -61,7 +66,7 @@ public class OpenDescRightClick implements Listener {
         tempMeta.setAuthor("Skysong");
         tempBook.setItemMeta(tempMeta);
 
-        event.getPlayer().openBook(tempBook);
+        player.openBook(tempBook);
     }
 
     /**

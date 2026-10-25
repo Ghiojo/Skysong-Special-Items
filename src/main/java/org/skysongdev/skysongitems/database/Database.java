@@ -18,10 +18,10 @@ import java.util.concurrent.TimeUnit;
  */
 public final class Database implements ConnectionSource, AutoCloseable {
     private static final String POOL_NAME = "SkysongItems-database";
-    // Commands and listeners query from the main thread one at a time, so a few connections are enough.
+    // Book queries run one at a time on the BookQueries worker thread, so a few connections are enough.
     private static final int MAXIMUM_POOL_SIZE = 4;
     private static final int MINIMUM_IDLE = 1;
-    // Keep a lost database from holding the main thread for Hikari's default 30 seconds.
+    // Keep a lost database from holding up the queued book queries for Hikari's default 30 seconds.
     private static final long CONNECTION_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(5);
     // Same interval as the ping task this pool replaces, well under MySQL's default wait_timeout.
     private static final long KEEPALIVE_MILLIS = TimeUnit.MINUTES.toMillis(5);
