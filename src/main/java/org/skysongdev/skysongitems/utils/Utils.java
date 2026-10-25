@@ -538,62 +538,81 @@ public class Utils {
             return null;
         }
         ArrayList<ItemStack> returnItems = new ArrayList<>();
-        if(item.hasItemMeta()){
-            PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-            if(pdc.has(ItemKeys.ON_CONSUMPTION)){
-                String[] commands = pdc.get(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING).split(";");
-                boolean stopAfterCommand = false;
-
-                // A for loop so that "continue" still advances to the next command.
-                for(int commandIndex = 0; !stopAfterCommand && commandIndex < commands.length; commandIndex++){
-                    String[] parts = commands[commandIndex].split(":");
-                    if (parts[0].equals("charge")) {
-                        if(!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.CHARGES, PersistentDataType.INTEGER)){
-                            logger.warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
-                            continue;
-                        }
-                        if (item.getAmount() > 1) {
-                            ItemStack remainingItem = item.clone();
-                            remainingItem.setAmount(remainingItem.getAmount() - 1);
-                            returnItems.add(remainingItem);
-                        }
-                        int chargesToConsume;
-                        try {
-                            chargesToConsume = Integer.parseInt(parts[1]);
-                        } catch (NumberFormatException e) {
-                            logger.warning("Invalid number format for charges to consume: " + parts[1]);
-                            chargesToConsume = 1;
-                        }
-                        int currentCharges = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
-                        int newCharges = currentCharges - chargesToConsume;
-                        if (newCharges > 0) {
-                            ItemStack chargedItem = item.clone();
-                            chargedItem.setAmount(1);
-                            ItemMeta meta = chargedItem.getItemMeta();
-                            meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, newCharges);
-                            chargedItem.setItemMeta(meta);
-                            chargedItem = updateItemLore(chargedItem);
-                            returnItems.add(chargedItem);
-                        }
-                        if (parts[2].equals("stop") && newCharges > 0) {
-                            stopAfterCommand = true;
-                        }
-                    } else {
-                        item.setAmount(item.getAmount() - 1);
-                        if (item.getAmount() > 0)
-                            returnItems.add(item);
-
-                        String returnedItem = parts[0];
-                        File itemFile = getPlugin().getDataFolder().toPath().resolve("GeneratedItems").resolve(returnedItem + ".yml").toFile();
-                        if (itemFile.exists()) {
-                            SkysongItem skysongItem = LoadSkysongItem(itemFile);
-                            returnItems.add(getPlugin().getUtils().GenerateSkysongItem(skysongItem));
-                        }
-                    }
-                }
+        for(String command : getConsumptionCommands(item)){
+            String[] parts = command.split(":");
+            boolean stopAfterCommand = false;
+            if(parts[0].equals("charge")){
+                stopAfterCommand = runChargeCommand(item, parts, returnItems, logger);
+            } else {
+                runReturnItemCommand(item, parts[0], returnItems);
+            }
+            if(stopAfterCommand){
+                break;
             }
         }
         return returnItems;
+    }
 
+    private static String[] getConsumptionCommands(ItemStack item){
+        if(!item.hasItemMeta()){
+            return new String[0];
+        }
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        if(!pdc.has(ItemKeys.ON_CONSUMPTION)){
+            return new String[0];
+        }
+        return pdc.get(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING).split(";");
+    }
+
+    /**
+     * Handles a "charge:amount:stop" command by taking charges off one item of the stack.
+     * Returns true when the remaining commands should be skipped.
+     */
+    private static boolean runChargeCommand(ItemStack item, String[] parts, List<ItemStack> returnItems, Logger logger){
+        if(!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.CHARGES, PersistentDataType.INTEGER)){
+            logger.warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
+            return false;
+        }
+        if (item.getAmount() > 1) {
+            ItemStack remainingItem = item.clone();
+            remainingItem.setAmount(remainingItem.getAmount() - 1);
+            returnItems.add(remainingItem);
+        }
+        int chargesToConsume = parseChargesToConsume(parts[1], logger);
+        int currentCharges = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
+        int newCharges = currentCharges - chargesToConsume;
+        if (newCharges > 0) {
+            ItemStack chargedItem = item.clone();
+            chargedItem.setAmount(1);
+            ItemMeta meta = chargedItem.getItemMeta();
+            meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, newCharges);
+            chargedItem.setItemMeta(meta);
+            chargedItem = updateItemLore(chargedItem);
+            returnItems.add(chargedItem);
+        }
+        return parts[2].equals("stop") && newCharges > 0;
+    }
+
+    private static int parseChargesToConsume(String amount, Logger logger){
+        try {
+            return Integer.parseInt(amount);
+        } catch (NumberFormatException e) {
+            logger.warning("Invalid number format for charges to consume: " + amount);
+            return 1;
+        }
+    }
+
+    /** Handles a command naming a generated item: uses up one item of the stack and gives the named item. */
+    private static void runReturnItemCommand(ItemStack item, String returnedItem, List<ItemStack> returnItems){
+        item.setAmount(item.getAmount() - 1);
+        if (item.getAmount() > 0) {
+            returnItems.add(item);
+        }
+
+        File itemFile = getPlugin().getDataFolder().toPath().resolve("GeneratedItems").resolve(returnedItem + ".yml").toFile();
+        if (itemFile.exists()) {
+            SkysongItem skysongItem = LoadSkysongItem(itemFile);
+            returnItems.add(getPlugin().getUtils().GenerateSkysongItem(skysongItem));
+        }
     }
 }
