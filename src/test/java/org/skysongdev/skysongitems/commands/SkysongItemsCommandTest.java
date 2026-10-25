@@ -52,14 +52,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
-    private static final List<String> ALL_LISTED_SUBCOMMANDS = List.of(
-            "disable", "openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc", "listbooks",
+    private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
+            "disable", "dis", "openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc", "listbooks",
             "setdm", "setrc", "unbind", "dbreload", "updatelore", "tag", "prop", "property", "details", "update",
             "reload", "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd");
-    private static final List<String> SUBCOMMANDS_LISTED_WITHOUT_PERMISSION = List.of(
-            "viewdesc", "details", "update", "rename", "charges");
-
-    /** Subcommands anyone may run; every other one needs the item edit permission. */
+    /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
     private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
@@ -161,7 +158,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     @Test
     void everyItemEditSubcommandIsRefusedWithoutPermission() {
         List<String> itemEditNames = siCommand.getRegistry().all().stream()
-                .map(subcommand -> subcommand.listedNames().get(0))
+                .map(subcommand -> subcommand.names().get(0))
                 .filter(name -> !SUBCOMMANDS_WITHOUT_PERMISSION.contains(name))
                 .toList();
 
@@ -221,7 +218,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     void playerOnlyListMatchesTheRegistry() {
         List<String> registered = siCommand.getRegistry().all().stream()
                 .filter(Subcommand::isPlayerOnly)
-                .map(subcommand -> subcommand.listedNames().get(0))
+                .map(subcommand -> subcommand.names().get(0))
                 .toList();
 
         assertEquals(PLAYER_ONLY_SUBCOMMANDS, registered);
@@ -252,12 +249,30 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     void tabCompletionListsEverySubcommandToItemEditors() {
         player.addAttachment(MockBukkit.createMockPlugin(), ITEM_EDIT_PERMISSION, true);
 
-        assertEquals(ALL_LISTED_SUBCOMMANDS, tabComplete(""));
+        assertEquals(ALL_SUBCOMMAND_NAMES, tabComplete(""));
     }
 
     @Test
-    void tabCompletionListsOnlyPlayerSubcommandsWithoutPermission() {
-        assertEquals(SUBCOMMANDS_LISTED_WITHOUT_PERMISSION, tabComplete(""));
+    void tabCompletionListsOnlySubcommandsThePlayerMayRunWithoutPermission() {
+        assertEquals(SUBCOMMANDS_WITHOUT_PERMISSION, tabComplete(""));
+    }
+
+    @Test
+    void tabCompletionDoesNotOfferRenameOrChargesWithoutPermission() {
+        assertEquals(List.of(), tabComplete("r"));
+        assertEquals(List.of(), tabComplete("ch"));
+    }
+
+    @Test
+    void tabCompletionOffersTheDisAliasToItemEditors() {
+        player.addAttachment(MockBukkit.createMockPlugin(), ITEM_EDIT_PERMISSION, true);
+
+        assertEquals(List.of("disable", "dis"), tabComplete("dis"));
+    }
+
+    @Test
+    void tabCompletionOfArgumentsIsBlankForSubcommandThePlayerMayNotRun() {
+        assertEquals(List.of(""), tabComplete("charges", ""));
     }
 
     @Test

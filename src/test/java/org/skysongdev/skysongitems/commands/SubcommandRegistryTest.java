@@ -17,7 +17,7 @@ class SubcommandRegistryTest {
 
     @Test
     void findsSubcommandByNameAndEveryAliasIgnoringCase() {
-        Subcommand disable = Subcommand.builder("disable", NO_OP).alias("off").hiddenAlias("dis").build();
+        Subcommand disable = Subcommand.builder("disable", NO_OP).alias("off").alias("dis").build();
         registry.register(disable);
 
         assertSame(disable, registry.find("disable").orElseThrow());
@@ -33,16 +33,15 @@ class SubcommandRegistryTest {
     }
 
     @Test
-    void hiddenAliasesAreNotListed() {
-        Subcommand disable = Subcommand.builder("disable", NO_OP).alias("off").hiddenAlias("dis").build();
+    void namesListTheNameThenEachAliasInDeclarationOrder() {
+        Subcommand disable = Subcommand.builder("disable", NO_OP).alias("off").alias("dis").build();
 
-        assertEquals(List.of("disable", "off"), disable.listedNames());
         assertEquals(List.of("disable", "off", "dis"), disable.names());
     }
 
     @Test
     void nameTakenByAnotherSubcommandIsRejected() {
-        registry.register(Subcommand.builder("disable", NO_OP).hiddenAlias("dis").build());
+        registry.register(Subcommand.builder("disable", NO_OP).alias("dis").build());
         Subcommand clash = Subcommand.builder("discard", NO_OP).alias("DIS").build();
 
         assertThrows(IllegalArgumentException.class, () -> registry.register(clash));
