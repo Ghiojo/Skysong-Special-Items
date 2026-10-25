@@ -12,9 +12,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 
-import java.util.List;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -35,14 +35,10 @@ public class RemoveCharges implements CommandExecutor {
         if(container.has(ItemKeys.MAX_CHARGES))
             container.remove(ItemKeys.MAX_CHARGES);
         ItemData data = new ItemData(container);
-        if(data.hasProperties()){
-            List<String> currentProperties = data.getProperties();
-            currentProperties.remove("charges");
-            if(currentProperties.isEmpty())
-                data.clearProperties();
-            else
-                data.setProperties(currentProperties);
-        }
+        // The lore refresh after every edit skips items without properties,
+        // so clear the charges line here when charges was the last property.
+        if(data.removeProperty("charges") && !data.hasProperties())
+            ItemLoreRenderer.renderWithoutProperties(buffer);
 
         item.setItemMeta(buffer);
         Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
