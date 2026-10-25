@@ -11,7 +11,6 @@ import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.TextParser;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -56,19 +55,12 @@ public class Updater {
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
         ItemData data = new ItemData(bufferDataContainer);
         List<String> parsedLore;
-        List<String> loreSections = new ArrayList<>();
         parsedLore = buffer.getLore();
 
         parsedLore = TextParser.TranslateFromLore(parsedLore, data.getDeletedLines());
 
-        loreSections.add(parsedLore.get(0));
-        for(String section : parsedLore){
-            if(section.equals(parsedLore.get(0))){
-                continue;
-            }
-            loreSections.add(section);
-        }
-        data.setLoreSections(loreSections);
+        // Store every section in its slot, even when two sections have the same text.
+        data.setLoreSections(parsedLore);
         bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, "1.0");
 
         if(buffer.displayName() != null){
