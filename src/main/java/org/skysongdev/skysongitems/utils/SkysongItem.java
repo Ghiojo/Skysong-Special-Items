@@ -35,15 +35,23 @@ public class SkysongItem {
         this.customModelData = null;
     }
 
-    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues, CustomModelData customModelData) {
-        this.name = name;
-        this.lore = lore;
-        this.type = type;
-        this.itemModel = itemModel;
-        this.deleted = deleted;
-        this.properties = properties;
-        this.tagValues = new LinkedHashMap<>(tagValues);
-        this.customModelData = customModelData;
+    /** Copies another item, so subclasses can add their own fields to a loaded base item. */
+    protected SkysongItem(SkysongItem other) {
+        this.name = other.name;
+        this.lore = other.lore;
+        this.type = other.type;
+        this.itemModel = other.itemModel;
+        this.deleted = other.deleted;
+        this.properties = other.properties;
+        this.tagValues = new LinkedHashMap<>(other.tagValues);
+        this.customModelData = other.customModelData;
+    }
+
+    /** Returns a copy of this item with the given custom model data. */
+    public SkysongItem withCustomModelData(CustomModelData customModelData) {
+        SkysongItem copy = new SkysongItem(this);
+        copy.customModelData = customModelData;
+        return copy;
     }
 
     public SkysongItem(ItemStack item){

@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.utils;
 
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Item files store tags and values as two parallel lists. These tests cover
@@ -40,15 +42,23 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         return Utils.getTag(id);
     }
 
-    private File writeItemFile(List<String> tagIds, List<String> values) throws IOException {
+    private static YamlConfiguration itemYaml(String type, List<String> tagIds, List<String> values) {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("name", "Test Item");
-        yaml.set("type", "STONE");
+        yaml.set("type", type);
         yaml.set("tags", tagIds);
         yaml.set("values", values);
+        return yaml;
+    }
+
+    private File save(YamlConfiguration yaml) throws IOException {
         File file = new File(folder, "test_item.yml");
         yaml.save(file);
         return file;
+    }
+
+    private File writeItemFile(List<String> tagIds, List<String> values) throws IOException {
+        return save(itemYaml("STONE", tagIds, values));
     }
 
     private static SkysongItem itemWithTags(Map<NamespacedKey, String> tagValues) {
@@ -81,6 +91,34 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         SkysongItem item = Utils.LoadSkysongItem(file);
 
         assertEquals(Map.of(tag("arcrot"), "4"), item.getTagValues());
+    }
+
+    @Test
+    void potionFileKeepsItsTagValuesAndColour() throws IOException {
+        YamlConfiguration yaml = itemYaml("POTION", List.of("arcrot", "retired_tag", "fictis"), List.of("1", "2", "3"));
+        yaml.set("potionColor", Color.RED.asRGB());
+
+        SkysongItem item = Utils.LoadSkysongItem(save(yaml));
+
+        SkysongPotionItem potion = assertInstanceOf(SkysongPotionItem.class, item);
+        assertEquals(Color.RED, potion.getColor());
+        assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3"), potion.getTagValues());
+    }
+
+    @Test
+    void skullFileKeepsItsTagValuesAndOwner() throws IOException {
+        YamlConfiguration yaml = itemYaml("PLAYER_HEAD", List.of("arcrot", "retired_tag", "fictis"), List.of("1", "2", "3"));
+        yaml.set("id", "00000000-0000-0000-0000-000000000001");
+        yaml.set("playername", "Steve");
+        yaml.set("texture", "texture-value");
+
+        SkysongItem item = Utils.LoadSkysongItem(save(yaml));
+
+        SkysongSkullItem skull = assertInstanceOf(SkysongSkullItem.class, item);
+        assertEquals("00000000-0000-0000-0000-000000000001", skull.getId());
+        assertEquals("Steve", skull.getPlayerName());
+        assertEquals("texture-value", skull.getTexture());
+        assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3"), skull.getTagValues());
     }
 
     @Test

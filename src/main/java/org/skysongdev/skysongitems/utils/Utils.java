@@ -321,20 +321,22 @@ public class Utils {
         String deleted = yaml.getString("deleted", "");
         String properties = yaml.getString("properties", "");
         LinkedHashMap<NamespacedKey, String> tagValues = readTagValues(yaml, file);
+        SkysongItem item = new SkysongItem(name, lore, type, itemModel, deleted, properties, tagValues)
+                .withCustomModelData(customModelData);
 
         if(type.equals(Material.PLAYER_HEAD.toString())) {
             String id = yaml.getString("id", "");
             String playerName = yaml.getString("playername", "");
             String texture = yaml.getString("texture", "");
-            return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, tagValues, id, playerName, texture, customModelData);
+            return new SkysongSkullItem(item, id, playerName, texture);
         }
 
         if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
             Color color = Color.fromRGB(yaml.getInt("potionColor"));
-            return new SkysongPotionItem(name, lore, type, itemModel, deleted, properties, tagValues, customModelData, color);
+            return new SkysongPotionItem(item, color);
         }
 
-        return new SkysongItem(name, lore, type, itemModel, deleted, properties, tagValues, customModelData);
+        return item;
     }
 
     private static NamespacedKey readItemModel(YamlConfiguration yaml) {
