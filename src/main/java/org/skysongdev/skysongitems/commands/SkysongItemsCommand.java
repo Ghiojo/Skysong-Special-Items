@@ -65,13 +65,13 @@ public class SkysongItemsCommand implements TabExecutor {
         LoadItem loadItem = new LoadItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
 
-        registerItemEdit(Subcommand.builder("disable", new DisableFunc()).hiddenAlias("dis").playerOnly());
+        registerItemEdit(Subcommand.builder("disable", new DisableFunc()).alias("dis").playerOnly());
         registerItemEdit(Subcommand.builder("openbook", openBook).playerOnly());
         registerItemEdit(Subcommand.builder("savebook", new SaveBook(bookQueries)).playerOnly());
         registerItemEdit(Subcommand.builder("setbook", new SetBookContent(bookQueries)).playerOnly());
         registerItemEdit(Subcommand.builder("delbook", new DeleteBook(bookQueries)));
         registerItemEdit(Subcommand.builder("bindbook", new BindBook(bookQueries)).playerOnly());
-        registry.register(Subcommand.builder("viewdesc", new ViewExtendedLore(openBook)).listedToEveryone().playerOnly().build());
+        registry.register(Subcommand.builder("viewdesc", new ViewExtendedLore(openBook)).playerOnly().build());
         registerItemEdit(Subcommand.builder("listbooks", new ListBooks(bookQueries)));
         registerItemEdit(Subcommand.builder("setdm", new SetDMOnly()).playerOnly());
         registerItemEdit(Subcommand.builder("setrc", new SetRightClickBook()).playerOnly());
@@ -82,11 +82,11 @@ public class SkysongItemsCommand implements TabExecutor {
         // prop and update check their own permissions; details only reads the held item.
         registry.register(Subcommand.builder("prop", propertiesCommand).alias("property")
                 .tabCompleter(propertiesCommand).build());
-        registry.register(Subcommand.builder("details", new DetailsCommand()).listedToEveryone().playerOnly().build());
-        registry.register(Subcommand.builder("update", updateItem).listedToEveryone().playerOnly().build());
+        registry.register(Subcommand.builder("details", new DetailsCommand()).playerOnly().build());
+        registry.register(Subcommand.builder("update", updateItem).playerOnly().build());
         registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());
-        registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).listedToEveryone().playerOnly());
-        registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).listedToEveryone().playerOnly());
+        registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).playerOnly());
+        registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).playerOnly());
         registerItemEdit(Subcommand.builder("loaditem", loadItem).tabCompleter(loadItem));
         registerItemEdit(Subcommand.builder("saveitem", new SaveItem()));
         registerItemEdit(Subcommand.builder("setmodel", new SetItemModel()));
@@ -129,10 +129,11 @@ public class SkysongItemsCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (strings.length <= 1) {
-            return listedNames(commandSender).stream().filter(name -> name.startsWith(strings[0])).toList();
+            return namesUsableBy(commandSender).stream().filter(name -> name.startsWith(strings[0])).toList();
         }
         // Player-only completers read the sender's held item, so the console gets nothing.
         TabCompleter completer = registry.find(strings[0])
+                .filter(subcommand -> subcommand.canRun(commandSender))
                 .filter(subcommand -> !subcommand.isPlayerOnly() || commandSender instanceof Player)
                 .map(Subcommand::tabCompleter)
                 .orElse(null);
@@ -142,15 +143,11 @@ public class SkysongItemsCommand implements TabExecutor {
         return completer.onTabComplete(commandSender, command, s, argumentsAfterName(strings));
     }
 
-    /**
-     * Item editors are offered every subcommand; everyone else only those marked
-     * as listed to everyone.
-     */
-    private List<String> listedNames(CommandSender sender) {
-        boolean itemEditor = sender.hasPermission(ITEM_EDIT_PERMISSION);
+    /** The name and aliases of every subcommand the sender has permission to run. */
+    private List<String> namesUsableBy(CommandSender sender) {
         return registry.all().stream()
-                .filter(subcommand -> itemEditor || subcommand.isListedToEveryone())
-                .flatMap(subcommand -> subcommand.listedNames().stream())
+                .filter(subcommand -> subcommand.canRun(sender))
+                .flatMap(subcommand -> subcommand.names().stream())
                 .toList();
     }
 
