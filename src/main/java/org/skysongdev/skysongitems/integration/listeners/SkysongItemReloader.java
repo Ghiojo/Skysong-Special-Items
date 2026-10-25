@@ -8,8 +8,6 @@ import dev.jsinco.brewery.bukkit.api.transaction.ItemSource;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
@@ -22,17 +20,14 @@ public class SkysongItemReloader implements Listener {
 
     @EventHandler
     public void onCauldronInsertion(CauldronInsertEvent event){
-        if(ItemFactory.isSkysongItem(event.getItemSource().itemStack())){
-            ItemMeta meta = event.getItemSource().itemStack().getItemMeta();
-            PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            String itemId = pdc.get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
-            String permission = getPlugin().getMaterialPermissions().getPermission(itemId);
-            if(itemId != null && permission != null){
-                if(!event.getPlayer().hasPermission(permission) && event.getPlayer().hasPermission("skysongspecialitems.cit")){
-                    event.setCancelled(true);
-                    event.getPlayer().sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You do not have the experience required to use this item!"));
-                }
-            }
+        ItemStack item = event.getItemSource().itemStack();
+        if(!ItemFactory.isSkysongItem(item)){
+            return;
+        }
+        String itemId = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
+        if(!getPlugin().getMaterialPermissions().canUse(event.getPlayer(), itemId)){
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You do not have the experience required to use this item!"));
         }
     }
 

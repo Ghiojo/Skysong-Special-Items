@@ -2,6 +2,7 @@ package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.permissions.Permissible;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,8 @@ import java.util.logging.Logger;
  */
 public class MaterialPermissions {
     private static final String FILE_NAME = "materials.yml";
+    /** Staff with this permission may use every item, whatever its material permission. */
+    static final String STAFF_BYPASS_PERMISSION = "skysongspecialitems.cit";
 
     private final Map<String, String> permissions = new HashMap<>();
 
@@ -59,5 +62,16 @@ public class MaterialPermissions {
     /** The permission needed to use items with this material id, or null when none is configured. */
     public String getPermission(String materialId) {
         return permissions.get(materialId);
+    }
+
+    /**
+     * Whether the user may use an item with this material id: true when no permission is
+     * configured for it, when the user has that permission, or when the user is staff.
+     */
+    public boolean canUse(Permissible user, String materialId) {
+        String permission = materialId == null ? null : getPermission(materialId);
+        return permission == null
+                || user.hasPermission(permission)
+                || user.hasPermission(STAFF_BYPASS_PERMISSION);
     }
 }
