@@ -7,14 +7,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.database.BookDescriptions;
-
-import java.sql.SQLException;
-
-import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+import org.skysongdev.skysongitems.database.BookQueries;
 
 public class SetBookContent implements CommandExecutor {
+    private final BookQueries bookQueries;
+
+    public SetBookContent(BookQueries bookQueries) {
+        this.bookQueries = bookQueries;
+    }
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -38,14 +39,12 @@ public class SetBookContent implements CommandExecutor {
             return true;
         }
         bookDescriptions.setId(id);
-        try {
-            getPlugin().getBookRepository().update(bookDescriptions);
-        }catch(SQLException e){
-            commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
-            return true;
-        }
-
-        commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book has been edited!");
+        bookQueries.submit(books -> {
+                    books.update(bookDescriptions);
+                    return null;
+                },
+                ignored -> commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book has been edited!"),
+                e -> commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)"));
         return true;
     }
 }

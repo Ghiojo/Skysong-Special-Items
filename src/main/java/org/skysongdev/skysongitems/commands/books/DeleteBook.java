@@ -4,13 +4,14 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.skysongdev.skysongitems.SkysongItems;
-
-import java.sql.SQLException;
-
-import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+import org.skysongdev.skysongitems.database.BookQueries;
 
 public class DeleteBook implements CommandExecutor {
+    private final BookQueries bookQueries;
+
+    public DeleteBook(BookQueries bookQueries) {
+        this.bookQueries = bookQueries;
+    }
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -26,14 +27,21 @@ public class DeleteBook implements CommandExecutor {
             return true;
         }
 
-        try {
-            getPlugin().getBookRepository().delete(id);
-        }catch (SQLException e){
-            commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Cannot find book with this id");
-            e.printStackTrace();
-        }
-
-        commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book with id (" + id + ") has been deleted from the database");
+        bookQueries.submit(books -> {
+                    books.delete(id);
+                    return null;
+                },
+                ignored -> sendDeleted(commandSender, id),
+                e -> {
+                    commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Cannot find book with this id");
+                    e.printStackTrace();
+                    // The deletion message has always followed the error too.
+                    sendDeleted(commandSender, id);
+                });
         return true;
+    }
+
+    private static void sendDeleted(CommandSender commandSender, int id) {
+        commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book with id (" + id + ") has been deleted from the database");
     }
 }

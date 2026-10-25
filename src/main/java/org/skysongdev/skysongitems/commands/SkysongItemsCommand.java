@@ -16,6 +16,7 @@ import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
+import org.skysongdev.skysongitems.database.BookQueries;
 import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.Arrays;
@@ -55,7 +56,8 @@ public class SkysongItemsCommand implements TabExecutor {
     }
 
     private void registerSubcommands(PropertiesCommand propertiesCommand, UpdateItem updateItem) {
-        OpenBook openBook = new OpenBook();
+        BookQueries bookQueries = getPlugin().getBookQueries();
+        OpenBook openBook = new OpenBook(bookQueries);
         TagCommand tagCommand = new TagCommand();
         RenameCommand renameCommand = new RenameCommand();
         ChargesCommand chargesCommand = new ChargesCommand();
@@ -64,12 +66,12 @@ public class SkysongItemsCommand implements TabExecutor {
 
         registerItemEdit(Subcommand.builder("disable", new DisableFunc()).hiddenAlias("dis").playerOnly());
         registerItemEdit(Subcommand.builder("openbook", openBook).playerOnly());
-        registerItemEdit(Subcommand.builder("savebook", new SaveBook()).playerOnly());
-        registerItemEdit(Subcommand.builder("setbook", new SetBookContent()).playerOnly());
-        registerItemEdit(Subcommand.builder("delbook", new DeleteBook()));
-        registerItemEdit(Subcommand.builder("bindbook", new BindBook()).playerOnly());
+        registerItemEdit(Subcommand.builder("savebook", new SaveBook(bookQueries)).playerOnly());
+        registerItemEdit(Subcommand.builder("setbook", new SetBookContent(bookQueries)).playerOnly());
+        registerItemEdit(Subcommand.builder("delbook", new DeleteBook(bookQueries)));
+        registerItemEdit(Subcommand.builder("bindbook", new BindBook(bookQueries)).playerOnly());
         registry.register(Subcommand.builder("viewdesc", new ViewExtendedLore(openBook)).listedToEveryone().playerOnly().build());
-        registerItemEdit(Subcommand.builder("listbooks", new ListBooks()));
+        registerItemEdit(Subcommand.builder("listbooks", new ListBooks(bookQueries)));
         registerItemEdit(Subcommand.builder("setdm", new SetDMOnly()).playerOnly());
         registerItemEdit(Subcommand.builder("setrc", new SetRightClickBook()).playerOnly());
         registerItemEdit(Subcommand.builder("unbind", new UnbindBook()).playerOnly());

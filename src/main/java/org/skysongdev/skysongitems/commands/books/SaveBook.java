@@ -7,14 +7,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.database.BookDescriptions;
-
-import java.sql.SQLException;
-
-import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
+import org.skysongdev.skysongitems.database.BookQueries;
 
 public class SaveBook implements CommandExecutor {
+    private final BookQueries bookQueries;
+
+    public SaveBook(BookQueries bookQueries) {
+        this.bookQueries = bookQueries;
+    }
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -29,18 +30,16 @@ public class SaveBook implements CommandExecutor {
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Please hold a written book to save!");
             return true;
         }
-        int bookSaveID;
-        try {
-            getPlugin().getBookRepository().create(bookDescriptions);
-            bookSaveID = getPlugin().getBookRepository().findLatestId();
-        }catch(SQLException e){
-            commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
-            e.printStackTrace();
-            return true;
-        }
-
-
-        commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book has been saved to the database with the ID (" + bookSaveID + ")");
+        // Both queries run in one task, so no other book can be saved between the insert and reading its id.
+        bookQueries.submit(books -> {
+                    books.create(bookDescriptions);
+                    return books.findLatestId();
+                },
+                bookSaveID -> commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "]" + ChatColor.of("GRAY") + "Book has been saved to the database with the ID (" + bookSaveID + ")"),
+                e -> {
+                    commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
+                    e.printStackTrace();
+                });
         return true;
     }
 }

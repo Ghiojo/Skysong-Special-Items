@@ -8,6 +8,7 @@ import org.skysongdev.skysongitems.commands.lore.LoreSection;
 import org.skysongdev.skysongitems.commands.lore.LoreSectionCommand;
 import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.database.BookDescriptionRepository;
+import org.skysongdev.skysongitems.database.BookQueries;
 import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.DatabaseSettings;
 import org.skysongdev.skysongitems.integration.BrewingProjectIntegration;
@@ -21,7 +22,6 @@ import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.Optional;
 
 // Not final: MockBukkit loads a plugin through a generated subclass of its main class.
@@ -29,6 +29,7 @@ public class SkysongItems extends JavaPlugin {
     private File ItemOutputDirectory;
     private static SkysongItems plugin;
     private Database database;
+    private BookQueries bookQueries;
     private Updater updater;
     private final PropertyRegistry propertyRegistry = new PropertyRegistry();
     private final TagRegistry tagRegistry = new TagRegistry();
@@ -84,9 +85,14 @@ public class SkysongItems extends JavaPlugin {
         return mainCommand;
     }
 
-    /** The books stored in the database, for the book commands and bound-book right-clicks. */
+    /** The books stored in the database. Query them through {@link #getBookQueries()}, off the main thread. */
     public BookDescriptionRepository getBookRepository() {
         return database.getBooks();
+    }
+
+    /** Runs the book commands' and bound-book right-clicks' queries off the main thread. */
+    public BookQueries getBookQueries() {
+        return bookQueries;
     }
 
     @Override
@@ -106,14 +112,15 @@ public class SkysongItems extends JavaPlugin {
         }
         saveDefaultConfig();
 
-        InitializeDatabase();
+        bookQueries = BookQueries.onWorkerThread(this, this::getBookRepository);
+        InitializeDatabase(() -> { });
 
         super.onEnable();
         mainCommand = new SkysongItemsCommand();
         updater = new Updater();
         getCommand("skysongitems").setExecutor(mainCommand);
         getServer().getPluginManager().registerEvents(new DisableItemUse(), this);
-        getServer().getPluginManager().registerEvents(new OpenDescRightClick(this), this);
+        getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new PermissionItemListener(), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
@@ -154,23 +161,38 @@ public class SkysongItems extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Let the queries already submitted finish before their connections are closed.
+        if (bookQueries != null) {
+            bookQueries.shutdown();
+        }
         if (database != null) {
             database.close();
         }
     }
 
-    /** Replaces the database connection pool with one built from config.yml and creates the books table. */
-    public void InitializeDatabase(){
-        if (database != null) {
-            database.close();
-        }
+    /**
+     * Replaces the database connection pool with one built from config.yml and creates the
+     * books table, then runs {@code whenDone} on the main thread. Queries submitted before
+     * this call still run on the old pool; it is closed once they have finished.
+     */
+    public void InitializeDatabase(Runnable whenDone){
+        Database previous = database;
         database = new Database(DatabaseSettings.fromConfig(getConfig()));
-        try{
-            database.getBooks().createTable();
-            getLogger().info("Created the book_descriptions table");
-        }catch(SQLException e){
-            Bukkit.getLogger().warning("[SkysongItems] Unable to connect to database and create tables!");
-            e.printStackTrace();
-        }
+        bookQueries.submit(books -> {
+                    if (previous != null) {
+                        previous.close();
+                    }
+                    books.createTable();
+                    return null;
+                },
+                ignored -> {
+                    getLogger().info("Created the book_descriptions table");
+                    whenDone.run();
+                },
+                e -> {
+                    Bukkit.getLogger().warning("[SkysongItems] Unable to connect to database and create tables!");
+                    e.printStackTrace();
+                    whenDone.run();
+                });
     }
 }

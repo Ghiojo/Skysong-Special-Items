@@ -10,14 +10,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.database.BookQueries;
 import org.skysongdev.skysongitems.utils.Constants;
-
-import java.sql.SQLException;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
-import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
-
 public class BindBook implements CommandExecutor {
+    private final BookQueries bookQueries;
+
+    public BindBook(BookQueries bookQueries) {
+        this.bookQueries = bookQueries;
+    }
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         int id;
@@ -40,22 +43,28 @@ public class BindBook implements CommandExecutor {
             return true;
         }
 
-        try {
-            if(getPlugin().getBookRepository().findById(id) == null){
-                commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
-                return true;
-            }
-        }catch (SQLException e){
-            commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
-            e.printStackTrace();
-            return true;
+        // The item is the one held when the command was sent, even if the player switches items before the lookup ends.
+        bookQueries.submit(books -> books.findById(id) != null,
+                found -> bindIfFound(player, item, id, found),
+                e -> {
+                    commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] There's an SQL error! (Check Console)");
+                    e.printStackTrace();
+                });
+        return true;
+    }
+
+    private static void bindIfFound(Player player, ItemStack item, int id, boolean found) {
+        if(!player.isOnline()){
+            return;
+        }
+        if(!found){
+            player.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
+            return;
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer itemDataContainer = buffer.getPersistentDataContainer();
         itemDataContainer.set(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER, id);
         item.setItemMeta(buffer);
-        commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Book with id " + id + " bound successfully!"));
-
-        return true;
+        player.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Book with id " + id + " bound successfully!"));
     }
 }
