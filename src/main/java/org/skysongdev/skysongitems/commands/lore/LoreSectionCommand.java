@@ -141,7 +141,7 @@ public class LoreSectionCommand implements CommandExecutor {
         if (item == null) {
             return;
         }
-        editSections(item, sections -> TextParser.deleteLine(section.getDeleteLineIndex(), line, sections));
+        editSections(item, sections -> TextParser.deleteLine(section.getIndex(), line, sections));
     }
 
     /** Returns the item in the player's main hand, or null after sending the message if it is empty. */
