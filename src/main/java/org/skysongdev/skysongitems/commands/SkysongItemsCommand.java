@@ -78,7 +78,7 @@ public class SkysongItemsCommand implements TabExecutor {
         registerItemEdit(Subcommand.builder("unbind", new UnbindBook()).playerOnly());
         registerItemEdit(Subcommand.builder("dbreload", new DBReload()));
         registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE).playerOnly());
-        registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand));
+        registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand).playerOnly());
         // prop and update check their own permissions; details only reads the held item.
         registry.register(Subcommand.builder("prop", propertiesCommand).alias("property")
                 .tabCompleter(propertiesCommand).build());
@@ -86,11 +86,11 @@ public class SkysongItemsCommand implements TabExecutor {
         registry.register(Subcommand.builder("update", updateItem).listedToEveryone().playerOnly().build());
         registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());
         registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).listedToEveryone().playerOnly());
-        registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).listedToEveryone());
+        registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).listedToEveryone().playerOnly());
         registerItemEdit(Subcommand.builder("loaditem", loadItem).tabCompleter(loadItem));
         registerItemEdit(Subcommand.builder("saveitem", new SaveItem()));
         registerItemEdit(Subcommand.builder("setmodel", new SetItemModel()));
-        registerItemEdit(Subcommand.builder("cmd", customModelDataCommand).tabCompleter(customModelDataCommand));
+        registerItemEdit(Subcommand.builder("cmd", customModelDataCommand).tabCompleter(customModelDataCommand).playerOnly());
     }
 
     private void registerItemEdit(Subcommand.Builder builder) {
@@ -131,7 +131,11 @@ public class SkysongItemsCommand implements TabExecutor {
         if (strings.length <= 1) {
             return listedNames(commandSender).stream().filter(name -> name.startsWith(strings[0])).toList();
         }
-        TabCompleter completer = registry.find(strings[0]).map(Subcommand::tabCompleter).orElse(null);
+        // Player-only completers read the sender's held item, so the console gets nothing.
+        TabCompleter completer = registry.find(strings[0])
+                .filter(subcommand -> !subcommand.isPlayerOnly() || commandSender instanceof Player)
+                .map(Subcommand::tabCompleter)
+                .orElse(null);
         if (completer == null) {
             return List.of("");
         }
