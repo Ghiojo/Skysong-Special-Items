@@ -14,6 +14,7 @@ import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
 import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.Utils;
 
 import java.io.File;
@@ -127,7 +128,7 @@ public class SkysongItems extends JavaPlugin {
         if (!ItemOutputDirectory.exists()) {
             ItemOutputDirectory.mkdir();
         }
-        File folder = Utils.getOrGenerateOutputFile();
+        File folder = ItemTemplateRepository.generatedItemsFolder();
         File[] files = folder.listFiles();
         Constants.itemFileNames.clear();
         if(files != null){
