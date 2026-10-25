@@ -12,6 +12,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.RecordedPermissions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ import static org.skysongdev.skysongitems.testsupport.RecordedPermissions.permis
 
 /**
  * Covers when the listener checks a player's permission items: on join, on the
- * tick after an inventory event, every second for changes no event reports,
+ * tick after an inventory event, every second (spread over the ticks) for changes no event reports,
  * and on quit and plugin disable, when everything is revoked.
  */
 class PermissionItemListenerTest extends MockBukkitTest {
@@ -106,6 +107,26 @@ class PermissionItemListenerTest extends MockBukkitTest {
         player.getInventory().clear();
         server.getScheduler().performTicks(PermissionItemListener.CHECK_INTERVAL_TICKS);
 
+        assertTrue(permissions.current().isEmpty());
+    }
+
+    @Test
+    void thePeriodicCheckSpreadsThePlayersOverTheInterval() {
+        List<PlayerMock> players = new ArrayList<>(List.of(player));
+        for (int added = 1; added < 40; added++) {
+            players.add(server.addPlayer());
+        }
+        for (int index = 0; index < players.size(); index++) {
+            players.get(index).getInventory().addItem(permissionItem("skysongitems.player" + index));
+        }
+        listener.register();
+        players.forEach(online -> online.getInventory().clear());
+
+        server.getScheduler().performOneTick();
+        // 40 players over 20 ticks: two each tick.
+        assertEquals(2, permissions.revokes().size());
+
+        server.getScheduler().performTicks(PermissionItemListener.CHECK_INTERVAL_TICKS - 1);
         assertTrue(permissions.current().isEmpty());
     }
 

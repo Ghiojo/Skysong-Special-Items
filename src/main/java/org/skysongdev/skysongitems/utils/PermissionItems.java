@@ -1,5 +1,7 @@
 package org.skysongdev.skysongitems.utils;
 
+import com.destroystokyo.paper.MaterialTags;
+import org.bukkit.Material;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +22,8 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
  * is not installed.
  */
 public final class PermissionItems {
+    private static final String BUNDLE_SUFFIX = "BUNDLE";
+
     private PermissionItems() {
     }
 
@@ -37,7 +41,7 @@ public final class PermissionItems {
      * The permissions carried by the permission items the player holds, one per
      * item: every slot of their inventory, the item on their cursor so an item
      * being moved within the inventory still counts as held, and the items packed
-     * inside any bundle or container item (such as a shulker box) among them.
+     * inside any bundle or shulker box among them.
      */
     public static List<String> heldPermissions(Player player) {
         List<String> permissions = new ArrayList<>();
@@ -50,20 +54,30 @@ public final class PermissionItems {
 
     /** Adds the item's permission, then those of the items packed inside it. */
     private static void addPermissions(ItemStack item, List<String> permissions) {
-        if (item == null || !item.hasItemMeta()) {
+        if (item == null || item.isEmpty()) {
             return;
         }
-        ItemMeta meta = item.getItemMeta();
-        String permission = meta.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
+        // Reads the tag in place: getItemMeta() would copy the item's whole meta, every check.
+        String permission = item.getPersistentDataContainer().get(ItemKeys.PERMISSION, PersistentDataType.STRING);
         if (permission != null) {
             permissions.add(permission);
         }
-        for (ItemStack packed : packedItems(meta)) {
-            addPermissions(packed, permissions);
+        if (canHoldItems(item.getType())) {
+            for (ItemStack packed : packedItems(item.getItemMeta())) {
+                addPermissions(packed, permissions);
+            }
         }
     }
 
-    /** The items inside a bundle or a container item, empty for any other item. */
+    /**
+     * Whether the item can carry other items: a bundle, of any colour, or a shulker box.
+     * Only these have their meta read, which copies it.
+     */
+    private static boolean canHoldItems(Material type) {
+        return type.name().endsWith(BUNDLE_SUFFIX) || MaterialTags.SHULKER_BOXES.isTagged(type);
+    }
+
+    /** The items inside a bundle or a shulker box. */
     private static List<ItemStack> packedItems(ItemMeta meta) {
         if (meta instanceof BundleMeta bundle) {
             return bundle.getItems();

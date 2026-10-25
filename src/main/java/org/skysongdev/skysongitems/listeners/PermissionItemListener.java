@@ -21,6 +21,8 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.plugin.Plugin;
 import org.skysongdev.skysongitems.utils.PermissionItemSync;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -33,9 +35,11 @@ import java.util.UUID;
  * <p>The events below are the usual ways an inventory changes. Most of them fire
  * before the change happens, and may still be cancelled by another plugin, so
  * each one only asks for a {@link PermissionItemSync#sync} on the next tick, which
- * then reads what the inventory really holds. A check of every online player
- * every {@link #CHECK_INTERVAL_TICKS} ticks catches the changes no event reports,
- * such as /clear or another plugin taking the item.
+ * then reads what the inventory really holds. Every online player is also
+ * checked once every {@link #CHECK_INTERVAL_TICKS} ticks, which catches the changes
+ * no event reports, such as /clear or another plugin taking the item. Those checks
+ * are spread over the interval, a share of the players each tick, so a full server
+ * never checks everyone in the same tick.
  */
 public class PermissionItemListener implements Listener {
     /** One second. */
@@ -44,6 +48,8 @@ public class PermissionItemListener implements Listener {
     private final Plugin plugin;
     private final PermissionItemSync sync;
     private final Set<UUID> pendingSyncs = new HashSet<>();
+    private final Deque<Player> periodicChecks = new ArrayDeque<>();
+    private int checksPerTick;
 
     public PermissionItemListener(Plugin plugin, PermissionItemSync sync) {
         this.plugin = plugin;
@@ -56,9 +62,8 @@ public class PermissionItemListener implements Listener {
      */
     public void register() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::syncOnlinePlayers,
-                CHECK_INTERVAL_TICKS, CHECK_INTERVAL_TICKS);
-        syncOnlinePlayers();
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::checkNextPlayers, 1L, 1L);
+        sync.syncAll(plugin.getServer().getOnlinePlayers());
     }
 
     /** Revokes every item permission of the online players. Call this when the plugin is disabled. */
@@ -71,8 +76,21 @@ public class PermissionItemListener implements Listener {
         sync.sync(player);
     }
 
-    private void syncOnlinePlayers() {
-        sync.syncAll(plugin.getServer().getOnlinePlayers());
+    /**
+     * Checks this tick's share of the online players. Once every player has had
+     * their turn, the next round starts with the players online at that moment.
+     */
+    private void checkNextPlayers() {
+        if (periodicChecks.isEmpty()) {
+            periodicChecks.addAll(plugin.getServer().getOnlinePlayers());
+            checksPerTick = (int) Math.ceil(periodicChecks.size() / (double) CHECK_INTERVAL_TICKS);
+        }
+        for (int checked = 0; checked < checksPerTick && !periodicChecks.isEmpty(); checked++) {
+            Player player = periodicChecks.poll();
+            if (player.isOnline()) {
+                sync.sync(player);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
