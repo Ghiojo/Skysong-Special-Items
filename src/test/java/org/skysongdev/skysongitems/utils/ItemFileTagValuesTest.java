@@ -70,7 +70,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     void tagRemovedFromConfigDoesNotShiftLaterValues() throws IOException {
         File file = writeItemFile(List.of("arcrot", "retired_tag", "fictis"), List.of("1", "2", "3"));
 
-        SkysongItem item = Utils.LoadSkysongItem(file);
+        SkysongItem item = ItemTemplateRepository.load(file);
 
         assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3"), item.getTagValues());
     }
@@ -79,7 +79,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     void tagWithoutAValueIsIgnored() throws IOException {
         File file = writeItemFile(List.of("arcrot", "fictis"), List.of("1"));
 
-        SkysongItem item = Utils.LoadSkysongItem(file);
+        SkysongItem item = ItemTemplateRepository.load(file);
 
         assertEquals(Map.of(tag("arcrot"), "1"), item.getTagValues());
     }
@@ -88,7 +88,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     void tagIdsAreMatchedIgnoringCase() throws IOException {
         File file = writeItemFile(List.of("ARCROT"), List.of("4"));
 
-        SkysongItem item = Utils.LoadSkysongItem(file);
+        SkysongItem item = ItemTemplateRepository.load(file);
 
         assertEquals(Map.of(tag("arcrot"), "4"), item.getTagValues());
     }
@@ -98,7 +98,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         YamlConfiguration yaml = itemYaml("POTION", List.of("arcrot", "retired_tag", "fictis"), List.of("1", "2", "3"));
         yaml.set("potionColor", Color.RED.asRGB());
 
-        SkysongItem item = Utils.LoadSkysongItem(save(yaml));
+        SkysongItem item = ItemTemplateRepository.load(save(yaml));
 
         SkysongPotionItem potion = assertInstanceOf(SkysongPotionItem.class, item);
         assertEquals(Color.RED, potion.getColor());
@@ -112,7 +112,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         yaml.set("playername", "Steve");
         yaml.set("texture", "texture-value");
 
-        SkysongItem item = Utils.LoadSkysongItem(save(yaml));
+        SkysongItem item = ItemTemplateRepository.load(save(yaml));
 
         SkysongSkullItem skull = assertInstanceOf(SkysongSkullItem.class, item);
         assertEquals("00000000-0000-0000-0000-000000000001", skull.getId());
@@ -139,7 +139,7 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         tagValues.put(tag("arcrot"), "1");
         tagValues.put(tag("fictis"), "3");
 
-        Utils.GenerateItemFile(itemWithTags(tagValues));
+        ItemTemplateRepository.save(itemWithTags(tagValues));
 
         YamlConfiguration saved = YamlConfiguration.loadConfiguration(savedFile());
         assertEquals(List.of("arcrot", "fictis"), saved.getStringList("tags"));
@@ -150,9 +150,9 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     void savedItemLoadsBackWithTheSameTagValues() {
         Map<NamespacedKey, String> tagValues = Map.of(tag("arcrot"), "1", tag("charged_arcrot"), "2", tag("fictis"), "3");
 
-        Utils.GenerateItemFile(itemWithTags(tagValues));
+        ItemTemplateRepository.save(itemWithTags(tagValues));
 
-        assertEquals(tagValues, Utils.LoadSkysongItem(savedFile()).getTagValues());
+        assertEquals(tagValues, ItemTemplateRepository.load(savedFile()).getTagValues());
     }
 
     @Test
@@ -169,6 +169,6 @@ class ItemFileTagValuesTest extends MockBukkitTest {
     }
 
     private File savedFile() {
-        return new File(Utils.getOrGenerateOutputFile(), "tagged_item.yml");
+        return new File(ItemTemplateRepository.generatedItemsFolder(), "tagged_item.yml");
     }
 }

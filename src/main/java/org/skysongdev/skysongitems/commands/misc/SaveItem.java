@@ -39,7 +39,7 @@ public class SaveItem implements CommandExecutor {
         else
             item = new SkysongItem(player.getInventory().getItemInMainHand());
 
-        Utils.GenerateItemFile(item);
+        ItemTemplateRepository.save(item);
 
         player.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Item saved successfully!"));
 

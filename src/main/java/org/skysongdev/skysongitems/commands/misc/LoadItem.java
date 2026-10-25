@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.SkysongItem;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 
 import java.io.File;
 import java.util.List;
@@ -41,13 +41,13 @@ public class LoadItem implements TabExecutor {
         }
         File itemFile;
         try{
-            itemFile = new File(Utils.getOrGenerateOutputFile(), strings[0] + ".yml");
+            itemFile = new File(ItemTemplateRepository.generatedItemsFolder(), strings[0] + ".yml");
         }catch (Exception e) {
             player.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Error loading item: " + e.getMessage()));
             return true;
         }
 
-        SkysongItem item = Utils.LoadSkysongItem(itemFile);
+        SkysongItem item = ItemTemplateRepository.load(itemFile);
 
         player.getInventory().addItem(SkysongItems.getPlugin().getUtils().GenerateSkysongItem(item));
 

@@ -258,139 +258,10 @@ public class Utils {
         return item;
     }
 
-    public static void GenerateItemFile(SkysongItem item){
-        // Define the output directory
-        File outputDir = getOrGenerateOutputFile();
-        // Define the file for the specific item
-        File itemFile = new File(outputDir, item.getFormattedName() + ".yml");
-
-        // Create a YamlConfiguration object
-        YamlConfiguration yaml = new YamlConfiguration();
-
-        // Store the SkysongItem data in the YAML file
-        yaml.set("name", item.getName());
-        yaml.set("lore", item.getLore());
-        yaml.set("type", item.getType());
-        if(item.getItemModel() != null)
-            yaml.set("itemModel", item.getItemModel().getNamespace() + ":" + item.getItemModel().getKey());
-        yaml.set("deleted", item.getDeleted());
-        yaml.set("properties", item.getProperties());
-        yaml.set("tags", item.getTagsAsStrings());
-        yaml.set("values", item.getValues());
-
-        if(item instanceof SkysongSkullItem) {
-            SkysongSkullItem skullItem = (SkysongSkullItem) item;
-            yaml.set("id", skullItem.getId());
-            yaml.set("playername", skullItem.getPlayerName());
-            yaml.set("texture", skullItem.getTexture());
-        }
-
-        if(item instanceof SkysongPotionItem) {
-            SkysongPotionItem potionItem = (SkysongPotionItem) item;
-            yaml.set("potionColor", potionItem.getColor().asRGB());
-        }
-
-        if(item.getCustomModelData() != null) {
-            yaml.set("customModelData.floats", item.getCustomModelData().getFloats());
-            yaml.set("customModelData.flags", item.getCustomModelData().getFlags());
-            yaml.set("customModelData.strings", item.getCustomModelData().getStrings());
-            List<String> rgbList = new ArrayList<>();
-            for (Color color : item.getCustomModelData().getColors()) {
-                rgbList.add(color.getRed() + "," + color.getGreen() + "," + color.getBlue());
-            }
-            yaml.set("customModelData.colors", rgbList);
-        }
-
-        // Save the YAML file
-        try {
-            yaml.save(itemFile);
-            getPlugin().getLogger().info("Item file saved: " + itemFile.getPath());
-        } catch (IOException e) {
-            getPlugin().getLogger().severe("Failed to save item file: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public static SkysongItem LoadSkysongItem(File file){
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        String name = yaml.getString("name");
-        ArrayList<String> lore = new ArrayList<>(yaml.getStringList("lore"));
-        String type = yaml.getString("type");
-        NamespacedKey itemModel = readItemModel(yaml);
-        CustomModelData customModelData = readCustomModelData(yaml);
-        String deleted = yaml.getString("deleted", "");
-        String properties = yaml.getString("properties", "");
-        LinkedHashMap<NamespacedKey, String> tagValues = readTagValues(yaml, file);
-        SkysongItem item = new SkysongItem(name, lore, type, itemModel, deleted, properties, tagValues)
-                .withCustomModelData(customModelData);
-
-        if(type.equals(Material.PLAYER_HEAD.toString())) {
-            String id = yaml.getString("id", "");
-            String playerName = yaml.getString("playername", "");
-            String texture = yaml.getString("texture", "");
-            return new SkysongSkullItem(item, id, playerName, texture);
-        }
-
-        if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
-            Color color = Color.fromRGB(yaml.getInt("potionColor"));
-            return new SkysongPotionItem(item, color);
-        }
-
-        return item;
-    }
-
-    private static NamespacedKey readItemModel(YamlConfiguration yaml) {
-        ArrayList<String> model = new ArrayList<>(Arrays.asList(yaml.getString("itemModel", "").split(":")));
-        if(model.size() < 2 || model.get(0).isEmpty() || model.get(1).isEmpty()) {
-            return null; // If no item model is specified, set it to null
-        }
-        return new NamespacedKey(model.get(0), model.get(1));
-    }
-
-    private static CustomModelData readCustomModelData(YamlConfiguration yaml) {
-        List<String> rgbList = yaml.getStringList("customModelData.colors");
-        List<Color> parsedColors = new ArrayList<>();
-        for (String rgb : rgbList) {
-            String[] parts = rgb.split(",");
-            if (parts.length == 3) {
-                try {
-                    int r = Integer.parseInt(parts[0].trim());
-                    int g = Integer.parseInt(parts[1].trim());
-                    int b = Integer.parseInt(parts[2].trim());
-                    parsedColors.add(Color.fromRGB(r, g, b));
-                } catch (NumberFormatException e) {
-                    getPlugin().getLogger().warning("Invalid RGB format in customModelData.colors: " + rgb);
-                }
-            } else {
-                getPlugin().getLogger().warning("Invalid RGB entry in customModelData.colors: " + rgb);
-            }
-        }
-
-        return new CustomModelData(yaml.getFloatList("customModelData.floats"), yaml.getBooleanList("customModelData.flags"), yaml.getStringList("customModelData.strings"), parsedColors);
-    }
-
-    private static LinkedHashMap<NamespacedKey, String> readTagValues(YamlConfiguration yaml, File file) {
-        List<String> tagIds = yaml.getStringList("tags");
-        List<String> values = yaml.getStringList("values");
-        if (tagIds.size() != values.size()) {
-            getPlugin().getLogger().warning("Item file " + file.getName() + " has " + tagIds.size()
-                    + " tags but " + values.size() + " values; tags without a value are ignored.");
-        }
-        return SkysongItem.pairTagValues(tagIds, values);
-    }
-
     /** Grants or revokes a permission item's permission. Does nothing without LuckPerms. */
     public static void updatePlayerPermissions(Player player, boolean add, String permission) {
         getPlugin().getLuckPerms()
                 .ifPresent(luckPerms -> luckPerms.updatePermission(player.getUniqueId(), add, permission));
-    }
-
-    public static File getOrGenerateOutputFile(){
-        File outputDir = new File(getPlugin().getDataFolder(), "GeneratedItems");
-        if (!outputDir.exists()) {
-            outputDir.mkdirs(); // Create the directory if it doesn't exist
-        }
-        return outputDir;
     }
 
     public static ItemStack updateItemLore(ItemStack inputItem){
@@ -618,7 +489,7 @@ public class Utils {
 
         File itemFile = getPlugin().getDataFolder().toPath().resolve("GeneratedItems").resolve(returnedItem + ".yml").toFile();
         if (itemFile.exists()) {
-            SkysongItem skysongItem = LoadSkysongItem(itemFile);
+            SkysongItem skysongItem = ItemTemplateRepository.load(itemFile);
             returnItems.add(getPlugin().getUtils().GenerateSkysongItem(skysongItem));
         }
     }

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 import org.skysongdev.skysongitems.utils.TextParser;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 
 import java.io.File;
 import java.util.Optional;
@@ -32,7 +32,7 @@ public class TBPSkysongIntegration implements ItemIntegration {
         String fileName = s.replace("skysong:", "");
         File itemFile = getPlugin().getDataFolder().toPath().resolve("brewing").resolve(fileName + ".yml").toFile();
         if (itemFile.exists()) {
-            SkysongItem skysongitem = Utils.LoadSkysongItem(itemFile);
+            SkysongItem skysongitem = ItemTemplateRepository.load(itemFile);
             Bukkit.getLogger().warning("Item file found for id: " + s + ". Generating item...");
             return Optional.of(getPlugin().getUtils().GenerateSkysongItem(skysongitem));
         }
@@ -59,7 +59,7 @@ public class TBPSkysongIntegration implements ItemIntegration {
         getPlugin().getLogger().warning("Getting display name for " + s);
         File itemFile = getPlugin().getDataFolder().toPath().resolve("brewing").resolve(s + ".yml").toFile();
         if (itemFile.exists()) {
-            SkysongItem skysongitem = Utils.LoadSkysongItem(itemFile);
+            SkysongItem skysongitem = ItemTemplateRepository.load(itemFile);
             String name = TextParser.translateColorCodes(skysongitem.getName());
             name = TextParser.translateHexColorCodes("&#", "", name);
             return getPlugin().getMiniMessage().deserialize(name);
