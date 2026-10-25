@@ -3,13 +3,14 @@ package org.skysongdev.skysongitems.utils;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SkysongItemTest {
 
     private static SkysongItem itemNamed(String name) {
-        return new SkysongItem(name, new ArrayList<>(), "STONE", null, null, null, new ArrayList<>(), new ArrayList<>());
+        return new SkysongItem(name, new ArrayList<>(), "STONE", null, null, null, Map.of());
     }
 
     @Test

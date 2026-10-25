@@ -316,14 +316,38 @@ public class Utils {
         String name = yaml.getString("name");
         ArrayList<String> lore = new ArrayList<>(yaml.getStringList("lore"));
         String type = yaml.getString("type");
-        ArrayList<String> model = new ArrayList<>(Arrays.asList(yaml.getString("itemModel", "").split(":")));
-        NamespacedKey itemModel;
-        if(!(model.size() < 2 || model.get(0).isEmpty() || model.get(1).isEmpty())) {
-            itemModel = (new NamespacedKey(model.get(0), model.get(1)));
-        }
-        else
-            itemModel = null; // If no custom model data is specified, set it to null
+        NamespacedKey itemModel = readItemModel(yaml);
+        CustomModelData customModelData = readCustomModelData(yaml);
+        String deleted = yaml.getString("deleted", "");
+        String properties = yaml.getString("properties", "");
+        LinkedHashMap<NamespacedKey, String> tagValues = readTagValues(yaml, file);
+        SkysongItem item = new SkysongItem(name, lore, type, itemModel, deleted, properties, tagValues)
+                .withCustomModelData(customModelData);
 
+        if(type.equals(Material.PLAYER_HEAD.toString())) {
+            String id = yaml.getString("id", "");
+            String playerName = yaml.getString("playername", "");
+            String texture = yaml.getString("texture", "");
+            return new SkysongSkullItem(item, id, playerName, texture);
+        }
+
+        if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
+            Color color = Color.fromRGB(yaml.getInt("potionColor"));
+            return new SkysongPotionItem(item, color);
+        }
+
+        return item;
+    }
+
+    private static NamespacedKey readItemModel(YamlConfiguration yaml) {
+        ArrayList<String> model = new ArrayList<>(Arrays.asList(yaml.getString("itemModel", "").split(":")));
+        if(model.size() < 2 || model.get(0).isEmpty() || model.get(1).isEmpty()) {
+            return null; // If no item model is specified, set it to null
+        }
+        return new NamespacedKey(model.get(0), model.get(1));
+    }
+
+    private static CustomModelData readCustomModelData(YamlConfiguration yaml) {
         List<String> rgbList = yaml.getStringList("customModelData.colors");
         List<Color> parsedColors = new ArrayList<>();
         for (String rgb : rgbList) {
@@ -342,32 +366,17 @@ public class Utils {
             }
         }
 
-        CustomModelData customModelData = new CustomModelData(yaml.getFloatList("customModelData.floats"), yaml.getBooleanList("customModelData.flags"), yaml.getStringList("customModelData.strings"), parsedColors);
+        return new CustomModelData(yaml.getFloatList("customModelData.floats"), yaml.getBooleanList("customModelData.flags"), yaml.getStringList("customModelData.strings"), parsedColors);
+    }
 
-        String deleted = yaml.getString("deleted", "");
-        String properties = yaml.getString("properties", "");
-        ArrayList<String> tags = new ArrayList<>(yaml.getStringList("tags"));
-        ArrayList<NamespacedKey> finalTags = new ArrayList<>();
-        for (String tag : tags) {
-            if (isATag(tag)) {
-                finalTags.add(getTag(tag));
-            }
+    private static LinkedHashMap<NamespacedKey, String> readTagValues(YamlConfiguration yaml, File file) {
+        List<String> tagIds = yaml.getStringList("tags");
+        List<String> values = yaml.getStringList("values");
+        if (tagIds.size() != values.size()) {
+            getPlugin().getLogger().warning("Item file " + file.getName() + " has " + tagIds.size()
+                    + " tags but " + values.size() + " values; tags without a value are ignored.");
         }
-        ArrayList<String> values = new ArrayList<>(yaml.getStringList("values"));
-
-        if(type.equals(Material.PLAYER_HEAD.toString())) {
-            String id = yaml.getString("id", "");
-            String playerName = yaml.getString("playername", "");
-            String texture = yaml.getString("texture", "");
-            return new SkysongSkullItem(name, lore, type, itemModel, deleted, properties, finalTags, values, id, playerName, texture, customModelData);
-        }
-
-        if(type.equals(Material.POTION.toString()) || type.equals(Material.SPLASH_POTION.toString()) || type.equals(Material.LINGERING_POTION.toString())){
-            Color color = Color.fromRGB(yaml.getInt("potionColor"));
-            return new SkysongPotionItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData, color);
-        }
-
-        return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
+        return SkysongItem.pairTagValues(tagIds, values);
     }
 
     /** Grants or revokes a permission item's permission. Does nothing without LuckPerms. */
