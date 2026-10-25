@@ -39,7 +39,7 @@ public class SetBookContent implements CommandExecutor {
         }
         bookDescriptions.setId(id);
         try {
-            getPlugin().getDatabase().updateBookDescription(bookDescriptions);
+            getPlugin().getBookRepository().update(bookDescriptions);
         }catch(SQLException e){
             commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Something went wrong when saving this book! (Check Database)");
             return true;

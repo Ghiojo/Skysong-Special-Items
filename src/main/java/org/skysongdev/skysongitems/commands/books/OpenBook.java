@@ -37,7 +37,7 @@ public class OpenBook implements CommandExecutor {
         }
 
         try {
-            book = getPlugin().getDatabase().findBookByID(id);
+            book = getPlugin().getBookRepository().findById(id);
             if(book == null){
                 commandSender.sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
                 return true;

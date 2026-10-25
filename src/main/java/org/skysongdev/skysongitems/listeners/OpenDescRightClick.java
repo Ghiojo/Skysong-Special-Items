@@ -37,7 +37,7 @@ public class OpenDescRightClick implements Listener {
         }
         BookDescriptions book;
         try {
-            book = plugin.getDatabase().findBookByID(idToOpen.getAsInt());
+            book = plugin.getBookRepository().findById(idToOpen.getAsInt());
             if(book == null){
                 event.getPlayer().sendMessage(ChatColor.of("RED") + "[ERROR] Couldn't find a book with this id!");
                 return;

@@ -29,6 +29,8 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.github.BreweryTeam:TheBrewingProject:v2.8.2'
+    // Downloaded by the server at startup through the `libraries` list in plugin.yml.
+    compileOnly 'com.zaxxer:HikariCP:6.3.0'
 
     // Tests run on JUnit 5. MockBukkit 4.54.0 is the last release built against
     // Paper 1.21.5, so its mock server matches the API the plugin compiles against.
@@ -36,6 +38,11 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.54.0'
+    // The server provides these at runtime: HikariCP through plugin.yml, the MySQL driver bundled with Paper.
+    testImplementation 'com.zaxxer:HikariCP:6.3.0'
+    testRuntimeOnly 'com.mysql:mysql-connector-j:9.1.0'
+    // In-memory database in MySQL mode, to run the book queries without a MySQL server.
+    testImplementation 'com.h2database:h2:2.3.232'
 }
 
 def targetJavaVersion = 21

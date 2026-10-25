@@ -7,8 +7,9 @@ import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 import org.skysongdev.skysongitems.commands.lore.LoreSection;
 import org.skysongdev.skysongitems.commands.lore.LoreSectionCommand;
 import org.skysongdev.skysongitems.commands.lore.Updater;
+import org.skysongdev.skysongitems.database.BookDescriptionRepository;
 import org.skysongdev.skysongitems.database.Database;
-import org.skysongdev.skysongitems.database.Pinger;
+import org.skysongdev.skysongitems.database.DatabaseSettings;
 import org.skysongdev.skysongitems.integration.BrewingProjectIntegration;
 import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
 import org.skysongdev.skysongitems.integration.SoftDependency;
@@ -83,8 +84,9 @@ public class SkysongItems extends JavaPlugin {
         return mainCommand;
     }
 
-    public Database getDatabase() {
-        return database;
+    /** The books stored in the database, for the book commands and bound-book right-clicks. */
+    public BookDescriptionRepository getBookRepository() {
+        return database.getBooks();
     }
 
     @Override
@@ -119,8 +121,6 @@ public class SkysongItems extends JavaPlugin {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
 
-        getServer().getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
-
         tagRegistry.load(getConfig());
         propertyRegistry.load(getConfig(), getLogger());
         materialPermissions.load(getDataFolder(), getLogger());
@@ -152,15 +152,22 @@ public class SkysongItems extends JavaPlugin {
         }
     }
 
+    @Override
+    public void onDisable() {
+        if (database != null) {
+            database.close();
+        }
+    }
+
+    /** Replaces the database connection pool with one built from config.yml and creates the books table. */
     public void InitializeDatabase(){
+        if (database != null) {
+            database.close();
+        }
+        database = new Database(DatabaseSettings.fromConfig(getConfig()));
         try{
-            this.database = new Database(
-                    getConfig().getString("database.host"),
-                    getConfig().getString("database.port"),
-                    getConfig().getString("database.user"),
-                    getConfig().getString("database.password"),
-                    getConfig().getString("database.database_name"));
-            database.initializeDatabase();
+            database.getBooks().createTable();
+            getLogger().info("Created the book_descriptions table");
         }catch(SQLException e){
             Bukkit.getLogger().warning("[SkysongItems] Unable to connect to database and create tables!");
             e.printStackTrace();

@@ -1,122 +1,79 @@
 package org.skysongdev.skysongitems.database;
 
-import org.bukkit.Bukkit;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool.PoolInitializationException;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
-public class Database {
-    private final String HOST;
-    private final String PORT;
-    private final String USER;
-    private final String PASSWORD;
-    private final String DATABASE_NAME;
+/**
+ * The pool of connections to the MySQL database that stores the books.
+ *
+ * <p>The pool opens on the first request for a connection. When the database cannot be
+ * reached, that request fails with an {@link SQLException} and the next one tries again,
+ * so the plugin recovers once the database is back without a restart. Once open, the pool
+ * replaces connections the server has dropped and keeps idle ones alive.
+ */
+public final class Database implements ConnectionSource, AutoCloseable {
+    private static final String POOL_NAME = "SkysongItems-database";
+    // Commands and listeners query from the main thread one at a time, so a few connections are enough.
+    private static final int MAXIMUM_POOL_SIZE = 4;
+    private static final int MINIMUM_IDLE = 1;
+    // Keep a lost database from holding the main thread for Hikari's default 30 seconds.
+    private static final long CONNECTION_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(5);
+    // Same interval as the ping task this pool replaces, well under MySQL's default wait_timeout.
+    private static final long KEEPALIVE_MILLIS = TimeUnit.MINUTES.toMillis(5);
 
-    public Database(String HOST, String PORT, String USER, String PASSWORD, String DATABASE_NAME) {
-        this.HOST = HOST;
-        this.PORT = PORT;
-        this.USER = USER;
-        this.PASSWORD = PASSWORD;
-        this.DATABASE_NAME = DATABASE_NAME;
+    private final HikariConfig poolConfig;
+    private final BookDescriptionRepository books = new BookDescriptionRepository(this);
+    private HikariDataSource pool;
+
+    public Database(DatabaseSettings settings) {
+        this.poolConfig = poolConfig(settings);
     }
 
-    private Connection sqlConnection;
-    public Connection getConnection() throws SQLException{
-        if(sqlConnection != null){
-            return sqlConnection;
-        }
-        String url = "jdbc:mysql://" + this.HOST + "/" + this.DATABASE_NAME;
-
-        sqlConnection = DriverManager.getConnection(url, this.USER, this.PASSWORD);
-
-        Bukkit.getLogger().info("Connected to the database");
-        return sqlConnection;
-    }
-
-    public void initializeDatabase() throws SQLException{
-
-        Statement buildStatement = getConnection().createStatement();
-        String sql = "CREATE TABLE IF NOT EXISTS book_descriptions(id int AUTO_INCREMENT primary key, name TINYTEXT, bookcontent MEDIUMTEXT)";
-        buildStatement.execute(sql);
-
-
-        Bukkit.getLogger().info("Created the book_descriptions table");
-    }
-
-    public BookDescriptions findBookByID(int id) throws SQLException {
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM book_descriptions WHERE id = " + id;
-        ResultSet results = statement.executeQuery(sql);
-
-        if(results.next()){
-            BookDescriptions bookDescriptions = new BookDescriptions(id, results.getString("name"), results.getString("bookcontent"));
-
-            statement.close();
-
-            return bookDescriptions;
-        }
-        statement.close();
-        return null;
-    }
-
-    public int findLatestId() throws SQLException{
-        int id = -1;
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT MAX(id) AS id FROM book_descriptions";
-        ResultSet results = statement.executeQuery(sql);
-        if(results.next()) {
-            id = results.getInt("id");
-        }
-        statement.close();
-        return id;
-    }
-    public void createBookDescription(BookDescriptions bookDesc) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO book_descriptions(name, bookcontent) VALUES (?, ?)");
-        statement.setString(1, bookDesc.getName());
-        statement.setString(2, bookDesc.getBookcontent());
-
-        statement.executeUpdate();
-        statement.close();
-    }
-
-    public void updateBookDescription(BookDescriptions bookDesc) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE book_descriptions SET name = ?, bookcontent = ? WHERE id = ?");
-        statement.setString(1, bookDesc.getName());
-        statement.setString(2, bookDesc.getBookcontent());
-        statement.setInt(3, bookDesc.getId());
-
-        statement.executeUpdate();
-        statement.close();
-    }
-
-    public void deleteBookDescription(int id) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM book_descriptions WHERE id = ?");
-        statement.setInt(1, id);
-        statement.executeUpdate();
-        statement.close();
-    }
-
-    public List<BookDescriptions> listAllBooks() throws SQLException{
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM book_descriptions ORDER BY id";
-        ResultSet results = statement.executeQuery(sql);
-        List<BookDescriptions> books = new ArrayList<>();
-
-        while(results.next()){
-            int id = results.getInt("id");
-            String name = results.getString("name");
-            books.add(new BookDescriptions(id, name, ""));
-        }
-
-        statement.close();
-
+    /** The book descriptions stored in this database. */
+    public BookDescriptionRepository getBooks() {
         return books;
     }
 
-    public void Ping() throws SQLException{
-        Statement statement = getConnection().createStatement();
-        statement.executeQuery("SELECT * from book_descriptions");
-        statement.close();
+    @Override
+    public Connection getConnection() throws SQLException {
+        return openPool().getConnection();
+    }
+
+    /** Closes every pooled connection. A later request for a connection opens the pool again. */
+    @Override
+    public void close() {
+        if (pool != null) {
+            pool.close();
+            pool = null;
+        }
+    }
+
+    private HikariDataSource openPool() throws SQLException {
+        if (pool == null) {
+            try {
+                pool = new HikariDataSource(poolConfig);
+            } catch (PoolInitializationException e) {
+                throw new SQLException("Could not connect to the database", e);
+            }
+        }
+        return pool;
+    }
+
+    static HikariConfig poolConfig(DatabaseSettings settings) {
+        HikariConfig config = new HikariConfig();
+        config.setPoolName(POOL_NAME);
+        config.setJdbcUrl(settings.jdbcUrl());
+        config.setUsername(settings.user());
+        config.setPassword(settings.password());
+        config.setMaximumPoolSize(MAXIMUM_POOL_SIZE);
+        config.setMinimumIdle(MINIMUM_IDLE);
+        config.setConnectionTimeout(CONNECTION_TIMEOUT_MILLIS);
+        config.setKeepaliveTime(KEEPALIVE_MILLIS);
+        return config;
     }
 }
