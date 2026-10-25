@@ -7,14 +7,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class ViewExtendedLore implements CommandExecutor {
-    SkysongItemsCommand parent;
+    private final OpenBook openBook;
 
-    public ViewExtendedLore(SkysongItemsCommand parent) {
-        this.parent = parent;
+    public ViewExtendedLore(OpenBook openBook) {
+        this.openBook = openBook;
     }
 
     @Override
@@ -39,7 +38,7 @@ public class ViewExtendedLore implements CommandExecutor {
         }
         int idToOpen = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
         String[] args = {String.valueOf(idToOpen)};
-        parent.openBook.onCommand(commandSender, command, s, args);
+        openBook.onCommand(commandSender, command, s, args);
 
         return true;
     }
