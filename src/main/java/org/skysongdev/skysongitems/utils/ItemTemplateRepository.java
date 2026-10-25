@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.logging.Level;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -23,6 +24,7 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
  */
 public final class ItemTemplateRepository {
     private ItemTemplateRepository() {
+        // Static methods only.
     }
 
     /** The folder saved templates are written to, created first if it does not exist. */
@@ -42,8 +44,7 @@ public final class ItemTemplateRepository {
             yaml.save(itemFile);
             getPlugin().getLogger().info("Item file saved: " + itemFile.getPath());
         } catch (IOException e) {
-            getPlugin().getLogger().severe("Failed to save item file: " + e.getMessage());
-            e.printStackTrace();
+            getPlugin().getLogger().log(Level.SEVERE, "Failed to save item file: " + e.getMessage(), e);
         }
     }
 
