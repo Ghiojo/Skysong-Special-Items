@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -22,6 +23,12 @@ import java.util.Map;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class PermissionItemListener implements Listener {
+
+    /** Item permissions end when the player logs out, so give back those of the items they still hold. */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoin(PlayerJoinEvent event){
+        PermissionItems.grantHeldItems(event.getPlayer());
+    }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onItemDrop(PlayerDropItemEvent event){
