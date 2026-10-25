@@ -63,6 +63,18 @@ class MaterialPermissionsTest extends MockBukkitTest {
     }
 
     @Test
+    void reloadForgetsMaterialsRemovedFromTheFile() throws IOException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("materials.moonstone", "skysongitems.use.moonstone");
+        yaml.save(materialsFile());
+
+        reloadMaterialPermissions();
+
+        assertNull(permissionFor("IRON_INGOT"));
+        assertNull(permissionFor("DIAMOND"));
+    }
+
+    @Test
     void materialIdsAreCaseSensitive() {
         assertNull(permissionFor("iron_ingot"));
     }

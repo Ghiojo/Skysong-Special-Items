@@ -153,11 +153,22 @@ class PropertyRegistryTest extends MockBukkitTest {
     }
 
     @Test
-    void reloadKeepsPropertyTypesFromEarlierLoads() {
+    void reloadForgetsPropertyTypesRemovedFromTheConfig() {
+        // Reproduces the registry quirk: Weapon and Magic used to stay listed until restart.
         configureOnlyProperty("fresh", "base", "Tool");
 
         reloadProperties();
 
-        assertTrue(propertyTypes().containsAll(List.of("Weapon", "Magic", "Tool")));
+        assertEquals(List.of("Tool"), propertyTypes());
+    }
+
+    @Test
+    void reloadWithAnEmptyPropertiesSectionLeavesNoPropertyTypes() {
+        plugin.getConfig().createSection("properties");
+
+        reloadProperties();
+
+        assertTrue(allProperties().isEmpty());
+        assertTrue(propertyTypes().isEmpty());
     }
 }

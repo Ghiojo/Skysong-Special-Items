@@ -33,7 +33,7 @@ class TagRegistryTest extends MockBukkitTest {
     }
 
     private void reloadTags() {
-        plugin.getTagRegistry().load(plugin.getConfig());
+        plugin.getTagRegistry().load(plugin.getConfig(), plugin.getLogger());
     }
 
     private NamespacedKey tag(String id) {
@@ -114,13 +114,25 @@ class TagRegistryTest extends MockBukkitTest {
     }
 
     @Test
-    void unknownTypeNameRegistersTheTagWithoutAType() {
+    void unknownTypeNameSkipsTheTag() {
+        // Reproduces the registry quirk: the tag used to be registered with no type.
         configureOnlyTag("odd", "list");
 
         reloadTags();
 
-        assertTrue(isTag("odd"));
-        assertNull(typeOf(tag("odd")));
+        assertFalse(isTag("odd"));
+    }
+
+    @Test
+    void missingTypeNameSkipsTheTagAndLoadsTheRest() {
+        configureOnlyTag("untyped", null);
+        plugin.getConfig().set("tags.counted.namespace", "counted");
+        plugin.getConfig().set("tags.counted.type", "int");
+
+        reloadTags();
+
+        assertFalse(isTag("untyped"));
+        assertEquals(PersistentDataType.INTEGER, typeOf(tag("counted")));
     }
 
     @Test
