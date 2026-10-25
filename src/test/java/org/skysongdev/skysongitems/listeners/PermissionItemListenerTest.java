@@ -72,18 +72,19 @@ class PermissionItemListenerTest extends MockBukkitTest {
     }
 
     @Test
-    void severalEventsInOneTickSyncOnce() {
-        listener.register();
+    void anEventAfterTheQueuedSyncRanQueuesAnotherOne() {
+        // Not registered, so only the events below sync: the periodic check runs every tick.
         player.getInventory().addItem(permissionItem(PERMISSION));
-
         listener.onInventoryClose(new InventoryCloseEvent(player.getOpenInventory()));
         listener.onInventoryClose(new InventoryCloseEvent(player.getOpenInventory()));
         server.getScheduler().performOneTick();
-        player.getInventory().clear();
-        server.getScheduler().performOneTick();
-
-        // A second queued sync would have run on the second tick and revoked.
         assertEquals(Set.of(PERMISSION), permissions.current());
+
+        player.getInventory().clear();
+        listener.onInventoryClose(new InventoryCloseEvent(player.getOpenInventory()));
+        server.getScheduler().performOneTick();
+
+        assertTrue(permissions.current().isEmpty());
     }
 
     @Test
