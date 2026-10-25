@@ -8,6 +8,7 @@ import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeBuilder;
 import net.luckperms.api.node.NodeBuilderRegistry;
+import net.luckperms.api.node.types.PermissionNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,8 @@ class LuckPermsIntegrationTest {
     private final User user = mock(User.class);
     private final NodeMap savedNodes = mock(NodeMap.class);
     private final NodeMap transientNodes = mock(NodeMap.class);
-    private final Node node = mock(Node.class);
+    // A node builder's build() returns a ScopedNode, so the node must be one.
+    private final Node node = mock(PermissionNode.class);
     private LuckPermsIntegration integration;
 
     @BeforeEach
