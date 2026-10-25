@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,16 +53,14 @@ public class RemoveProperty implements TabExecutor {
             return true;
         }
 
-        List<String> currentProperties = data.getProperties();
-
-        if(!currentProperties.contains(strings[0])){
+        if(!data.removeProperty(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
             return true;
         }
 
-        currentProperties.remove(strings[0]);
-
-        data.setProperties(currentProperties);
+        if(!data.hasProperties()){
+            ItemLoreRenderer.renderWithoutProperties(meta);
+        }
 
         itemInMainHand.setItemMeta(meta);
         player.updateInventory();
