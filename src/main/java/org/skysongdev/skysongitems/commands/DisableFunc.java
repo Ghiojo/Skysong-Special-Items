@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands;
 
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,10 +9,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class DisableFunc implements CommandExecutor {
-    public static NamespacedKey disabledKey = new NamespacedKey(SkysongItems.getPlugin(), "is_disabled");
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
 
@@ -28,18 +26,18 @@ public class DisableFunc implements CommandExecutor {
         ItemMeta buffer = item.getItemMeta();
         assert buffer != null;
         PersistentDataContainer dataContainer = buffer.getPersistentDataContainer();
-        if (dataContainer.has(disabledKey, PersistentDataType.BOOLEAN)) {
-            if(dataContainer.get(disabledKey, PersistentDataType.BOOLEAN)){
-                dataContainer.set(disabledKey, PersistentDataType.BOOLEAN, false);
+        if (dataContainer.has(ItemKeys.DISABLED, PersistentDataType.BOOLEAN)) {
+            if(dataContainer.get(ItemKeys.DISABLED, PersistentDataType.BOOLEAN)){
+                dataContainer.set(ItemKeys.DISABLED, PersistentDataType.BOOLEAN, false);
                 player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "Item functions have been " + ChatColor.of("GREEN") + "enabled");
             }
             else{
-                dataContainer.set(disabledKey, PersistentDataType.BOOLEAN, true);
+                dataContainer.set(ItemKeys.DISABLED, PersistentDataType.BOOLEAN, true);
                 player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "Item functions have been " + ChatColor.of("RED") + "disabled");
             }
 
         } else {
-            dataContainer.set(disabledKey, PersistentDataType.BOOLEAN, true);
+            dataContainer.set(ItemKeys.DISABLED, PersistentDataType.BOOLEAN, true);
             player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "Item functions have been " + ChatColor.of("RED") + "disabled");
         }
         item.setItemMeta(buffer);

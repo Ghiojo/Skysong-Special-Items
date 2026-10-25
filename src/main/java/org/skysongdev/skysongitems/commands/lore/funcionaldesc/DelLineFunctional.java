@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands.lore.funcionaldesc;
 
 import org.bukkit.Material;
-import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TextParser;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
@@ -16,6 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static java.lang.Integer.parseInt;
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -45,13 +45,13 @@ public class DelLineFunctional implements CommandExecutor {
         buffer = item.getItemMeta();
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
 
-        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
+        newItemLore = new ArrayList<String>(Arrays.stream(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")).toList());
         newItemLore = TextParser.deleteLine(1, parseInt(strings[0]), newItemLore);
         for(String string : newItemLore){
             bufferString += ChatColor.COLOR_CHAR + string;
         }
-        bufferDataContainer.set(Constants.loreKey, PersistentDataType.STRING, bufferString.substring(1));
-        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
+        bufferDataContainer.set(ItemKeys.LORE, PersistentDataType.STRING, bufferString.substring(1));
+        buffer.lore(TextParser.TranslateToLore(newItemLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
 
         item.setItemMeta(buffer);
         return true;

@@ -1,15 +1,13 @@
 package org.skysongdev.skysongitems.listeners;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class DisableItemUse implements Listener {
-    public static NamespacedKey disabledKey = new NamespacedKey(SkysongItems.getPlugin(), "is_disabled");
 
     @EventHandler
     public void onPlayerItemUse(PlayerInteractEvent event) {
@@ -17,8 +15,8 @@ public class DisableItemUse implements Listener {
         if (item == null || !item.hasItemMeta()) {
             return;
         }
-        if (item.getItemMeta().getPersistentDataContainer().has(disabledKey)) {
-            if (item.getItemMeta().getPersistentDataContainer().get(disabledKey, PersistentDataType.BOOLEAN))
+        if (item.getItemMeta().getPersistentDataContainer().has(ItemKeys.DISABLED)) {
+            if (item.getItemMeta().getPersistentDataContainer().get(ItemKeys.DISABLED, PersistentDataType.BOOLEAN))
                 event.setCancelled(true);
         }
     }

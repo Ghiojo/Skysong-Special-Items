@@ -11,6 +11,7 @@ import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.utils.*;
 
 import java.util.Objects;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class SaveItem implements CommandExecutor {
 
@@ -27,7 +28,7 @@ public class SaveItem implements CommandExecutor {
             player.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold an item in your main hand!"));
             return false;
         }
-        if(!player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(Constants.versionKey) || !Objects.equals(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(Constants.versionKey, PersistentDataType.STRING), Constants.ITEM_VERSION)){
+        if(!player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(ItemKeys.VERSION) || !Objects.equals(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ItemKeys.VERSION, PersistentDataType.STRING), Constants.ITEM_VERSION)){
             SkysongItems.getPlugin().getUpdater().UpdateItem(player);
         }
         SkysongItem item;

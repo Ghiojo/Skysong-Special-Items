@@ -93,24 +93,24 @@ public class Utils {
                     type = PersistentDataType.BOOLEAN;
                     break;
             }
-            Constants.tagList.put(new NamespacedKey(getPlugin(), getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
+            Constants.tagList.put(ItemKeys.of(getPlugin().getConfig().getString("tags."+tag+".namespace")), type);
         }
     }
 
     public void addStaticTags(){
-        Constants.tagList.put(Constants.maxchargesKey, PersistentDataType.INTEGER);
-        Constants.tagList.put(Constants.chargesKey, PersistentDataType.INTEGER);
-        Constants.tagList.put(Constants.addablechargesKey, PersistentDataType.BOOLEAN);
-        Constants.tagList.put(Constants.versionKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.loreKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.nameKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.boundKey, PersistentDataType.INTEGER);
-        Constants.tagList.put(Constants.permissionKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.furnitureKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.isShiftRightclickableKey, PersistentDataType.BOOLEAN);
-        Constants.tagList.put(Constants.materialIdKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.onConsumptionKey, PersistentDataType.STRING);
-        Constants.tagList.put(Constants.dyeColorKey, PersistentDataType.INTEGER);
+        Constants.tagList.put(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
+        Constants.tagList.put(ItemKeys.CHARGES, PersistentDataType.INTEGER);
+        Constants.tagList.put(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN);
+        Constants.tagList.put(ItemKeys.VERSION, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.LORE, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.NAME, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
+        Constants.tagList.put(ItemKeys.PERMISSION, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.FURNITURE_MODEL, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.SHIFT_RIGHT_CLICKABLE, PersistentDataType.BOOLEAN);
+        Constants.tagList.put(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING);
+        Constants.tagList.put(ItemKeys.DYE_COLOR, PersistentDataType.INTEGER);
     }
 
     public static boolean isAProperty(String id){
@@ -189,19 +189,19 @@ public class Utils {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(getPlugin().getMiniMessage().deserialize(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", name))).decoration(TextDecoration.ITALIC, false));
-        meta.getPersistentDataContainer().set(Constants.nameKey, PersistentDataType.STRING, name);
+        meta.getPersistentDataContainer().set(ItemKeys.NAME, PersistentDataType.STRING, name);
 
         String bufferString = "";
         for(String string : lore){
             bufferString += ChatColor.COLOR_CHAR + string;
         }
 
-        meta.getPersistentDataContainer().set(Constants.loreKey, PersistentDataType.STRING, bufferString.substring(1));
+        meta.getPersistentDataContainer().set(ItemKeys.LORE, PersistentDataType.STRING, bufferString.substring(1));
 
         meta.lore(TextParser.TranslateToLore(lore, deleted));
 
         if(deleted != null && !deleted.isEmpty()){
-            meta.getPersistentDataContainer().set(Constants.deletedKey, PersistentDataType.STRING, deleted);
+            meta.getPersistentDataContainer().set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, deleted);
         }
 
         if(itemModel != null)
@@ -210,9 +210,9 @@ public class Utils {
         getPlugin().getLogger().warning("custommodeldata: " + itemModel);
 
         if(properties != null && !properties.isEmpty())
-            meta.getPersistentDataContainer().set(Constants.propertiesKey, PersistentDataType.STRING, properties);
+            meta.getPersistentDataContainer().set(ItemKeys.PROPERTIES, PersistentDataType.STRING, properties);
 
-        meta.getPersistentDataContainer().set(Constants.versionKey, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
 
         if(!tags.isEmpty())
             for(int i = 0; i < tags.size(); i++){
@@ -404,14 +404,14 @@ public class Utils {
             return null;
         }
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(Constants.loreKey, PersistentDataType.STRING).split(net.md_5.bungee.api.ChatColor.COLOR_CHAR + "")).toList(), container.get(Constants.deletedKey, PersistentDataType.STRING));
+        List<Component> lore = TextParser.TranslateToLore(Arrays.stream(container.get(ItemKeys.LORE, PersistentDataType.STRING).split(net.md_5.bungee.api.ChatColor.COLOR_CHAR + "")).toList(), container.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING));
 
-        if(container.has(Constants.propertiesKey)){
+        if(container.has(ItemKeys.PROPERTIES)){
             lore.add(getPlugin().getMiniMessage().deserialize(""));
 
             //Update Printable Properties
 
-            String[] currentProperties = container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";");
+            String[] currentProperties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";");
             StringBuilder returnMessage = new StringBuilder();
             ArrayList<PrintableProperty> organizedProperties = new ArrayList<PrintableProperty>();
             for(String property : currentProperties){
@@ -453,8 +453,8 @@ public class Utils {
             }
 
             //Update Rename Properties
-            if(meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING) != null){
-                String newName = meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING);
+            if(meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING) != null){
+                String newName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
                 newName = TextParser.translateHexColorCodes("&#", "", newName);
                 newName = TextParser.translateColorCodes(newName);
                 meta.displayName(getPlugin().getMiniMessage().deserialize(newName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
@@ -468,7 +468,7 @@ public class Utils {
                 RenameProperty prop = (RenameProperty) bufferProp;
 
                 if(item.getItemMeta().displayName() != null) {
-                    String newName = meta.getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING);
+                    String newName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
                     newName = TextParser.translateHexColorCodes("&#", "", newName);
                     newName = TextParser.translateColorCodes(newName);
                     meta.displayName(getPlugin().getMiniMessage().deserialize(prop.getTag() + " " + newName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
@@ -489,7 +489,7 @@ public class Utils {
         if(meta == null){
             return false;
         }
-        return meta.getPersistentDataContainer().has(Constants.versionKey, PersistentDataType.STRING);
+        return meta.getPersistentDataContainer().has(ItemKeys.VERSION, PersistentDataType.STRING);
     }
 
     public void InitializeMaterialPermissions(){
@@ -536,15 +536,15 @@ public class Utils {
         ArrayList<ItemStack> returnItems = new ArrayList<>();
         if(item.hasItemMeta()){
             PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-            if(pdc.has(Constants.onConsumptionKey)){
-                String[] commands = pdc.get(Constants.onConsumptionKey, PersistentDataType.STRING).split(";");
+            if(pdc.has(ItemKeys.ON_CONSUMPTION)){
+                String[] commands = pdc.get(ItemKeys.ON_CONSUMPTION, PersistentDataType.STRING).split(";");
                 boolean stopAfterCommand = false;
                 int commandIndex = 0;
 
                 while(!stopAfterCommand && commandIndex < commands.length){
                     String[] parts = commands[commandIndex].split(":");
                     if (parts[0].equals("charge")) {
-                        if(!item.getItemMeta().getPersistentDataContainer().has(Constants.chargesKey, PersistentDataType.INTEGER)){
+                        if(!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.CHARGES, PersistentDataType.INTEGER)){
                             getPlugin().getLogger().warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
                             continue;
                         }
@@ -560,13 +560,13 @@ public class Utils {
                             getPlugin().getLogger().warning("Invalid number format for charges to consume: " + parts[1]);
                             chargesToConsume = 1;
                         }
-                        int currentCharges = item.getItemMeta().getPersistentDataContainer().get(Constants.chargesKey, PersistentDataType.INTEGER);
+                        int currentCharges = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
                         int newCharges = currentCharges - chargesToConsume;
                         if (newCharges > 0) {
                             ItemStack chargedItem = item.clone();
                             chargedItem.setAmount(1);
                             ItemMeta meta = chargedItem.getItemMeta();
-                            meta.getPersistentDataContainer().set(Constants.chargesKey, PersistentDataType.INTEGER, newCharges);
+                            meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, newCharges);
                             chargedItem.setItemMeta(meta);
                             chargedItem = updateItemLore(chargedItem);
                             returnItems.add(chargedItem);

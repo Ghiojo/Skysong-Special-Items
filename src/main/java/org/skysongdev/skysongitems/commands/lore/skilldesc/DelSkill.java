@@ -2,7 +2,6 @@ package org.skysongdev.skysongitems.commands.lore.skilldesc;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TextParser;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,6 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -34,23 +34,23 @@ public class DelSkill implements CommandExecutor {
         ItemMeta buffer = item.getItemMeta();
         assert buffer != null;
         PersistentDataContainer bufferDataContainer = buffer.getPersistentDataContainer();
-        if (bufferDataContainer.has(Constants.deletedKey, PersistentDataType.STRING)) {
-            String bufferString = bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING);
+        if (bufferDataContainer.has(ItemKeys.DELETED_LINES, PersistentDataType.STRING)) {
+            String bufferString = bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING);
             StringBuilder builder = new StringBuilder(bufferString);
             if (builder.charAt(2) == '0') {
                 builder.setCharAt(2, '1');
             } else {
                 builder.setCharAt(2, '0');
             }
-            bufferDataContainer.set(Constants.deletedKey, PersistentDataType.STRING, builder.toString());
+            bufferDataContainer.set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, builder.toString());
 
         } else {
-            bufferDataContainer.set(Constants.deletedKey, PersistentDataType.STRING, "001");
+            bufferDataContainer.set(ItemKeys.DELETED_LINES, PersistentDataType.STRING, "001");
         }
 
-        itemLore.addAll(Arrays.asList(bufferDataContainer.get(Constants.loreKey, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")));
+        itemLore.addAll(Arrays.asList(bufferDataContainer.get(ItemKeys.LORE, PersistentDataType.STRING).split(ChatColor.COLOR_CHAR + "")));
 
-        buffer.lore(TextParser.TranslateToLore(itemLore, bufferDataContainer.get(Constants.deletedKey, PersistentDataType.STRING)));
+        buffer.lore(TextParser.TranslateToLore(itemLore, bufferDataContainer.get(ItemKeys.DELETED_LINES, PersistentDataType.STRING)));
         item.setItemMeta(buffer);
         return true;
     }

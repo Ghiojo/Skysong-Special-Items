@@ -1,7 +1,6 @@
 package org.skysongdev.skysongitems.commands.books;
 
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,12 +9,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.SkysongItems;
-
-import static org.skysongdev.skysongitems.utils.Constants.boundKey;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 public class SetDMOnly implements CommandExecutor {
-    public static NamespacedKey dMOnlyKey = new NamespacedKey(SkysongItems.getPlugin(), "dm_only");
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         Player player = (Player) commandSender;
@@ -30,21 +26,21 @@ public class SetDMOnly implements CommandExecutor {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if (!container.has(boundKey, PersistentDataType.INTEGER)) {
+        if (!container.has(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER)) {
             commandSender.sendMessage(ChatColor.of("RED").toString() + "[ERROR] This item has no book bound to it!");
             return true;
         }
 
-        if (container.has(dMOnlyKey, PersistentDataType.BOOLEAN)) {
-            if (container.get(dMOnlyKey, PersistentDataType.BOOLEAN)) {
-                container.set(dMOnlyKey, PersistentDataType.BOOLEAN, false);
+        if (container.has(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN)) {
+            if (container.get(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN)) {
+                container.set(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN, false);
                 player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "DM only mode has been " + ChatColor.of("RED") + "disabled");
             } else {
-                container.set(dMOnlyKey, PersistentDataType.BOOLEAN, true);
+                container.set(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN, true);
                 player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "DM only mode has been " + ChatColor.of("GREEN") + "enabled");
             }
         } else {
-            container.set(dMOnlyKey, PersistentDataType.BOOLEAN, true);
+            container.set(ItemKeys.DM_ONLY, PersistentDataType.BOOLEAN, true);
             player.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongItems" + ChatColor.of("DARK_GRAY") + "] " + ChatColor.of("GRAY") + "DM only mode has been " + ChatColor.of("GREEN") + "enabled");
         }
         item.setItemMeta(meta);

@@ -13,9 +13,9 @@ import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.utils.Constants;
 
 import java.sql.SQLException;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
-import static org.skysongdev.skysongitems.utils.Constants.boundKey;
 
 public class BindBook implements CommandExecutor {
     @Override
@@ -52,7 +52,7 @@ public class BindBook implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer itemDataContainer = buffer.getPersistentDataContainer();
-        itemDataContainer.set(boundKey, PersistentDataType.INTEGER, id);
+        itemDataContainer.set(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER, id);
         item.setItemMeta(buffer);
         commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Book with id " + id + " bound successfully!"));
 

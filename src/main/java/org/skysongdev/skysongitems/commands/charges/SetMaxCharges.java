@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -43,17 +44,17 @@ public class SetMaxCharges implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(!container.has(Constants.chargesKey)) {
-            container.set(Constants.chargesKey, PersistentDataType.INTEGER, num);
-            if(container.has(Constants.propertiesKey)){
-                String properties = container.get(Constants.propertiesKey, PersistentDataType.STRING);
+        if(!container.has(ItemKeys.CHARGES)) {
+            container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, num);
+            if(container.has(ItemKeys.PROPERTIES)){
+                String properties = container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
                 if(!properties.contains("charges"))
-                    container.set(Constants.propertiesKey, PersistentDataType.STRING, properties + ";charges");
+                    container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, properties + ";charges");
             }
             else
-                container.set(Constants.propertiesKey, PersistentDataType.STRING, "charges");
+                container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges");
         }
-        container.set(Constants.maxchargesKey, PersistentDataType.INTEGER, num);
+        container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, num);
 
         item.setItemMeta(buffer);
         Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));

@@ -12,6 +12,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -38,22 +39,22 @@ public class AddCharges implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(!container.has(Constants.maxchargesKey) || !container.has(Constants.chargesKey)){
+        if(!container.has(ItemKeys.MAX_CHARGES) || !container.has(ItemKeys.CHARGES)){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
             return true;
         }
-        if(container.has(Constants.addablechargesKey) && !container.get(Constants.addablechargesKey, PersistentDataType.BOOLEAN)  && num > 0){
+        if(container.has(ItemKeys.CAN_ADD_CHARGES) && !container.get(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN)  && num > 0){
             if(!player.hasPermission("skysongspecialitems.cit")){
                 commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You cannot add charges to this item!"));
                 return true;
             }
         }
-        if(container.get(Constants.chargesKey, PersistentDataType.INTEGER) + num > container.get(Constants.maxchargesKey, PersistentDataType.INTEGER))
-            container.set(Constants.chargesKey, PersistentDataType.INTEGER, container.get(Constants.maxchargesKey, PersistentDataType.INTEGER));
-        else if(container.get(Constants.chargesKey, PersistentDataType.INTEGER) + num < 0)
-            container.set(Constants.chargesKey, PersistentDataType.INTEGER, 0);
+        if(container.get(ItemKeys.CHARGES, PersistentDataType.INTEGER) + num > container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER))
+            container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER));
+        else if(container.get(ItemKeys.CHARGES, PersistentDataType.INTEGER) + num < 0)
+            container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, 0);
         else
-            container.set(Constants.chargesKey, PersistentDataType.INTEGER, container.get(Constants.chargesKey, PersistentDataType.INTEGER) + num);
+            container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, container.get(ItemKeys.CHARGES, PersistentDataType.INTEGER) + num);
 
         item.setItemMeta(buffer);
         Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));

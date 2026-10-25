@@ -15,6 +15,7 @@ import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -30,17 +31,17 @@ public class RemoveCharges implements CommandExecutor {
         }
         ItemMeta buffer = item.getItemMeta();
         PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(container.has(Constants.chargesKey))
-            container.remove(Constants.chargesKey);
-        if(container.has(Constants.maxchargesKey))
-            container.remove(Constants.maxchargesKey);
-        if(container.has(Constants.propertiesKey)){
-            ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")).toList());
+        if(container.has(ItemKeys.CHARGES))
+            container.remove(ItemKeys.CHARGES);
+        if(container.has(ItemKeys.MAX_CHARGES))
+            container.remove(ItemKeys.MAX_CHARGES);
+        if(container.has(ItemKeys.PROPERTIES)){
+            ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")).toList());
             currentProperties.remove("charges");
             if(currentProperties.size() == 0)
-                container.remove(Constants.propertiesKey);
+                container.remove(ItemKeys.PROPERTIES);
             else
-                container.set(Constants.propertiesKey, PersistentDataType.STRING, String.join(";", currentProperties));
+                container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, String.join(";", currentProperties));
         }
 
         item.setItemMeta(buffer);

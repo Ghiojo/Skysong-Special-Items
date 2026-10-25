@@ -18,6 +18,7 @@ import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TextParser;
 
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -43,7 +44,7 @@ public class RenameCommand implements TabExecutor {
             bufferString.append(string).append(" ");
         }
 
-        bufferDataContainer.set(Constants.nameKey, PersistentDataType.STRING, bufferString.toString().trim());
+        bufferDataContainer.set(ItemKeys.NAME, PersistentDataType.STRING, bufferString.toString().trim());
 
         bufferString.replace(0, bufferString.length(), TextParser.translateHexColorCodes("&#", "", bufferString.toString()));
         bufferString.replace(0, bufferString.length(), TextParser.translateColorCodes(bufferString.toString()));
@@ -65,8 +66,8 @@ public class RenameCommand implements TabExecutor {
         if(player.getInventory().getItemInMainHand().getType() == Material.AIR)
             return List.of("NO ITEM IN HAND");
         else{
-            if(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(Constants.nameKey))
-                return List.of(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(Constants.nameKey, PersistentDataType.STRING));
+            if(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().has(ItemKeys.NAME))
+                return List.of(player.getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING));
             else
                 return List.of("");
         }

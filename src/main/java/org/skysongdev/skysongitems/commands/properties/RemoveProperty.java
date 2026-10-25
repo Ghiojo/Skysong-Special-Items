@@ -18,6 +18,7 @@ import org.skysongdev.skysongitems.utils.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -50,12 +51,12 @@ public class RemoveProperty implements TabExecutor {
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if(!(container.has(Constants.propertiesKey))){
+        if(!(container.has(ItemKeys.PROPERTIES))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;
         }
 
-        ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(Constants.propertiesKey, PersistentDataType.STRING).split(";")).toList());
+        ArrayList<String> currentProperties = new ArrayList<String>(Arrays.stream(container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")).toList());
 
         if(!currentProperties.contains(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
@@ -64,7 +65,7 @@ public class RemoveProperty implements TabExecutor {
 
         currentProperties.remove(strings[0]);
 
-        container.set(Constants.propertiesKey, PersistentDataType.STRING, String.join(";", currentProperties));
+        container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, String.join(";", currentProperties));
 
         itemInMainHand.setItemMeta(meta);
         player.updateInventory();
@@ -84,10 +85,10 @@ public class RemoveProperty implements TabExecutor {
             return List.of("NO ITEM IN MAIN HAND");
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
-        if(!(meta.getPersistentDataContainer().has(Constants.propertiesKey)))
+        if(!(meta.getPersistentDataContainer().has(ItemKeys.PROPERTIES)))
             return List.of();
 
-        for(String property : meta.getPersistentDataContainer().get(Constants.propertiesKey, PersistentDataType.STRING).split(";")){
+        for(String property : meta.getPersistentDataContainer().get(ItemKeys.PROPERTIES, PersistentDataType.STRING).split(";")){
             if(property.toLowerCase().startsWith(strings[0].toLowerCase())){
                 properties.add(property);
             }
