@@ -36,13 +36,18 @@ class ChargesPropertyTest extends MockBukkitTest {
         player = server.addPlayer();
     }
 
-    /** An item already at the current version, so the updater leaves it alone. */
+    /**
+     * An item already at the current version, so the updater leaves it alone,
+     * with stored lore for the lore refresh that follows every edit.
+     */
     private void holdItemWithProperties(String properties) {
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        ItemData data = ItemData.from(meta);
+        data.setLoreSections(List.of("physical", "functional", "skill"));
         if (properties != null) {
-            ItemData.from(meta).setPropertiesText(properties);
+            data.setPropertiesText(properties);
         }
         item.setItemMeta(meta);
         player.getInventory().setItemInMainHand(item);
