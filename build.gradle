@@ -29,6 +29,13 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
     implementation 'net.luckperms:api:5.4'
     compileOnly 'com.github.BreweryTeam:TheBrewingProject:v2.8.2'
+
+    // Tests run on JUnit 5. MockBukkit 4.54.0 is the last release built against
+    // Paper 1.21.5, so its mock server matches the API the plugin compiles against.
+    testImplementation platform('org.junit:junit-bom:5.13.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.54.0'
 }
 
 def targetJavaVersion = 21
@@ -46,6 +53,14 @@ tasks.withType(JavaCompile).configureEach {
 
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
     }
 }
 

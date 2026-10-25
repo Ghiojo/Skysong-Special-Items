@@ -2,15 +2,18 @@ package org.skysongdev.skysongitems.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
-
 public class TextParser {
+    // The same shared instance the plugin exposes through getMiniMessage(); referenced
+    // directly so the parser does not need a running plugin and can be unit tested.
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+
     private static final Map.Entry<Integer, String> PHYSCOLOR = new AbstractMap.SimpleEntry<>(0, "<gray>");
     private static final Map.Entry<Integer, String> FUNCCOLOR = new AbstractMap.SimpleEntry<>(1, "<#424242>");
     private static final Map.Entry<Integer, String> SKILLCOLOR = new AbstractMap.SimpleEntry<>(2, "<#81a871>");
@@ -89,9 +92,9 @@ public class TextParser {
                 for (String s : buffer) {
                     colorBuffer = translateColorCodes(s);
                     colorBuffer = translateHexColorCodes("&#", "", colorBuffer);
-                    translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
+                    translatedLore.add(MINI_MESSAGE.deserialize(colorBuffer).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
                 }
-                translatedLore.add(getPlugin().getMiniMessage().deserialize(""));
+                translatedLore.add(MINI_MESSAGE.deserialize(""));
             }
         }
         if(!translatedLore.isEmpty()){
@@ -314,7 +317,7 @@ public class TextParser {
     }
 
     public static String stripColor(String input){
-        return getPlugin().getMiniMessage().stripTags(input);
+        return MINI_MESSAGE.stripTags(input);
     }
 
 }
