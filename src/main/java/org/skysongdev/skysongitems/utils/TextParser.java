@@ -73,38 +73,6 @@ public class TextParser {
         return parsedList;
     }
 
-    //TODO: Same as above
-    /*public static List<String> TranslateFromLore(List<String> inputlore) {
-        List<String> parsedList = new ArrayList<String>();
-        int index = 0;
-        String buffer = "";
-        String colorBuffer = "";
-
-        parsedList.add(COLOR_MAP.get(0) + "[Not Set]");
-        parsedList.add(COLOR_MAP.get(1) + "[Not Set]");
-        parsedList.add(COLOR_MAP.get(2) + "[Not Set]");
-        if(inputlore == null){
-            return parsedList;
-        }
-
-        for(int i = 0; i < inputlore.size() && index < 3; i++){
-            if(Objects.equals(inputlore.get(i), ChatColor.of("#190898").toString())){
-                if(buffer.equals(""))
-                    buffer = COLOR_MAP.get(i) + "[Not Set]";
-                parsedList.set(index, buffer.substring(0, buffer.length()-1));
-                buffer = "";
-                index++;
-                continue;
-            }
-            colorBuffer = revertColor(inputlore.get(i));
-            buffer = buffer.concat(colorBuffer + "\n");
-        }
-        if(index < 3)
-            parsedList.set(index, buffer.substring(0, buffer.length()-1));
-
-        return parsedList;
-    }*/
-
     //TODO: Edit TranslateToLore to use MiniMessage Formatting and return a List<Component>
     public static List<Component> TranslateToLore(List<String> inputParsedText, String deletionInput) {
         //Is the input null because the item that you got it from has no deletedLines tag? If so, set it to "000"
@@ -131,25 +99,6 @@ public class TextParser {
         }
         return translatedLore;
     }
-
-    //TODO: Same as above
-    /*public static List<Component> TranslateToLore(List<String> inputParsedText) {
-        List<Component> translatedLore = new ArrayList<Component>();
-        List<String> buffer;
-        String colorBuffer = "";
-        for (int i = 0; i < inputParsedText.size(); i++) {
-            buffer = Arrays.asList(inputParsedText.get(i).split("\n"));
-            for (String s : buffer) {
-                colorBuffer = translateColorCodes(s);
-                colorBuffer = translateHexColorCodes("&#", "", colorBuffer);
-                translatedLore.add(getPlugin().getMiniMessage().deserialize(colorBuffer).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
-            }
-            translatedLore.add(getPlugin().getMiniMessage().deserialize(""));
-        }
-        translatedLore.remove(translatedLore.size() - 1);
-
-        return translatedLore;
-    }*/
 
     //TODO: Edit manipulateSection to use MiniMessage Formatting
     //Modes: 0 -> Replace, 1 -> Concatenate, 2 -> Append Below Last Line
@@ -209,54 +158,6 @@ public class TextParser {
 
         return startingList;
     }
-
-    //Same as above
-    /*public static List<String> manipulateSectionWithConcat(List<String> startingList, String[] inputLore, int blockIndex){
-        List<String> test = Arrays.asList(startingList.get(blockIndex).split("\n"));
-        String tempword;
-        String buffer = test.get(test.size()-1);
-        String colorBuffer = null;
-        final Pattern clearPattern = Pattern.compile("&-");
-
-        if(inputLore.length > 0)
-            inputLore[0] = "&-" + inputLore[0];
-
-        List<String> newInput = new ArrayList<String>();
-        boolean isBufferFull = false;
-        for(String word : inputLore){
-            if(clearPattern.matcher(word).find()) {
-                word = word.replaceAll("&-", "<reset>" + PRE_COLOR_MAP.get(blockIndex));
-            }
-            tempword = TextParser.translateHexColorCodes("&#", "", word);
-            tempword = translateColorCodes(tempword);
-            String strippedBuffer = stripColor(buffer);
-            String strippedWord = stripColor(tempword);
-            if(strippedBuffer.length() + strippedWord.length() + 1 <= 45 && !isBufferFull) {
-                if(CheckForColor(word) != null){
-                    colorBuffer = CheckForColor(word);
-                }
-                word = TextParser.translateHexColorCodes("&#", "", word);
-                word = translateColorCodes(word);
-                buffer = buffer.concat(" " + word);
-            }
-            else{
-                isBufferFull = true;
-                newInput.add(word);
-            }
-                
-        }
-        test.set(test.size()-1, buffer);
-        startingList.set(blockIndex, String.join("\n", test));
-
-        if(colorBuffer != null && !newInput.isEmpty()){
-            newInput.set(0, colorBuffer + newInput.get(0));
-        }
-
-        String[] arrayToSend = new String[newInput.size()];
-        arrayToSend = newInput.toArray(arrayToSend);
-
-        return manipulateSection(startingList, arrayToSend, blockIndex, false);
-    }*/
 
     public static String translateHexColorCodes(String startTag, String endTag, String message)
     {
