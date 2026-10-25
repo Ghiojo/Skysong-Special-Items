@@ -21,7 +21,8 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.Optional;
 
-public final class SkysongItems extends JavaPlugin {
+// Not final: MockBukkit loads a plugin through a generated subclass of its main class.
+public class SkysongItems extends JavaPlugin {
     private File ItemOutputDirectory;
     private static SkysongItems plugin;
     private Database database;
