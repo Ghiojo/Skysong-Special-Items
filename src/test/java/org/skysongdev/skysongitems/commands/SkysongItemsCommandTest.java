@@ -32,6 +32,7 @@ import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
 import org.skysongdev.skysongitems.commands.misc.SaveItem;
 import org.skysongdev.skysongitems.commands.misc.SetItemModel;
 import org.skysongdev.skysongitems.commands.misc.UpdateItem;
+import org.skysongdev.skysongitems.commands.properties.DetailsCommand;
 import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
@@ -53,18 +54,18 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
     private static final List<String> ALL_LISTED_SUBCOMMANDS = List.of(
             "disable", "openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc", "listbooks",
-            "setdm", "setrc", "unbind", "dbreload", "updatelore", "tag", "prop", "property", "update",
+            "setdm", "setrc", "unbind", "dbreload", "updatelore", "tag", "prop", "property", "details", "update",
             "reload", "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd");
     private static final List<String> SUBCOMMANDS_LISTED_WITHOUT_PERMISSION = List.of(
-            "viewdesc", "update", "rename", "charges");
+            "viewdesc", "details", "update", "rename", "charges");
 
     /** Subcommands anyone may run; every other one needs the item edit permission. */
-    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "update");
+    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
             "disable", "openbook", "savebook", "setbook", "bindbook", "viewdesc", "setdm", "setrc",
-            "unbind", "updatelore", "update", "reload", "rename");
+            "unbind", "updatelore", "details", "update", "reload", "rename");
 
     private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -128,6 +129,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of("tag", TagCommand.class),
                 Arguments.of("prop", PropertiesCommand.class),
                 Arguments.of("property", PropertiesCommand.class),
+                Arguments.of("details", DetailsCommand.class),
                 Arguments.of("update", UpdateItem.class),
                 Arguments.of("reload", ReloadCommand.class),
                 Arguments.of("rename", RenameCommand.class),
@@ -142,6 +144,13 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     @MethodSource("handlerForEachName")
     void eachNameResolvesToItsHandler(String name, Class<?> handler) {
         assertInstanceOf(handler, siCommand.getRegistry().find(name).orElseThrow().executor());
+    }
+
+    @Test
+    void detailsRunsForAPlayerWithoutPermission() {
+        run("details");
+
+        assertEquals("You must hold an item in your main hand to use this command.", nextPlainMessage());
     }
 
     @Test
