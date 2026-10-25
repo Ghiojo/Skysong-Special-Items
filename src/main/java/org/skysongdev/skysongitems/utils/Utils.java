@@ -6,7 +6,6 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.PotionContents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.luckperms.api.node.Node;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -371,15 +370,10 @@ public class Utils {
         return new SkysongItem(name, lore, type, itemModel, deleted, properties, finalTags, values, customModelData);
     }
 
+    /** Grants or revokes a permission item's permission. Does nothing without LuckPerms. */
     public static void updatePlayerPermissions(Player player, boolean add, String permission) {
-        getPlugin().getLuckPerms().getUserManager().loadUser(player.getUniqueId()).thenAccept( user -> {
-            if(add){
-                user.data().add(Node.builder(permission).value(add).build());
-            } else {
-                user.data().remove(Node.builder(permission).build());
-            }
-            getPlugin().getLuckPerms().getUserManager().saveUser(user);
-        } );
+        getPlugin().getLuckPerms()
+                .ifPresent(luckPerms -> luckPerms.updatePermission(player.getUniqueId(), add, permission));
     }
 
     public static File getOrGenerateOutputFile(){
@@ -433,6 +427,10 @@ public class Utils {
             }
             for (PrintableProperty property : organizedProperties) {
                 if(property instanceof BreweryPrintableProperty brewProp){
+                    // Brew scores come from TheBrewingProject; without it there is nothing to print.
+                    if(getPlugin().getBrewingProject().isEmpty()){
+                        continue;
+                    }
                     if(brewProp.getBrewedPrinting(item) == null){
                         Bukkit.getLogger().warning("BreweryPrintableProperty " + brewProp.getId() + " returned null for brewed printing. Skipping.");
                         continue;
