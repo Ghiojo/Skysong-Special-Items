@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.TagRegistry;
-import org.skysongdev.skysongitems.utils.PermissionItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,13 +60,10 @@ public class RemoveTag implements TabExecutor {
             return true;
         }
 
-        if(strings[0].equals("permission")){
-            PermissionItems.revoke(player, container.get(tag, PersistentDataType.STRING));
-        }
-
         container.remove(tag);
 
         itemInMainHand.setItemMeta(meta);
+        getPlugin().syncPermissionItems(player);
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Tag removed successfully!"));
 

@@ -74,6 +74,14 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
     }
 
     @Test
+    void syncingPermissionItemsDoesNothingWithoutLuckPerms() {
+        PlayerMock player = server.addPlayer();
+
+        assertDoesNotThrow(() -> plugin.syncPermissionItems(player));
+        assertFalse(player.hasPermission("skysongitems.test"));
+    }
+
+    @Test
     void breweryPropertiesAreLeftOutOfTheLoreWithoutTheBrewingProject() {
         FileConfiguration config = plugin.getConfig();
         config.set("properties.brew_quality.type", "breweryprintable");

@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Covers which permissions are given back when a player joins: item
- * permissions end at logout, so those of the items still held are granted again.
+ * Covers which permission items count as held: every slot of the player's
+ * inventory, the item on their cursor, and items packed inside bundles and containers.
  */
 class PermissionItemsTest extends MockBukkitTest {
     private PlayerMock player;
@@ -45,6 +45,21 @@ class PermissionItemsTest extends MockBukkitTest {
 
         assertEquals(List.of("skysongitems.first", "skysongitems.second"),
                 PermissionItems.heldPermissions(player));
+    }
+
+    @Test
+    void theItemOnTheCursorIsFound() {
+        player.setItemOnCursor(permissionItem("skysongitems.cursor"));
+
+        assertEquals(List.of("skysongitems.cursor"), PermissionItems.heldPermissions(player));
+    }
+
+    @Test
+    void eachItemIsListedEvenWhenTwoShareAPermission() {
+        player.getInventory().setItem(0, permissionItem("skysongitems.shared"));
+        player.getInventory().setItem(1, permissionItem("skysongitems.shared"));
+
+        assertEquals(List.of("skysongitems.shared", "skysongitems.shared"), PermissionItems.heldPermissions(player));
     }
 
     private static ItemStack permissionItem(String permission) {
