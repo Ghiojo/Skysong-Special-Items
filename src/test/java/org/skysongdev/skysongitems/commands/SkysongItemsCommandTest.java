@@ -14,16 +14,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
-import org.skysongdev.skysongitems.commands.books.BindBook;
-import org.skysongdev.skysongitems.commands.books.DeleteBook;
-import org.skysongdev.skysongitems.commands.books.ListBooks;
-import org.skysongdev.skysongitems.commands.books.OpenBook;
-import org.skysongdev.skysongitems.commands.books.SaveBook;
-import org.skysongdev.skysongitems.commands.books.SetBookContent;
-import org.skysongdev.skysongitems.commands.books.SetDMOnly;
-import org.skysongdev.skysongitems.commands.books.SetRightClickBook;
-import org.skysongdev.skysongitems.commands.books.UnbindBook;
-import org.skysongdev.skysongitems.commands.books.ViewExtendedLore;
+import org.skysongdev.skysongitems.commands.books.BookCommand;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
@@ -54,16 +45,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
     private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
-            "disable", "dis", "openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc", "listbooks",
-            "setdm", "setrc", "unbind", "dbreload", "updatelore", "tag", "prop", "property", "details", "update",
-            "reload", "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid");
+            "disable", "dis", "book", "updatelore", "tag", "prop", "property", "details", "update", "reload",
+            "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid");
     /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
-    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "details", "update");
+    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("book", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
-            "disable", "openbook", "savebook", "setbook", "bindbook", "viewdesc", "setdm", "setrc",
-            "unbind", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd", "furniture");
+            "disable", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd", "furniture");
 
     private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -113,17 +102,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
         return Stream.of(
                 Arguments.of("disable", DisableFunc.class),
                 Arguments.of("dis", DisableFunc.class),
-                Arguments.of("openbook", OpenBook.class),
-                Arguments.of("savebook", SaveBook.class),
-                Arguments.of("setbook", SetBookContent.class),
-                Arguments.of("delbook", DeleteBook.class),
-                Arguments.of("bindbook", BindBook.class),
-                Arguments.of("viewdesc", ViewExtendedLore.class),
-                Arguments.of("listbooks", ListBooks.class),
-                Arguments.of("setdm", SetDMOnly.class),
-                Arguments.of("setrc", SetRightClickBook.class),
-                Arguments.of("unbind", UnbindBook.class),
-                Arguments.of("dbreload", DBReload.class),
+                Arguments.of("book", BookCommand.class),
                 Arguments.of("tag", TagCommand.class),
                 Arguments.of("prop", PropertiesCommand.class),
                 Arguments.of("property", PropertiesCommand.class),
@@ -283,12 +262,32 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     void tabCompletionFiltersByTypedPrefix() {
         player.addAttachment(MockBukkit.createMockPlugin(), ITEM_EDIT_PERMISSION, true);
 
-        assertEquals(List.of("savebook", "setbook", "setdm", "setrc", "saveitem", "setmodel"), tabComplete("s"));
+        assertEquals(List.of("saveitem", "setmodel"), tabComplete("s"));
+    }
+
+    @Test
+    void tabCompletionOfBookOffersOnlyViewWithoutPermission() {
+        assertEquals(List.of("view"), tabComplete("book", ""));
+    }
+
+    @Test
+    void bookPassesTheRemainingArgumentsToTheBookSubcommand() {
+        run("book", "save");
+
+        assertEquals("[SkysongItems] You don't have permissions to do that command!", nextPlainMessage());
+    }
+
+    @Test
+    void oldTopLevelBookNamesAreGone() {
+        for (String name : List.of("openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc",
+                "listbooks", "setdm", "setrc", "unbind", "dbreload")) {
+            assertTrue(siCommand.getRegistry().find(name).isEmpty(), "/si " + name);
+        }
     }
 
     @Test
     void tabCompletionOfArgumentsForSubcommandWithoutCompleterIsBlank() {
-        assertEquals(List.of(""), tabComplete("openbook", ""));
+        assertEquals(List.of(""), tabComplete("details", ""));
     }
 
     private void run(String... args) {

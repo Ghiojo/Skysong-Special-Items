@@ -55,6 +55,6 @@ public class ListBooks implements CommandExecutor {
         for(int i = 10 * (index-1); i < books.size() && i < end; i++){
             commandSender.sendMessage(ChatColor.of("WHITE") + books.get(i).getName() + "(" + books.get(i).getId() + ")");
         }
-        commandSender.sendMessage(ChatColor.of("GOLD") + "===============================================\nTo view more books, type /si listbooks " + (index + 1));
+        commandSender.sendMessage(ChatColor.of("GOLD") + "===============================================\nTo view more books, type /si book list " + (index + 1));
     }
 }

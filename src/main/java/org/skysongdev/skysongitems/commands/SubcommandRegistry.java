@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The {@code /si} subcommands, looked up by name or alias. Names are matched
+ * The subcommands of one command, such as {@code /si}, looked up by name or alias. Names are matched
  * without regard to case, and each name may belong to only one subcommand.
  */
 public final class SubcommandRegistry {
@@ -23,7 +23,7 @@ public final class SubcommandRegistry {
         for (String name : subcommand.names()) {
             String key = normalise(name);
             if (byName.containsKey(key)) {
-                throw new IllegalArgumentException("/si " + name + " is already registered");
+                throw new IllegalArgumentException("Subcommand " + name + " is already registered");
             }
         }
         for (String name : subcommand.names()) {
