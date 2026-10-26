@@ -27,6 +27,7 @@ import org.skysongdev.skysongitems.commands.books.ViewExtendedLore;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
+import org.skysongdev.skysongitems.commands.misc.FurnitureIdCommand;
 import org.skysongdev.skysongitems.commands.misc.LoadItem;
 import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
 import org.skysongdev.skysongitems.commands.misc.SaveItem;
@@ -55,14 +56,14 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
             "disable", "dis", "openbook", "savebook", "setbook", "delbook", "bindbook", "viewdesc", "listbooks",
             "setdm", "setrc", "unbind", "dbreload", "updatelore", "tag", "prop", "property", "details", "update",
-            "reload", "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd");
+            "reload", "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid");
     /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
     private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("viewdesc", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
             "disable", "openbook", "savebook", "setbook", "bindbook", "viewdesc", "setdm", "setrc",
-            "unbind", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd");
+            "unbind", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd", "furniture");
 
     private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -134,7 +135,9 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of("loaditem", LoadItem.class),
                 Arguments.of("saveitem", SaveItem.class),
                 Arguments.of("setmodel", SetItemModel.class),
-                Arguments.of("cmd", CustomModelDataCommand.class));
+                Arguments.of("cmd", CustomModelDataCommand.class),
+                Arguments.of("furniture", FurnitureIdCommand.class),
+                Arguments.of("ceid", FurnitureIdCommand.class));
     }
 
     @ParameterizedTest
@@ -190,7 +193,8 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of((Object) new String[]{"charges", "set", "5"}),
                 Arguments.of((Object) new String[]{"charges", "add", "1"}),
                 Arguments.of((Object) new String[]{"cmd", "list"}),
-                Arguments.of((Object) new String[]{"cmd", "set", "1"}));
+                Arguments.of((Object) new String[]{"cmd", "set", "1"}),
+                Arguments.of((Object) new String[]{"furniture", "set", "skysong:oak_table"}));
     }
 
     @ParameterizedTest

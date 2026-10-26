@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 public final class SoftDependency {
     public static final String BREWING_PROJECT = "TheBrewingProject";
     public static final String LUCK_PERMS = "LuckPerms";
+    public static final String CRAFT_ENGINE = "CraftEngine";
 
     private SoftDependency() {
     }

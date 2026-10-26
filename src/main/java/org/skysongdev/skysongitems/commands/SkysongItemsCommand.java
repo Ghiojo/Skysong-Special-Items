@@ -64,6 +64,7 @@ public class SkysongItemsCommand implements TabExecutor {
         ChargesCommand chargesCommand = new ChargesCommand();
         LoadItem loadItem = new LoadItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
+        FurnitureIdCommand furnitureIdCommand = new FurnitureIdCommand();
 
         registerItemEdit(Subcommand.builder("disable", new DisableFunc()).alias("dis").playerOnly());
         registerItemEdit(Subcommand.builder("openbook", openBook).playerOnly());
@@ -91,6 +92,8 @@ public class SkysongItemsCommand implements TabExecutor {
         registerItemEdit(Subcommand.builder("saveitem", new SaveItem()));
         registerItemEdit(Subcommand.builder("setmodel", new SetItemModel()));
         registerItemEdit(Subcommand.builder("cmd", customModelDataCommand).tabCompleter(customModelDataCommand).playerOnly());
+        registerItemEdit(Subcommand.builder("furniture", furnitureIdCommand).alias("ceid")
+                .tabCompleter(furnitureIdCommand).playerOnly());
     }
 
     private void registerItemEdit(Subcommand.Builder builder) {
