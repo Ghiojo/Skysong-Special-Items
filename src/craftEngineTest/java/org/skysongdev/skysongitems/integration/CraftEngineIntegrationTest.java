@@ -1,80 +1,65 @@
 package org.skysongdev.skysongitems.integration;
 
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.inventory.ItemStack;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
- * Runs the integration against a mocked CraftEngine item manager, checking which
- * of CraftEngine's item calls each method makes and that the stack CraftEngine
- * edited is the one handed back.
+ * Runs the integration against a fake of CraftEngine's item manager, checking
+ * the keys and custom data entry it hands CraftEngine and that the stack
+ * CraftEngine returns is the one passed back.
  */
 class CraftEngineIntegrationTest {
     private static final String TABLE_ID = "skysong:oak_table";
 
-    private final BukkitItemManager items = mock(BukkitItemManager.class);
-    private final BukkitItem wrapped = mock(BukkitItem.class);
+    private final RecordingItemAccess items = new RecordingItemAccess();
+    private final CraftEngineIntegration integration = new CraftEngineIntegration(items);
     private final ItemStack held = mock(ItemStack.class);
-    private final ItemStack edited = mock(ItemStack.class);
-    private CraftEngineIntegration integration;
-
-    @BeforeEach
-    void mockCraftEngine() {
-        when(items.wrap(held)).thenReturn(wrapped);
-        when(wrapped.getBukkitItem()).thenReturn(edited);
-        integration = new CraftEngineIntegration(items);
-    }
 
     @Test
-    void idOfReadsTheCustomId() {
-        when(wrapped.customId()).thenReturn(Optional.of(Key.of(TABLE_ID)));
+    void idOfGivesTheNamespacedId() {
+        items.ids.put(held, Key.of(TABLE_ID));
 
         assertEquals(Optional.of(TABLE_ID), integration.idOf(held));
     }
 
     @Test
     void idOfIsEmptyForAnItemWithoutOne() {
-        when(wrapped.customId()).thenReturn(Optional.empty());
-
         assertTrue(integration.idOf(held).isEmpty());
     }
 
     @Test
-    void withIdWritesTheIdAndReturnsTheEditedStack() {
+    void withIdWritesTheParsedKeyAndReturnsCraftEnginesStack() {
         ItemStack result = integration.withId(held, TABLE_ID);
 
-        verify(wrapped).customId(Key.of(TABLE_ID));
-        assertSame(edited, result);
+        assertEquals(new Key("skysong", "oak_table"), items.ids.get(result));
+        assertSame(items.returned, result);
     }
 
     @Test
     void withoutIdRemovesTheTopLevelIdEntry() {
         ItemStack result = integration.withoutId(held);
 
-        verify(wrapped).removeTag("craftengine:id");
-        assertSame(edited, result);
+        assertEquals("craftengine:id", items.removedTag);
+        assertSame(items.returned, result);
     }
 
     @Test
-    void isLoadedAsksCraftEngineForTheItemDefinition() {
-        when(items.getItemDefinition(Key.of(TABLE_ID))).thenReturn(Optional.of(mock(ItemDefinition.class)));
-        when(items.getItemDefinition(Key.of("skysong:missing"))).thenReturn(Optional.empty());
+    void isLoadedAsksForTheParsedKey() {
+        items.defined.add(new Key("skysong", "oak_table"));
 
         assertTrue(integration.isLoaded(TABLE_ID));
         assertFalse(integration.isLoaded("skysong:missing"));
@@ -82,11 +67,44 @@ class CraftEngineIntegrationTest {
 
     @Test
     void loadedIdsAreSortedNamespacedStrings() {
-        ItemDefinition definition = mock(ItemDefinition.class);
-        when(items.loadedItems()).thenReturn(Map.of(
-                Key.of(TABLE_ID), definition,
-                Key.of("skysong:armchair"), definition));
+        items.defined.add(Key.of(TABLE_ID));
+        items.defined.add(Key.of("skysong:armchair"));
 
         assertEquals(List.of("skysong:armchair", TABLE_ID), integration.loadedIds());
+    }
+
+    /** Keeps ids per stack and, like CraftEngine, returns a different stack from each edit. */
+    private static final class RecordingItemAccess implements CraftEngineItemAccess {
+        private final Map<ItemStack, Key> ids = new IdentityHashMap<>();
+        private final Set<Key> defined = new HashSet<>();
+        private final ItemStack returned = mock(ItemStack.class);
+        private String removedTag;
+
+        @Override
+        public Optional<Key> customId(ItemStack item) {
+            return Optional.ofNullable(ids.get(item));
+        }
+
+        @Override
+        public ItemStack withCustomId(ItemStack item, Key id) {
+            ids.put(returned, id);
+            return returned;
+        }
+
+        @Override
+        public ItemStack withoutTag(ItemStack item, String tag) {
+            removedTag = tag;
+            return returned;
+        }
+
+        @Override
+        public boolean isDefined(Key id) {
+            return defined.contains(id);
+        }
+
+        @Override
+        public Set<Key> definedIds() {
+            return defined;
+        }
     }
 }

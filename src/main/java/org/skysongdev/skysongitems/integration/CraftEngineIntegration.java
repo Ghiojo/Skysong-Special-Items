@@ -1,6 +1,5 @@
 package org.skysongdev.skysongitems.integration;
 
-import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.inventory.ItemStack;
@@ -20,43 +19,39 @@ public final class CraftEngineIntegration implements CraftEngineItemIds {
     /** The custom data entry holding the id, at the top level of the item's custom data. */
     static final String ID_TAG = "craftengine:id";
 
-    private final BukkitItemManager items;
+    private final CraftEngineItemAccess items;
 
     public CraftEngineIntegration() {
-        this(BukkitItemManager.instance());
+        this(CraftEngineItemAccess.of(BukkitItemManager.instance()));
     }
 
-    CraftEngineIntegration(BukkitItemManager items) {
+    CraftEngineIntegration(CraftEngineItemAccess items) {
         this.items = items;
     }
 
     @Override
     public Optional<String> idOf(ItemStack item) {
-        return items.wrap(item).customId().map(Key::asString);
+        return items.customId(item).map(Key::asString);
     }
 
     @Override
     public ItemStack withId(ItemStack item, String id) {
-        BukkitItem wrapped = items.wrap(item);
-        wrapped.customId(Key.of(id));
-        return wrapped.getBukkitItem();
+        return items.withCustomId(item, Key.of(id));
     }
 
     @Override
     public ItemStack withoutId(ItemStack item) {
-        BukkitItem wrapped = items.wrap(item);
-        wrapped.removeTag(ID_TAG);
-        return wrapped.getBukkitItem();
+        return items.withoutTag(item, ID_TAG);
     }
 
     @Override
     public boolean isLoaded(String id) {
-        return items.getItemDefinition(Key.of(id)).isPresent();
+        return items.isDefined(Key.of(id));
     }
 
     @Override
     public List<String> loadedIds() {
-        return items.loadedItems().keySet().stream()
+        return items.definedIds().stream()
                 .map(Key::asString)
                 .sorted()
                 .toList();
