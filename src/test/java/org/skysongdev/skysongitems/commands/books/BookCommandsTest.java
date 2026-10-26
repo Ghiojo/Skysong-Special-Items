@@ -96,7 +96,7 @@ class BookCommandsTest extends MockBukkitTest {
                 rule,
                 "First(1)",
                 "Second(2)",
-                rule + "\nTo view more books, type /si listbooks 2"), repliesOnNextTick());
+                rule + "\nTo view more books, type /si book list 2"), repliesOnNextTick());
     }
 
     @Test

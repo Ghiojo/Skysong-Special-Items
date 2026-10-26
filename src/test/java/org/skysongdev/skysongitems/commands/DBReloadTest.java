@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * {@code /si dbreload} with the bundled config.yml, whose MySQL server does not exist in
+ * {@code /si book reload} with the bundled config.yml, whose MySQL server does not exist in
  * tests: the reload fails on the database worker and still confirms, as it always has.
  */
 class DBReloadTest extends MockBukkitTest {

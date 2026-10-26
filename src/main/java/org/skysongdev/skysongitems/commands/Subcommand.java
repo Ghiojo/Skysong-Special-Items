@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * One {@code /si} subcommand: the names it answers to, who may run it, and the
- * handler that does the work. {@link SubcommandRegistry} uses this description to
- * dispatch, so the handlers themselves only ever see the arguments after the
- * subcommand name.
+ * One subcommand of {@code /si} or {@code /si book}: the names it answers to, who
+ * may run it, and the handler that does the work. {@link SubcommandRouter} uses this
+ * description to dispatch, so the handlers themselves only ever see the arguments
+ * after the subcommand name.
  *
  * <p>Create one with {@link #builder(String, CommandExecutor)}.
  */
