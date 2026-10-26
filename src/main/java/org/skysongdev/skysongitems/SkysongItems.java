@@ -13,6 +13,8 @@ import org.skysongdev.skysongitems.database.BookQueries;
 import org.skysongdev.skysongitems.database.Database;
 import org.skysongdev.skysongitems.database.DatabaseSettings;
 import org.skysongdev.skysongitems.integration.BrewingProjectIntegration;
+import org.skysongdev.skysongitems.integration.CraftEngineIntegration;
+import org.skysongdev.skysongitems.integration.CraftEngineItemIds;
 import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
 import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
@@ -40,6 +42,7 @@ public class SkysongItems extends JavaPlugin {
     // Each integration is null when its plugin is not installed.
     private LuckPermsIntegration luckPerms;
     private BrewingProjectIntegration brewingProject;
+    private CraftEngineItemIds craftEngine;
     // Null when LuckPerms is not installed, as permission items then grant nothing.
     private PermissionItemListener permissionItemListener;
 
@@ -62,6 +65,11 @@ public class SkysongItems extends JavaPlugin {
     /** LuckPerms integration, empty when LuckPerms is not installed. */
     public Optional<LuckPermsIntegration> getLuckPerms() {
         return Optional.ofNullable(luckPerms);
+    }
+
+    /** Edits items' CraftEngine ids, empty when CraftEngine is not installed. */
+    public Optional<CraftEngineItemIds> getCraftEngine() {
+        return Optional.ofNullable(craftEngine);
     }
 
     /** The item properties configured in config.yml. */
@@ -115,6 +123,11 @@ public class SkysongItems extends JavaPlugin {
             brewingProject.enable(this);
         }
         saveDefaultConfig();
+
+        if (SoftDependency.isInstalled(getServer().getPluginManager(), SoftDependency.CRAFT_ENGINE,
+                "/si furniture", getLogger())) {
+            craftEngine = new CraftEngineIntegration();
+        }
 
         bookQueries = BookQueries.onWorkerThread(this, this::getBookRepository);
         InitializeDatabase(() -> { });

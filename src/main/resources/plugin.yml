@@ -4,7 +4,7 @@ authors: [Ghiojo]
 main: org.skysongdev.skysongitems.SkysongItems
 api-version: '1.21.11'
 
-softdepend: [LuckPerms, TheBrewingProject]
+softdepend: [LuckPerms, TheBrewingProject, CraftEngine]
 
 # Downloaded from Maven Central by the server when the plugin loads.
 libraries:

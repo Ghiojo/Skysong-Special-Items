@@ -23,12 +23,18 @@ repositories {
         name = "jitpack"
         url = "https://jitpack.io"
     }
+    maven {
+        name = "momirealms"
+        url = "https://repo.momirealms.net/releases/"
+    }
 }
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.github.BreweryTeam:TheBrewingProject:v2.8.2'
+    compileOnly 'net.momirealms:craft-engine-core:26.9'
+    compileOnly 'net.momirealms:craft-engine-bukkit:26.9'
     // Downloaded by the server at startup through the `libraries` list in plugin.yml.
     compileOnly 'com.zaxxer:HikariCP:6.3.0'
 
@@ -48,9 +54,9 @@ dependencies {
     testImplementation 'com.h2database:h2:2.3.232'
 }
 
-// LuckPerms is kept off the main test classpath so those tests run the plugin as a
-// server without LuckPerms would (see WithoutSoftDependenciesTest). The LuckPerms
-// integration is tested in this separate suite, which has the LuckPerms API.
+// LuckPerms and CraftEngine are kept off the main test classpath so those tests run
+// the plugin as a server without them would (see WithoutSoftDependenciesTest). Each
+// integration is tested in a separate suite that has that plugin's API.
 testing {
     suites {
         luckPermsTest(JvmTestSuite) {
@@ -72,11 +78,32 @@ testing {
                 }
             }
         }
+        craftEngineTest(JvmTestSuite) {
+            useJUnitJupiter('6.0.3')
+            dependencies {
+                implementation project()
+                implementation 'net.momirealms:craft-engine-core:26.9'
+                implementation 'net.momirealms:craft-engine-bukkit:26.9'
+                implementation 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+                implementation 'org.mockito:mockito-core:5.14.2'
+                runtimeOnly 'org.junit.platform:junit-platform-launcher:6.0.3'
+            }
+            targets {
+                all {
+                    testTask.configure {
+                        testLogging {
+                            events 'failed'
+                            exceptionFormat 'full'
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 tasks.named('check') {
-    dependsOn(testing.suites.luckPermsTest)
+    dependsOn(testing.suites.luckPermsTest, testing.suites.craftEngineTest)
 }
 
 def targetJavaVersion = 21
