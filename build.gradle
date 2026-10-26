@@ -26,18 +26,21 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.github.BreweryTeam:TheBrewingProject:v2.8.2'
     // Downloaded by the server at startup through the `libraries` list in plugin.yml.
     compileOnly 'com.zaxxer:HikariCP:6.3.0'
 
-    // Tests run on JUnit 5. MockBukkit 4.54.0 is the last release built against
-    // Paper 1.21.5, so its mock server matches the API the plugin compiles against.
-    testImplementation platform('org.junit:junit-bom:5.13.1')
+    // Tests run on JUnit 6, the version MockBukkit 4.116.3 is built with. That release
+    // is built against Paper 1.21.11, so its mock server matches the API the plugin
+    // compiles against. MockBukkit no longer brings the Paper API itself, so the tests
+    // declare it.
+    testImplementation platform('org.junit:junit-bom:6.0.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.54.0'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.116.3'
+    testImplementation "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     // The server provides these at runtime: HikariCP through plugin.yml, the MySQL driver bundled with Paper.
     testImplementation 'com.zaxxer:HikariCP:6.3.0'
     testRuntimeOnly 'com.mysql:mysql-connector-j:9.1.0'
@@ -51,12 +54,12 @@ dependencies {
 testing {
     suites {
         luckPermsTest(JvmTestSuite) {
-            useJUnitJupiter('5.13.1')
+            useJUnitJupiter('6.0.3')
             dependencies {
                 implementation project()
                 implementation 'net.luckperms:api:5.4'
                 implementation 'org.mockito:mockito-core:5.14.2'
-                runtimeOnly 'org.junit.platform:junit-platform-launcher:1.13.1'
+                runtimeOnly 'org.junit.platform:junit-platform-launcher:6.0.3'
             }
             targets {
                 all {

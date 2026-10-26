@@ -165,7 +165,9 @@ class ItemFileTagValuesTest extends MockBukkitTest {
         meta.getPersistentDataContainer().set(tag("fictis"), PersistentDataType.INTEGER, 3);
         stack.setItemMeta(meta);
 
-        assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3"), new SkysongItem(stack).getTagValues());
+        // The stored lore is a built-in tag, so it is read back alongside the configured ones.
+        assertEquals(Map.of(tag("arcrot"), "1", tag("fictis"), "3", ItemKeys.LORE, "physical§functional§skill"),
+                new SkysongItem(stack).getTagValues());
     }
 
     private File savedFile() {
