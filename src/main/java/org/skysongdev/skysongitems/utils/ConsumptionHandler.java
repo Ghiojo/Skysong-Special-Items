@@ -1,9 +1,11 @@
 package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,8 +29,10 @@ public final class ConsumptionHandler {
     private ConsumptionHandler() {
     }
 
-    public static ArrayList<ItemStack> consume(ItemStack item){
-        return consume(item, getPlugin().getItemEditor(), getPlugin().getLogger());
+    /** Runs the item's onConsumption commands for the player consuming it. */
+    public static ArrayList<ItemStack> consume(Player consumer, ItemStack item){
+        ItemEditor editor = getPlugin().getItemEditor().editedBy(consumer, ItemChangeCause.CONSUMED);
+        return consume(item, editor, getPlugin().getLogger());
     }
 
     /**
@@ -83,10 +87,12 @@ public final class ConsumptionHandler {
         int chargesToConsume = parseChargesToConsume(parts, logger);
         int currentCharges = item.getItemMeta().getPersistentDataContainer().get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
         int newCharges = currentCharges - chargesToConsume;
+        ItemStack chargedItem = item.clone();
+        chargedItem.setAmount(1);
+        // Written even when the item is used up and not given back, so the charges
+        // change event reports the last charge going.
+        editor.setChargesLeft(chargedItem, Math.max(newCharges, 0));
         if (newCharges > 0) {
-            ItemStack chargedItem = item.clone();
-            chargedItem.setAmount(1);
-            editor.setChargesLeft(chargedItem, newCharges);
             returnItems.add(chargedItem);
         }
         return stopsAfterCharge(parts, logger) && newCharges > 0;

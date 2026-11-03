@@ -33,7 +33,7 @@ public class AddCharges implements CommandExecutor {
             return true;
         }
         boolean ignoreLock = player.hasPermission("skysongspecialitems.cit");
-        ItemEditor.Result result = getPlugin().getItemEditor().addCharges(item, num, ignoreLock);
+        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).addCharges(item, num, ignoreLock);
         if(ItemEditor.Result.NOT_CHARGED.equals(result)){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
         } else if(ItemEditor.Result.ADDING_LOCKED.equals(result)){

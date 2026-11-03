@@ -20,7 +20,7 @@ public class RemoveCharges implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold the item you wish to lore!"));
             return true;
         }
-        getPlugin().getItemEditor().removeCharges(item);
+        getPlugin().getItemEditor().forCommand(player).removeCharges(item);
         player.updateInventory();
         return true;
     }

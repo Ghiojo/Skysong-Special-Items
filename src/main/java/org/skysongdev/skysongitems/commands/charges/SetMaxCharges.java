@@ -33,7 +33,7 @@ public class SetMaxCharges implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please type in a valid number!"));
             return true;
         }
-        if(ItemEditor.Result.INVALID_AMOUNT.equals(getPlugin().getItemEditor().setMaxCharges(item, num))){
+        if(ItemEditor.Result.INVALID_AMOUNT.equals(getPlugin().getItemEditor().forCommand(player).setMaxCharges(item, num))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + " <red>\"" + strings[0] + "\" is negative or zero!"));
             return true;
         }

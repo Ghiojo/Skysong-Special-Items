@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems.apiimpl;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.skysongdev.skysongitems.api.ItemTemplates;
+import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
@@ -14,7 +15,13 @@ import java.util.Optional;
 import java.util.Set;
 
 /** Creates items from the saved templates in {@code GeneratedItems/} or from any template file. */
-final class ItemTemplateReader implements ItemTemplates {
+final class ItemTemplatesImpl implements ItemTemplates {
+    private final Updater updater;
+
+    ItemTemplatesImpl(Updater updater) {
+        this.updater = updater;
+    }
+
     @Override
     public Set<String> ids() {
         StoredValues.requireMainThread();
@@ -44,6 +51,13 @@ final class ItemTemplateReader implements ItemTemplates {
             throw new IllegalArgumentException("Not a valid item template, it needs a name and a type: " + file);
         }
         return ItemFactory.create(ItemTemplateRepository.load(file.toFile()));
+    }
+
+    /** Runs the same version steps as {@code /si update}, so a plain item counts as version 0. */
+    @Override
+    public ItemStack toSkysongItem(ItemStack item) {
+        ItemWrites.requireItem(item);
+        return updater.upgrade(item);
     }
 
     @Override

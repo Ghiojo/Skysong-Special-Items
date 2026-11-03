@@ -20,7 +20,7 @@ public class SetAddable implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold the item you wish to lore!"));
             return true;
         }
-        ItemEditor editor = getPlugin().getItemEditor();
+        ItemEditor editor = getPlugin().getItemEditor().forCommand(player);
         if(ItemEditor.Result.NOT_CHARGED.equals(editor.toggleChargeAdding(item))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
             return true;

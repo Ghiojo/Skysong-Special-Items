@@ -45,7 +45,7 @@ public class AddProperty implements TabExecutor {
             return true;
         }
 
-        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().addProperty(itemInMainHand, args[0]))){
+        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addProperty(itemInMainHand, args[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
             return true;
         }

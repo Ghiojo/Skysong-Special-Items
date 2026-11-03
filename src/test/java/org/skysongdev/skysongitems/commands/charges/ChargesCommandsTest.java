@@ -15,7 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.api.event.ItemChargesChangeEvent;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -23,6 +26,7 @@ import org.skysongdev.skysongitems.utils.ItemKeys;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -84,6 +88,20 @@ class ChargesCommandsTest extends MockBukkitTest {
         run(new AddCharges(), "2");
 
         assertEquals(4, heldCharges());
+    }
+
+    @Test
+    void addChargesFiresAChargesEventNamingThePlayer() {
+        holdItem(true);
+        RecordedItemEvents events = RecordedItemEvents.listenOn(server);
+
+        run(new AddCharges(), "2");
+
+        ItemChargesChangeEvent event = events.onlyChargeChange();
+        assertSame(player, event.getHolder());
+        assertEquals(ItemChangeCause.COMMAND, event.getCause());
+        assertEquals(2, event.getOldCharges());
+        assertEquals(4, event.getNewCharges());
     }
 
     @Test

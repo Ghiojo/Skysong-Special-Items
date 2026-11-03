@@ -55,16 +55,16 @@ public interface SkysongItemsApi {
      */
     @NotNull String apiVersion();
 
-    /** Reads the tags stored on items, and which tags exist. */
+    /** Reads and writes the tags stored on items, and tells which tags exist. */
     @NotNull ItemTags tags();
 
-    /** Reads the charges stored on items. */
+    /** Reads and writes the charges stored on items. */
     @NotNull ItemCharges charges();
 
-    /** Reads the properties stored on items, and which properties exist. */
+    /** Reads and writes the properties stored on items, and tells which properties exist. */
     @NotNull ItemProperties properties();
 
-    /** Creates items from templates and recognises SkysongItems items. */
+    /** Creates items from templates, recognises SkysongItems items and converts plain ones. */
     @NotNull ItemTemplates templates();
 
     /**

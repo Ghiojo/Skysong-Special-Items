@@ -10,6 +10,8 @@ import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.ItemTemplates;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
+import org.skysongdev.skysongitems.commands.lore.Updater;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
@@ -26,16 +28,16 @@ public final class SkysongItemsApiImpl implements SkysongItemsApi {
     private final ItemProperties properties;
     private final ItemTemplates templates;
 
-    /** An API reading through the plugin's tag and property registries. */
+    /** An API reading through the plugin's tag and property registries and writing through its item editor. */
     public SkysongItemsApiImpl(SkysongItems plugin) {
-        this(plugin.getTagRegistry(), plugin.getPropertyRegistry());
+        this(plugin.getTagRegistry(), plugin.getPropertyRegistry(), plugin.getItemEditor(), plugin.getUpdater());
     }
 
-    SkysongItemsApiImpl(TagRegistry tagRegistry, PropertyRegistry propertyRegistry) {
-        this.charges = new ItemChargeReader();
-        this.tags = new ItemTagReader(tagRegistry, charges);
-        this.properties = new ItemPropertyReader(propertyRegistry);
-        this.templates = new ItemTemplateReader();
+    SkysongItemsApiImpl(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor, Updater updater) {
+        this.charges = new ItemChargesImpl(editor);
+        this.tags = new ItemTagsImpl(tagRegistry, charges, editor);
+        this.properties = new ItemPropertiesImpl(propertyRegistry, editor);
+        this.templates = new ItemTemplatesImpl(updater);
     }
 
     @Override

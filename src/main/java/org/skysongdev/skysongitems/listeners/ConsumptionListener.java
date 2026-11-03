@@ -23,7 +23,7 @@ public class ConsumptionListener implements Listener {
         }
         PersistentDataContainer pdc = event.getItem().getItemMeta().getPersistentDataContainer();
         if(pdc.has(ItemKeys.ON_CONSUMPTION)){
-            ArrayList<ItemStack> remainingItems = ConsumptionHandler.consume(event.getItem());
+            ArrayList<ItemStack> remainingItems = ConsumptionHandler.consume(event.getPlayer(), event.getItem());
             if(!remainingItems.isEmpty()){
                 event.setReplacement(remainingItems.getFirst());
                 if(remainingItems.size() > 1) {

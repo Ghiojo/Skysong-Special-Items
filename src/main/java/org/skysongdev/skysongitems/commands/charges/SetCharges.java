@@ -32,7 +32,7 @@ public class SetCharges implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please type in a valid number!"));
             return true;
         }
-        if(ItemEditor.Result.INVALID_AMOUNT.equals(getPlugin().getItemEditor().setCharges(item, num))){
+        if(ItemEditor.Result.INVALID_AMOUNT.equals(getPlugin().getItemEditor().forCommand(player).setCharges(item, num))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + " <red>\"" + strings[0] + "\" is negative!"));
             return true;
         }
