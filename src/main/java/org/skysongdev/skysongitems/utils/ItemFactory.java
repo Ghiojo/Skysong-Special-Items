@@ -45,14 +45,11 @@ public final class ItemFactory {
 
     /** True for items made by this plugin, which carry the {@link ItemKeys#VERSION} tag. */
     public static boolean isSkysongItem(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
+        if (item == null || item.getType().isAir()) {
             return false;
         }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
-            return false;
-        }
-        return meta.getPersistentDataContainer().has(ItemKeys.VERSION, PersistentDataType.STRING);
+        // Reads the item's data in place instead of copying its meta.
+        return item.getPersistentDataContainer().has(ItemKeys.VERSION, PersistentDataType.STRING);
     }
 
     private static boolean isPotion(String type) {

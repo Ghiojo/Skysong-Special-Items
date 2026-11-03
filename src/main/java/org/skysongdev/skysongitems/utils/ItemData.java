@@ -85,12 +85,19 @@ public final class ItemData {
      * removed by older versions of the plugin, are skipped.
      */
     public List<String> getProperties() {
-        String properties = getPropertiesText();
+        return parseProperties(getPropertiesText());
+    }
+
+    /**
+     * Splits properties as stored on an item into their ids, skipping blank ones like
+     * {@link #getProperties()} does. Gives a list the caller may change, empty for null.
+     */
+    public static List<String> parseProperties(String propertiesText) {
         List<String> propertyIds = new ArrayList<>();
-        if (properties == null) {
+        if (propertiesText == null) {
             return propertyIds;
         }
-        for (String propertyId : properties.split(PROPERTY_SEPARATOR)) {
+        for (String propertyId : propertiesText.split(PROPERTY_SEPARATOR)) {
             if (!propertyId.isBlank()) {
                 propertyIds.add(propertyId);
             }

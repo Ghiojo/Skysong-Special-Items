@@ -194,4 +194,10 @@ class ItemDataTest extends MockBukkitTest {
         assertEquals(List.of("physical", "functional", "skill"), stored.getLoreSections());
         assertEquals(List.of("charges"), stored.getProperties());
     }
+
+    @Test
+    void parsePropertiesSplitsStoredTextSkippingBlanks() {
+        assertEquals(List.of("charges", "spell"), ItemData.parseProperties("charges;;spell;"));
+        assertTrue(ItemData.parseProperties(null).isEmpty());
+    }
 }

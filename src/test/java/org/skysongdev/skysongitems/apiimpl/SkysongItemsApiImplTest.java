@@ -6,6 +6,8 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -57,8 +59,8 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
 
     @Test
     void unregisterOnlyRemovesThisInstance() {
-        SkysongItemsApiImpl first = new SkysongItemsApiImpl();
-        SkysongItemsApiImpl second = new SkysongItemsApiImpl();
+        SkysongItemsApiImpl first = new SkysongItemsApiImpl(new TagRegistry(), new PropertyRegistry());
+        SkysongItemsApiImpl second = new SkysongItemsApiImpl(new TagRegistry(), new PropertyRegistry());
         first.register(server.getServicesManager(), MockBukkit.createMockPlugin("First"));
         second.register(server.getServicesManager(), MockBukkit.createMockPlugin("Second"));
 
