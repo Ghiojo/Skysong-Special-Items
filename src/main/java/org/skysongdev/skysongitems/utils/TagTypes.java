@@ -3,7 +3,7 @@ package org.skysongdev.skysongitems.utils;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.TagType;
 
-/** Maps the data types tags are stored with to the API's {@link TagType}. */
+/** Maps the data types tags are stored with to and from the API's {@link TagType}. */
 public final class TagTypes {
     private TagTypes() {
         // Static methods only.
@@ -24,5 +24,15 @@ public final class TagTypes {
             return TagType.STRING;
         }
         return null;
+    }
+
+    /** The data type a tag of this API type is stored as. */
+    public static PersistentDataType<?, ?> dataType(TagType type) {
+        return switch (type) {
+            case INT -> PersistentDataType.INTEGER;
+            case FLOAT -> PersistentDataType.FLOAT;
+            case BOOL -> PersistentDataType.BOOLEAN;
+            case STRING -> PersistentDataType.STRING;
+        };
     }
 }
