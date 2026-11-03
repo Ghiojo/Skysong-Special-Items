@@ -7,12 +7,10 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.TagRegistry;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,30 +37,19 @@ public class RemoveTag implements TabExecutor {
             return true;
         }
 
-        TagRegistry tagRegistry = getPlugin().getTagRegistry();
-        if(!(tagRegistry.contains(strings[0]))){
+        if(!getPlugin().getTagRegistry().contains(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid Tag!"));
             return true;
         }
 
-        NamespacedKey tag = tagRegistry.getKey(strings[0]);
-
-        PersistentDataType<?,?> tagValue = tagRegistry.getType(tag);
-
-        ItemMeta meta = itemInMainHand.getItemMeta();
-
+        // The updater may replace the held item, so edit the one it leaves in the hand.
         getPlugin().getUpdater().UpdateItem(player);
+        ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-
-        if(!(container.has(tag, tagValue))){
+        if(ItemEditor.Result.MISSING.equals(getPlugin().getItemEditor().removeTag(updatedItem, strings[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this tag."));
             return true;
         }
-
-        container.remove(tag);
-
-        itemInMainHand.setItemMeta(meta);
         getPlugin().syncPermissionItems(player);
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Tag removed successfully!"));

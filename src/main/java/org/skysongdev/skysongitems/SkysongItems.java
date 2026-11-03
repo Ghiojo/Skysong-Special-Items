@@ -20,6 +20,7 @@ import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
 import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.MaterialPermissions;
 import org.skysongdev.skysongitems.utils.PermissionItemSync;
@@ -36,6 +37,7 @@ public class SkysongItems extends JavaPlugin {
     private Updater updater;
     private final PropertyRegistry propertyRegistry = new PropertyRegistry();
     private final TagRegistry tagRegistry = new TagRegistry();
+    private final ItemEditor itemEditor = new ItemEditor(tagRegistry, propertyRegistry);
     private final MaterialPermissions materialPermissions = new MaterialPermissions();
     private MiniMessage miniMessage = MiniMessage.miniMessage();
     // Each integration is null when its plugin is not installed.
@@ -81,6 +83,11 @@ public class SkysongItems extends JavaPlugin {
     /** The item tags, built-in and configured in config.yml. */
     public TagRegistry getTagRegistry() {
         return tagRegistry;
+    }
+
+    /** Changes items' charges, tags and properties. */
+    public ItemEditor getItemEditor() {
+        return itemEditor;
     }
 
     /** The permissions needed to use items, by material id, from materials.yml. */

@@ -1,25 +1,18 @@
 package org.skysongdev.skysongitems.commands.properties;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.PrintableProperty;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Property;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -52,43 +45,13 @@ public class AddProperty implements TabExecutor {
             return true;
         }
 
-        ItemMeta meta = itemInMainHand.getItemMeta();
-
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        ItemData data = new ItemData(container);
-
-        if(data.hasProperty(args[0])){
+        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().addProperty(itemInMainHand, args[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
             return true;
         }
-        data.addProperty(args[0]);
 
-        Property property = getPlugin().getPropertyRegistry().get(args[0]);
-        if(property != null){
-            if(property instanceof PrintableProperty){
-                ArrayList<String> values = ((PrintableProperty) property).getValuetags();
-                for(String value : values) {
-                    PersistentDataType<?, ?> type = getPlugin().getTagRegistry().getType(ItemKeys.named(value));
-                    if (PersistentDataType.STRING.equals(type)) {
-                        container.set(ItemKeys.named(value), PersistentDataType.STRING, "");
-                    } else if (PersistentDataType.INTEGER.equals(type)) {
-                        container.set(ItemKeys.named(value), PersistentDataType.INTEGER, 0);
-                    } else if (PersistentDataType.FLOAT.equals(type)) {
-                        container.set(ItemKeys.named(value), PersistentDataType.FLOAT, 0.0f);
-                    } else if (PersistentDataType.BOOLEAN.equals(type)) {
-                        container.set(ItemKeys.named(value), PersistentDataType.BOOLEAN, false);
-                    }
-                }
-            }
-        }
-
-        itemInMainHand.setItemMeta(meta);
         player.updateInventory();
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Property added!"));
-
-        Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
-
-
         return true;
     }
 

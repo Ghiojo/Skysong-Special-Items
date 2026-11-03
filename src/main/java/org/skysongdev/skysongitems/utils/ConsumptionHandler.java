@@ -2,7 +2,6 @@ package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -29,14 +28,14 @@ public final class ConsumptionHandler {
     }
 
     public static ArrayList<ItemStack> consume(ItemStack item){
-        return consume(item, getPlugin().getLogger());
+        return consume(item, getPlugin().getItemEditor(), getPlugin().getLogger());
     }
 
     /**
      * Runs the item's onConsumption commands and returns the items the player should get back.
-     * Takes the logger as a parameter so the command loop can be tested without an enabled plugin.
+     * Takes the editor and logger as parameters so the command loop can be tested without an enabled plugin.
      */
-    static ArrayList<ItemStack> consume(ItemStack item, Logger logger){
+    static ArrayList<ItemStack> consume(ItemStack item, ItemEditor editor, Logger logger){
         if(item == null || item.getType() == Material.AIR){
             return null;
         }
@@ -45,7 +44,7 @@ public final class ConsumptionHandler {
             String[] parts = command.split(":");
             boolean stopAfterCommand = false;
             if(parts[0].equals("charge")){
-                stopAfterCommand = runChargeCommand(item, parts, returnItems, logger);
+                stopAfterCommand = runChargeCommand(item, parts, returnItems, editor, logger);
             } else {
                 runReturnItemCommand(item, parts[0], returnItems);
             }
@@ -71,7 +70,7 @@ public final class ConsumptionHandler {
      * Handles a "charge:amount:stop" command by taking charges off one item of the stack.
      * Returns true when the remaining commands should be skipped.
      */
-    private static boolean runChargeCommand(ItemStack item, String[] parts, List<ItemStack> returnItems, Logger logger){
+    private static boolean runChargeCommand(ItemStack item, String[] parts, List<ItemStack> returnItems, ItemEditor editor, Logger logger){
         if(!item.getItemMeta().getPersistentDataContainer().has(ItemKeys.CHARGES, PersistentDataType.INTEGER)){
             logger.warning("Item has onConsumption command to consume charges but no charges tag found. Skipping command.");
             return false;
@@ -87,10 +86,7 @@ public final class ConsumptionHandler {
         if (newCharges > 0) {
             ItemStack chargedItem = item.clone();
             chargedItem.setAmount(1);
-            ItemMeta meta = chargedItem.getItemMeta();
-            meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, newCharges);
-            chargedItem.setItemMeta(meta);
-            chargedItem = ItemLoreRenderer.refresh(chargedItem);
+            editor.setChargesLeft(chargedItem, newCharges);
             returnItems.add(chargedItem);
         }
         return stopsAfterCharge(parts, logger) && newCharges > 0;
