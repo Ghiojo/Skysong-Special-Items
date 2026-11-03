@@ -15,7 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.api.event.ItemTagChangeEvent;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -24,6 +27,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * Tests {@code /si tag set} and {@code /si tag remove} on the held item, using
@@ -65,6 +69,19 @@ class TagCommandsTest extends MockBukkitTest {
 
         assertEquals(4, heldArcrot());
         assertEquals("[SkysongItems] The tag arcrot set to 4 successfully!", nextMessage());
+    }
+
+    @Test
+    void setTagFiresATagEventNamingThePlayer() {
+        RecordedItemEvents events = RecordedItemEvents.listenOn(server);
+
+        run(new SetTag(), "arcrot", "4");
+
+        ItemTagChangeEvent event = events.onlyTagChange();
+        assertSame(player, event.getHolder());
+        assertEquals(ItemChangeCause.COMMAND, event.getCause());
+        assertEquals("arcrot", event.getTagId());
+        assertEquals(4, event.getNewValue());
     }
 
     @Test

@@ -37,7 +37,7 @@ public class SetTag implements TabExecutor {
             return true;
         }
 
-        ItemEditor.Result result = getPlugin().getItemEditor().setTag(itemInMainHand, strings[0], strings[1]);
+        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).setTag(itemInMainHand, strings[0], strings[1]);
         if(!ItemEditor.Result.DONE.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + failureMessage(result)));
             return true;

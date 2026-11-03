@@ -45,7 +45,7 @@ public class RemoveProperty implements TabExecutor {
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
-        ItemEditor.Result result = getPlugin().getItemEditor().removeProperty(updatedItem, strings[0]);
+        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeProperty(updatedItem, strings[0]);
         if(ItemEditor.Result.NO_PROPERTIES.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;

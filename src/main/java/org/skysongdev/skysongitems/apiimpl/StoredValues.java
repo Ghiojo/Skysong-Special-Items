@@ -34,7 +34,7 @@ final class StoredValues {
      */
     static void requireMainThread() {
         if (!Bukkit.isPrimaryThread()) {
-            throw new IllegalStateException("SkysongItems API item reads must run on the server's main thread");
+            throw new IllegalStateException("SkysongItems API item reads and writes must run on the server's main thread");
         }
     }
 }

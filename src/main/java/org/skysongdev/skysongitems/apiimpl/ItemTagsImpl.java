@@ -1,26 +1,93 @@
 package org.skysongdev.skysongitems.apiimpl;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.TagType;
+import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.utils.ItemEditor;
+import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.TagRegistry;
+import org.skysongdev.skysongitems.utils.TagTypes;
 import org.skysongdev.skysongitems.utils.TagRegistry.RegisteredTag;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
-/** Reads tag values from items, resolving tag ids through the plugin's {@link TagRegistry}. */
-final class ItemTagReader implements ItemTags {
+/**
+ * Reads tag values from items, resolving tag ids through the plugin's {@link TagRegistry},
+ * and writes them through the {@link ItemEditor}.
+ */
+final class ItemTagsImpl implements ItemTags {
+    /**
+     * Tags the API never writes: {@code permission} grants permissions to whoever holds
+     * the item, and the others are SkysongItems' own bookkeeping, written by its own code.
+     */
+    private static final Set<NamespacedKey> PROTECTED = Set.of(ItemKeys.PERMISSION, ItemKeys.VERSION, ItemKeys.LORE, ItemKeys.NAME);
+
+    /** The Java type of the values each tag type takes; a float tag takes any number. */
+    private static final Map<TagType, Class<?>> VALUE_CLASSES = new EnumMap<>(Map.of(
+            TagType.INT, Integer.class,
+            TagType.FLOAT, Number.class,
+            TagType.BOOL, Boolean.class,
+            TagType.STRING, String.class));
+
     private final TagRegistry registry;
     private final ItemCharges charges;
+    private final ItemEditor editor;
 
-    ItemTagReader(TagRegistry registry, ItemCharges charges) {
+    ItemTagsImpl(TagRegistry registry, ItemCharges charges, ItemEditor editor) {
         this.registry = registry;
         this.charges = charges;
+        this.editor = editor;
+    }
+
+    @Override
+    public void set(Player holder, ItemStack item, String tagId, Object value) {
+        ItemWrites.requireSkysongItem(item);
+        RegisteredTag tag = writableTag(tagId);
+        String text = asText(TagTypes.of(tag.type()), value, tagId);
+        ItemWrites.requireDone(editor.editedBy(holder, ItemChangeCause.API).setTag(item, tagId, text), "tag " + tagId);
+    }
+
+    @Override
+    public boolean remove(Player holder, ItemStack item, String tagId) {
+        ItemWrites.requireSkysongItem(item);
+        writableTag(tagId);
+        return ItemEditor.Result.DONE.equals(editor.editedBy(holder, ItemChangeCause.API).removeTag(item, tagId));
+    }
+
+    /** The tag with this id, when it exists and the API may write it. */
+    private RegisteredTag writableTag(String tagId) {
+        RegisteredTag tag = registry.find(tagId);
+        if (tag == null) {
+            throw new IllegalArgumentException("There is no tag " + tagId);
+        }
+        if (PROTECTED.contains(tag.key())) {
+            throw new IllegalArgumentException("The " + tagId + " tag can't be written through the API");
+        }
+        return tag;
+    }
+
+    /**
+     * The value as the text {@code /si tag set} takes, once it is checked to be the
+     * Java type the tag's type stores.
+     */
+    private static String asText(TagType type, Object value, String tagId) {
+        Class<?> expected = type == null ? null : VALUE_CLASSES.get(type);
+        if (expected == null || !expected.isInstance(value)) {
+            throw new IllegalArgumentException("The " + tagId + " tag holds " + type + " values and can't hold " + value);
+        }
+        if (TagType.FLOAT.equals(type)) {
+            return Float.toString(((Number) value).floatValue());
+        }
+        return value.toString();
     }
 
     @Override

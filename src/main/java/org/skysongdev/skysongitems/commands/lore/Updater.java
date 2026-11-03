@@ -21,32 +21,36 @@ public class Updater {
     //TODO: Make this Updater be able to turn items without their nbt lore buffer into items with their nbt lore buffer
     public void UpdateItem(Player player){
         ItemStack item = player.getInventory().getItemInMainHand();
-        ItemMeta buffer;
-        PersistentDataContainer bufferDataContainer;
         if(item == null || item.getType() == Material.AIR){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please hold an item!"));
             return;
         }
-        buffer = item.getItemMeta();
-        bufferDataContainer = buffer.getPersistentDataContainer();
-
-        if(Objects.equals(bufferDataContainer.get(ItemKeys.VERSION, PersistentDataType.STRING), Constants.ITEM_VERSION))
+        if(isCurrent(item))
             return;
+        player.getInventory().setItemInMainHand(upgrade(item));
+    }
 
-        //Uncomment and add more cases when a new version for items is added
-        String version = bufferDataContainer.get(ItemKeys.VERSION, PersistentDataType.STRING);
-        if(version == null || version.isEmpty()){
-            version = "0";
+    /**
+     * Brings the item up to the current item version, running every update step
+     * from the version it has. An item without a version is treated as version 0,
+     * so a plain item becomes a SkysongItems item. A current item is returned as it is.
+     *
+     * @return the upgraded item, which is the given item changed in place
+     */
+    public ItemStack upgrade(ItemStack item){
+        if(isCurrent(item))
+            return item;
+
+        // Add a branch for each item version when a new version for items is added.
+        String version = item.getPersistentDataContainer().get(ItemKeys.VERSION, PersistentDataType.STRING);
+        if("1.0".equals(version)){
+            return UpdateOnePointOne(item);
         }
-        switch(version){
-            case "1.0":
-                item = UpdateOnePointOne(item);
-                break;
-            default:
-                item = UpdateAll(item);
-                break;
-        }
-        player.getInventory().setItemInMainHand(item);
+        return UpdateAll(item);
+    }
+
+    private static boolean isCurrent(ItemStack item){
+        return Objects.equals(item.getPersistentDataContainer().get(ItemKeys.VERSION, PersistentDataType.STRING), Constants.ITEM_VERSION);
     }
 
     public ItemStack UpdateZero(ItemStack item){

@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
+import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
@@ -57,10 +59,16 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
         assertThrows(IllegalStateException.class, SkysongItemsApi::get);
     }
 
+    private static SkysongItemsApiImpl newApi() {
+        TagRegistry tags = new TagRegistry();
+        PropertyRegistry properties = new PropertyRegistry();
+        return new SkysongItemsApiImpl(tags, properties, new ItemEditor(tags, properties), new Updater());
+    }
+
     @Test
     void unregisterOnlyRemovesThisInstance() {
-        SkysongItemsApiImpl first = new SkysongItemsApiImpl(new TagRegistry(), new PropertyRegistry());
-        SkysongItemsApiImpl second = new SkysongItemsApiImpl(new TagRegistry(), new PropertyRegistry());
+        SkysongItemsApiImpl first = newApi();
+        SkysongItemsApiImpl second = newApi();
         first.register(server.getServicesManager(), MockBukkit.createMockPlugin("First"));
         second.register(server.getServicesManager(), MockBukkit.createMockPlugin("Second"));
 

@@ -46,7 +46,7 @@ public class RemoveTag implements TabExecutor {
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
-        if(ItemEditor.Result.MISSING.equals(getPlugin().getItemEditor().removeTag(updatedItem, strings[0]))){
+        if(ItemEditor.Result.MISSING.equals(getPlugin().getItemEditor().forCommand(player).removeTag(updatedItem, strings[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this tag."));
             return true;
         }

@@ -37,4 +37,16 @@ public interface ItemTemplates {
 
     /** Whether the item was made by SkysongItems, which marks every item it makes with a version. */
     boolean isSkysongItem(@Nullable ItemStack item);
+
+    /**
+     * Turns the item into a SkysongItems item of the current version, in place, so the write
+     * methods accept it. A plain item's custom name and lore become its stored name and
+     * physical description, like {@code /si update} does for items made before SkysongItems
+     * stored them. An item from an older SkysongItems version is upgraded, and a current one
+     * is left as it is.
+     *
+     * @return the same item, for chaining
+     * @throws IllegalArgumentException when the item is null or air
+     */
+    ItemStack toSkysongItem(ItemStack item);
 }

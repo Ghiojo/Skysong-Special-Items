@@ -1,12 +1,17 @@
 package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * The one place that changes an item's charges, tags and properties. The
@@ -22,6 +27,12 @@ import java.util.Objects;
  * Methods report what they did with a {@link Result}, and the caller decides
  * how to tell the player. When the result is anything other than
  * {@link Result#DONE}, the item is left unchanged.
+ * <p>
+ * After each edit, a changed charge count fires an
+ * {@link org.skysongdev.skysongitems.api.event.ItemChargesChangeEvent} and every
+ * other changed tag an {@link org.skysongdev.skysongitems.api.event.ItemTagChangeEvent},
+ * so commands, consumption and the API all fire them. {@link #editedBy} names the
+ * holder and cause the events carry.
  */
 public final class ItemEditor {
     /** The property every charged item carries, so its lore shows the charges. */
@@ -55,10 +66,36 @@ public final class ItemEditor {
 
     private final TagRegistry tags;
     private final PropertyRegistry properties;
+    private final ItemChangeEvents events;
+    private final Player holder;
+    private final ItemChangeCause cause;
 
+    /** An editor whose changes fire their events as {@link ItemChangeCause#COMMAND} with no holder. */
     public ItemEditor(TagRegistry tags, PropertyRegistry properties) {
+        this(tags, properties, new ItemChangeEvents(tags), null, ItemChangeCause.COMMAND);
+    }
+
+    private ItemEditor(TagRegistry tags, PropertyRegistry properties, ItemChangeEvents events,
+                       Player holder, ItemChangeCause cause) {
         this.tags = Objects.requireNonNull(tags, "tags");
         this.properties = Objects.requireNonNull(properties, "properties");
+        this.events = events;
+        this.holder = holder;
+        this.cause = Objects.requireNonNull(cause, "cause");
+    }
+
+    /**
+     * An editor making the same changes, whose events name this holder and cause.
+     *
+     * @param holder the player holding the edited items, or null when unknown
+     */
+    public ItemEditor editedBy(@Nullable Player holder, ItemChangeCause cause) {
+        return new ItemEditor(tags, properties, events, holder, cause);
+    }
+
+    /** An editor for a {@code /si} command run by this player, holding the item they edit. */
+    public ItemEditor forCommand(Player player) {
+        return editedBy(player, ItemChangeCause.COMMAND);
     }
 
     /**
@@ -68,6 +105,10 @@ public final class ItemEditor {
      * @return {@link Result#INVALID_AMOUNT} for a negative amount, otherwise {@link Result#DONE}
      */
     public Result setCharges(ItemStack item, int charges) {
+        return tracked(item, () -> applySetCharges(item, charges));
+    }
+
+    private Result applySetCharges(ItemStack item, int charges) {
         if (charges < 0) {
             return Result.INVALID_AMOUNT;
         }
@@ -91,6 +132,10 @@ public final class ItemEditor {
      * @return {@link Result#INVALID_AMOUNT} for an amount under 1, otherwise {@link Result#DONE}
      */
     public Result setMaxCharges(ItemStack item, int maxCharges) {
+        return tracked(item, () -> applySetMaxCharges(item, maxCharges));
+    }
+
+    private Result applySetMaxCharges(ItemStack item, int maxCharges) {
         if (maxCharges < 1) {
             return Result.INVALID_AMOUNT;
         }
@@ -115,6 +160,10 @@ public final class ItemEditor {
      *         otherwise {@link Result#DONE}
      */
     public Result addCharges(ItemStack item, int amount, boolean ignoreLock) {
+        return tracked(item, () -> applyAddCharges(item, amount, ignoreLock));
+    }
+
+    private Result applyAddCharges(ItemStack item, int amount, boolean ignoreLock) {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         if (!isCharged(container)) {
@@ -135,13 +184,20 @@ public final class ItemEditor {
      * Unlike {@link #setCharges}, the amount isn't checked against the max.
      */
     public void setChargesLeft(ItemStack item, int charges) {
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, charges);
-        saveAndRedraw(item, meta);
+        tracked(item, () -> {
+            ItemMeta meta = item.getItemMeta();
+            meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, charges);
+            saveAndRedraw(item, meta);
+            return Result.DONE;
+        });
     }
 
     /** Takes the item's charges, max charges and charges property off it. */
     public void removeCharges(ItemStack item) {
+        tracked(item, () -> applyRemoveCharges(item));
+    }
+
+    private Result applyRemoveCharges(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.remove(ItemKeys.CHARGES);
@@ -153,6 +209,7 @@ public final class ItemEditor {
             ItemLoreRenderer.renderWithoutProperties(meta);
         }
         saveAndRedraw(item, meta);
+        return Result.DONE;
     }
 
     /**
@@ -162,6 +219,10 @@ public final class ItemEditor {
      * @return {@link Result#NOT_CHARGED} for an item without charges, otherwise {@link Result#DONE}
      */
     public Result toggleChargeAdding(ItemStack item) {
+        return tracked(item, () -> applyToggleChargeAdding(item));
+    }
+
+    private Result applyToggleChargeAdding(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         if (!isCharged(container)) {
@@ -188,6 +249,10 @@ public final class ItemEditor {
      *         otherwise {@link Result#DONE}
      */
     public Result setTag(ItemStack item, String tagId, String value) {
+        return tracked(item, () -> applySetTag(item, tagId, value));
+    }
+
+    private Result applySetTag(ItemStack item, String tagId, String value) {
         TagRegistry.RegisteredTag tag = tags.find(tagId);
         if (tag == null) {
             return Result.UNKNOWN_TAG;
@@ -208,6 +273,10 @@ public final class ItemEditor {
      *         when the item doesn't have it, otherwise {@link Result#DONE}
      */
     public Result removeTag(ItemStack item, String tagId) {
+        return tracked(item, () -> applyRemoveTag(item, tagId));
+    }
+
+    private Result applyRemoveTag(ItemStack item, String tagId) {
         TagRegistry.RegisteredTag tag = tags.find(tagId);
         if (tag == null) {
             return Result.UNKNOWN_TAG;
@@ -231,6 +300,10 @@ public final class ItemEditor {
      *         {@link Result#ALREADY_PRESENT} when the item has it, otherwise {@link Result#DONE}
      */
     public Result addProperty(ItemStack item, String propertyId) {
+        return tracked(item, () -> applyAddProperty(item, propertyId));
+    }
+
+    private Result applyAddProperty(ItemStack item, String propertyId) {
         if (!properties.contains(propertyId)) {
             return Result.UNKNOWN_PROPERTY;
         }
@@ -261,6 +334,10 @@ public final class ItemEditor {
      *         otherwise {@link Result#DONE}
      */
     public Result removeProperty(ItemStack item, String propertyId) {
+        return tracked(item, () -> applyRemoveProperty(item, propertyId));
+    }
+
+    private Result applyRemoveProperty(ItemStack item, String propertyId) {
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);
         if (!data.hasProperties()) {
@@ -274,6 +351,17 @@ public final class ItemEditor {
         }
         saveAndRedraw(item, meta);
         return Result.DONE;
+    }
+
+    /**
+     * Runs an edit and fires the change events for whatever it changed. An edit that
+     * changes nothing, including every one that doesn't return {@link Result#DONE}, fires none.
+     */
+    private Result tracked(ItemStack item, Supplier<Result> edit) {
+        Map<NamespacedKey, Object> before = events.snapshot(item);
+        Result result = edit.get();
+        events.fireChanges(holder, item, before, cause);
+        return result;
     }
 
     private static boolean isCharged(PersistentDataContainer container) {
