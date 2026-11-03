@@ -162,4 +162,30 @@ class TagRegistryTest extends MockBukkitTest {
         assertTrue(tagsIn(null).isEmpty());
         assertTrue(tagsIn(new ItemStack(Material.AIR)).isEmpty());
     }
+
+    @Test
+    void findGivesTheKeyAndTypeTogether() {
+        TagRegistry.RegisteredTag found = plugin.getTagRegistry().find("Fictis");
+
+        assertEquals(ItemKeys.named("fictis"), found.key());
+        assertEquals(PersistentDataType.INTEGER, found.type());
+        assertNull(plugin.getTagRegistry().find("missing"));
+        assertNull(plugin.getTagRegistry().find(null));
+    }
+
+    @Test
+    void idsAreTheLowercasedKeyNames() {
+        assertTrue(plugin.getTagRegistry().getIds().containsAll(List.of("arcrot", "charges", "model")));
+    }
+
+    @Test
+    void aBuiltInTagWinsOverAConfiguredOneWithTheSameName() {
+        // FurnitureLib's model key is built in; a configured "model" tag lives in this plugin's namespace.
+        configureOnlyTag("model", "int");
+
+        reloadTags();
+
+        assertEquals(ItemKeys.FURNITURE_MODEL, tag("model"));
+        assertTrue(isRegistered(ItemKeys.named("model")));
+    }
 }

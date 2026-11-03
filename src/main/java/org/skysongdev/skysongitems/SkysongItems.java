@@ -162,7 +162,7 @@ public class SkysongItems extends JavaPlugin {
         }
 
         // Last, so other plugins only see the API once everything it reads is loaded.
-        api = new SkysongItemsApiImpl();
+        api = new SkysongItemsApiImpl(this);
         api.register(getServer().getServicesManager(), this);
     }
 

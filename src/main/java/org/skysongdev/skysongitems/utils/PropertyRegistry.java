@@ -7,31 +7,44 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-/** The item properties configured in the {@code properties} section of config.yml. */
+/**
+ * The item properties configured in the {@code properties} section of config.yml.
+ *
+ * <p>Each load builds new lists and swaps them in at once, so lookups from any thread
+ * see either the old properties or the new ones, never a half-loaded registry.
+ */
 public class PropertyRegistry {
-    private final List<Property> properties = new ArrayList<>();
-    private final List<String> propertyTypes = new ArrayList<>();
+    private volatile List<Property> properties = List.of();
+    private volatile List<String> propertyTypes = List.of();
 
     /** Replaces the loaded properties, and the property types they use, with the ones in the config. */
     public void load(ConfigurationSection config, Logger logger) {
-        properties.clear();
-        propertyTypes.clear();
+        List<Property> loaded = new ArrayList<>();
+        List<String> loadedTypes = new ArrayList<>();
         ConfigurationSection section = config.getConfigurationSection("properties");
         if (section == null) {
             logger.warning("No properties section found in the configuration.");
+            publish(loaded, loadedTypes);
             return;
         }
         for (String id : section.getKeys(false)) {
             logger.warning("Adding property: " + id);
             Property property = createProperty(config, id);
-            properties.add(property);
+            loaded.add(property);
             logger.info("Added " + property.getClass().getSimpleName() + ": " + id);
 
-            if (!propertyTypes.contains(property.getPropType())) {
-                propertyTypes.add(property.getPropType());
+            if (!loadedTypes.contains(property.getPropType())) {
+                loadedTypes.add(property.getPropType());
             }
         }
-        logger.info("Total properties added: " + properties.size());
+        publish(loaded, loadedTypes);
+        logger.info("Total properties added: " + loaded.size());
+    }
+
+    /** Swaps in a load's results. Types are published first, so a reader that sees a property also sees its type. */
+    private void publish(List<Property> loaded, List<String> loadedTypes) {
+        propertyTypes = Collections.unmodifiableList(loadedTypes);
+        properties = Collections.unmodifiableList(loaded);
     }
 
     /** Builds the property of the class named by its {@code type}; unknown types give a plain property. */
@@ -71,11 +84,11 @@ public class PropertyRegistry {
 
     /** Every loaded property, in config order. */
     public List<Property> getAll() {
-        return Collections.unmodifiableList(properties);
+        return properties;
     }
 
     /** Every property type used by a loaded property, in config order. */
     public List<String> getPropertyTypes() {
-        return Collections.unmodifiableList(propertyTypes);
+        return propertyTypes;
     }
 }
