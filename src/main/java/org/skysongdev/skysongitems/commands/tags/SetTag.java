@@ -6,13 +6,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.TagRegistry;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,51 +37,24 @@ public class SetTag implements TabExecutor {
             return true;
         }
 
-        TagRegistry tagRegistry = getPlugin().getTagRegistry();
-        if(!(tagRegistry.contains(strings[0]))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid Tag!"));
+        ItemEditor.Result result = getPlugin().getItemEditor().setTag(itemInMainHand, strings[0], strings[1]);
+        if(!ItemEditor.Result.DONE.equals(result)){
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + failureMessage(result)));
             return true;
         }
-
-        NamespacedKey tag = tagRegistry.getKey(strings[0]);
-        PersistentDataType<?, ?> tagValue = tagRegistry.getType(tag);
-
-        ItemMeta meta = itemInMainHand.getItemMeta();
-
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-
-        if(PersistentDataType.INTEGER.equals(tagValue)){
-            try{
-                Integer.parseInt(strings[1]);
-            } catch (NumberFormatException e){
-                player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires a Number)"));
-                return true;
-            }
-            container.set(tag, PersistentDataType.INTEGER, Integer.parseInt(strings[1]));
-        } else if(PersistentDataType.BOOLEAN.equals(tagValue)){
-            if(!(strings[1].equalsIgnoreCase("true") || strings[1].equalsIgnoreCase("false"))){
-                player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires True or False)"));
-                return true;
-            }
-            container.set(tag, PersistentDataType.BOOLEAN, strings[1].equalsIgnoreCase("true"));
-        }  else if (PersistentDataType.FLOAT.equals(tagValue)){
-            try{
-                Float.parseFloat(strings[1]);
-            } catch (NumberFormatException e){
-                player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid value for tag! (Requires a Number)"));
-                return true;
-            }
-            container.set(tag, PersistentDataType.FLOAT, Float.parseFloat(strings[1]));
-        } else if (PersistentDataType.STRING.equals(tagValue)){
-            container.set(tag, PersistentDataType.STRING, strings[1]);
-        }
-
-        itemInMainHand.setItemMeta(meta);
         getPlugin().syncPermissionItems(player);
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>The tag "+ strings[0] +" set to " + strings[1] + " successfully!"));
 
         return true;
+    }
+
+    private static String failureMessage(ItemEditor.Result result) {
+        return switch (result) {
+            case NOT_A_NUMBER -> "Invalid value for tag! (Requires a Number)";
+            case NOT_A_BOOLEAN -> "Invalid value for tag! (Requires True or False)";
+            default -> "Invalid Tag!";
+        };
     }
 
     @Override

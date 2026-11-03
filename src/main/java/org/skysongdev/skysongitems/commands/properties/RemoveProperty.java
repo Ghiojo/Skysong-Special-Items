@@ -1,6 +1,5 @@
 package org.skysongdev.skysongitems.commands.properties;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -9,10 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,32 +41,22 @@ public class RemoveProperty implements TabExecutor {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
         }
 
+        // The updater may replace the held item, so edit the one it leaves in the hand.
         getPlugin().getUpdater().UpdateItem(player);
-        ItemMeta meta = itemInMainHand.getItemMeta();
+        ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
-        ItemData data = ItemData.from(meta);
-
-        if(!data.hasProperties()){
+        ItemEditor.Result result = getPlugin().getItemEditor().removeProperty(updatedItem, strings[0]);
+        if(ItemEditor.Result.NO_PROPERTIES.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;
         }
-
-        if(!data.removeProperty(strings[0])){
+        if(ItemEditor.Result.MISSING.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
             return true;
         }
 
-        if(!data.hasProperties()){
-            ItemLoreRenderer.renderWithoutProperties(meta);
-        }
-
-        itemInMainHand.setItemMeta(meta);
         player.updateInventory();
-
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Property removed successfully!"));
-
-        Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
-
         return true;
     }
 

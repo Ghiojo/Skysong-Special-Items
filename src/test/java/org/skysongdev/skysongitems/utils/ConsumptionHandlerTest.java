@@ -27,6 +27,7 @@ class ConsumptionHandlerTest extends MockBukkitTest {
     /** Long enough for any real run, short enough that a regression fails instead of hanging the build. */
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+    private final ItemEditor editor = new ItemEditor(new TagRegistry(), new PropertyRegistry());
     private Logger logger;
     private final List<LogRecord> warnings = new ArrayList<>();
 
@@ -77,7 +78,7 @@ class ConsumptionHandlerTest extends MockBukkitTest {
     }
 
     private List<ItemStack> consumeWithinTimeout(ItemStack item) {
-        return assertTimeoutPreemptively(TIMEOUT, () -> ConsumptionHandler.consume(item, logger));
+        return assertTimeoutPreemptively(TIMEOUT, () -> ConsumptionHandler.consume(item, editor, logger));
     }
 
     @Test
@@ -111,7 +112,7 @@ class ConsumptionHandlerTest extends MockBukkitTest {
 
     @Test
     void missingItemReturnsNull() {
-        assertNull(ConsumptionHandler.consume(null, logger));
+        assertNull(ConsumptionHandler.consume(null, editor, logger));
     }
 
     @Test

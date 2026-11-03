@@ -1,19 +1,13 @@
 package org.skysongdev.skysongitems.commands.charges;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -38,24 +32,11 @@ public class SetCharges implements CommandExecutor {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Please type in a valid number!"));
             return true;
         }
-        if(num < 0){
+        if(ItemEditor.Result.INVALID_AMOUNT.equals(getPlugin().getItemEditor().setCharges(item, num))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + " <red>\"" + strings[0] + "\" is negative!"));
             return true;
         }
-        ItemMeta buffer = item.getItemMeta();
-        PersistentDataContainer container = buffer.getPersistentDataContainer();
-        if(!container.has(ItemKeys.MAX_CHARGES)) {
-            container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, num);
-            ItemData data = new ItemData(container);
-            if(!data.hasProperty("charges"))
-                data.addProperty("charges");
-        }
-        if(num > container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER))
-            num = container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, num);
-
-        item.setItemMeta(buffer);
-        Bukkit.getPluginManager().callEvent(new ItemEditEvent(player));
+        player.updateInventory();
         return true;
     }
 }
