@@ -5,13 +5,18 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -48,14 +54,21 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
         return ItemTemplateRepository.load(savedFile());
     }
 
-    @Test
-    void generatedItemsFolderIsCreatedWhenMissing() {
-        File folder = new File(SkysongItems.getPlugin().getDataFolder(), "GeneratedItems");
-        File[] leftovers = folder.listFiles();
-        for (File leftover : leftovers == null ? new File[0] : leftovers) {
-            leftover.delete();
+    private static void deleteRecursively(File folder) throws IOException {
+        if (!folder.exists()) {
+            return;
         }
-        folder.delete();
+        try (var paths = Files.walk(folder.toPath())) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.delete(path);
+            }
+        }
+    }
+
+    @Test
+    void generatedItemsFolderIsCreatedWhenMissing() throws IOException {
+        File folder = new File(SkysongItems.getPlugin().getDataFolder(), "GeneratedItems");
+        deleteRecursively(folder);
         assertFalse(folder.exists());
 
         File returned = ItemTemplateRepository.generatedItemsFolder();
@@ -163,5 +176,69 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
         SkysongPotionItem loaded = assertInstanceOf(SkysongPotionItem.class, saveAndLoad(potion));
 
         assertEquals(Color.AQUA, loaded.getColor());
+    }
+
+    @Test
+    void saveIntoAFolderWritesInsideThatSubfolder() {
+        String id = ItemTemplateRepository.save(item("STONE", null), "weapons/swords");
+
+        assertEquals("weapons/swords/template_item", id);
+        File expected = new File(ItemTemplateRepository.generatedItemsFolder(), "weapons/swords/" + FILE_NAME);
+        assertTrue(expected.isFile());
+        assertEquals(expected, ItemTemplateRepository.savedItemFile(id));
+    }
+
+    @Test
+    void saveWithoutAFolderKeepsTheTopLevelId() {
+        assertEquals("template_item", ItemTemplateRepository.save(item("STONE", null), ""));
+        assertTrue(savedFile().isFile());
+    }
+
+    @Test
+    void itemSavedInAFolderLoadsBackFromItsId() {
+        String id = ItemTemplateRepository.save(item("STONE", null), "weapons");
+
+        assertEquals(NAME, ItemTemplateRepository.load(ItemTemplateRepository.savedItemFile(id)).getName());
+    }
+
+    @Test
+    void savedItemIdsIncludeSubfoldersAndSkipOtherFiles() throws IOException {
+        deleteRecursively(ItemTemplateRepository.generatedItemsFolder());
+        ItemTemplateRepository.save(item("STONE", null));
+        ItemTemplateRepository.save(item("STONE", null), "weapons/swords");
+        Files.writeString(new File(ItemTemplateRepository.generatedItemsFolder(), "notes.txt").toPath(), "not an item");
+
+        assertEquals(List.of("template_item", "weapons/swords/template_item"), ItemTemplateRepository.savedItemIds());
+    }
+
+    @Test
+    void savedItemFoldersListEveryNestedFolder() throws IOException {
+        deleteRecursively(ItemTemplateRepository.generatedItemsFolder());
+        ItemTemplateRepository.save(item("STONE", null), "weapons/swords");
+        ItemTemplateRepository.save(item("STONE", null), "armor");
+
+        assertEquals(List.of("armor", "weapons", "weapons/swords"), ItemTemplateRepository.savedItemFolders());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"weapons", "weapons/swords", "tier_1", "two-handed", "a/b/c"})
+    void folderNamesMadeOfAllowedCharactersAreValid(String folder) {
+        assertTrue(ItemTemplateRepository.isValidFolder(folder));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"..", "../outside", "weapons/../..", "/etc", "weapons/", "weapons//swords",
+            "weapons\\swords", "C:/items", "Weapons", "my weapons", "."})
+    void foldersThatCouldLeaveGeneratedItemsAreInvalid(String folder) {
+        assertFalse(ItemTemplateRepository.isValidFolder(folder));
+    }
+
+    @Test
+    void saveRefusesAnInvalidFolderAndWritesNothing() {
+        File outside = new File(SkysongItems.getPlugin().getDataFolder(), FILE_NAME);
+        SkysongItem item = item("STONE", null);
+
+        assertThrows(IllegalArgumentException.class, () -> ItemTemplateRepository.save(item, ".."));
+        assertFalse(outside.exists());
     }
 }

@@ -7,22 +7,34 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 /**
  * Reads and writes item templates: the YAML files that describe a {@link SkysongItem}.
  *
- * <p>Saved templates go to the plugin's {@code GeneratedItems} folder, named after the
- * item. Loading takes any file, because TheBrewingProject ingredients are read from the
- * {@code brewing} folder with the same format.
+ * <p>Saved templates go to the plugin's {@code GeneratedItems} folder, or a subfolder of
+ * it, named after the item. A saved item's id is its path inside that folder without the
+ * {@code .yml} extension, such as {@code sword} or {@code weapons/sword}. Loading takes any
+ * file, because TheBrewingProject ingredients are read from the {@code brewing} folder with
+ * the same format.
  */
 public final class ItemTemplateRepository {
+    private static final String EXTENSION = ".yml";
+    /** One or more lowercase names joined by {@code /}, so a folder can never leave GeneratedItems. */
+    private static final Pattern FOLDER = Pattern.compile("[a-z0-9_-]+(/[a-z0-9_-]+)*");
+
     private ItemTemplateRepository() {
         // Static methods only.
     }
@@ -38,13 +50,72 @@ public final class ItemTemplateRepository {
 
     /** Saves the item to {@code GeneratedItems/<formatted name>.yml}, replacing any template of that name. */
     public static void save(SkysongItem item){
-        File itemFile = new File(generatedItemsFolder(), item.getFormattedName() + ".yml");
+        save(item, "");
+    }
+
+    /**
+     * Saves the item to {@code GeneratedItems/<folder>/<formatted name>.yml}, creating the
+     * folder if needed and replacing any template of that name in it.
+     *
+     * @param folder a folder accepted by {@link #isValidFolder(String)}; empty saves to GeneratedItems itself
+     * @return the saved item's id, which {@link #savedItemFile(String)} turns back into its file
+     * @throws IllegalArgumentException if the folder is not valid
+     */
+    public static String save(SkysongItem item, String folder){
+        if (!isValidFolder(folder)) {
+            throw new IllegalArgumentException("Invalid saved item folder: " + folder);
+        }
+        String id = folder.isEmpty() ? item.getFormattedName() : folder + "/" + item.getFormattedName();
+        File itemFile = savedItemFile(id);
+        itemFile.getParentFile().mkdirs();
         YamlConfiguration yaml = toYaml(item);
         try {
             yaml.save(itemFile);
             getPlugin().getLogger().info("Item file saved: " + itemFile.getPath());
         } catch (IOException e) {
             getPlugin().getLogger().log(Level.SEVERE, "Failed to save item file: " + e.getMessage(), e);
+        }
+        return id;
+    }
+
+    /**
+     * Whether items may be saved to this folder: empty for GeneratedItems itself, or names
+     * made of {@code a-z}, {@code 0-9}, {@code _} and {@code -} joined by {@code /}. That
+     * rules out {@code ..}, absolute paths and backslashes.
+     */
+    public static boolean isValidFolder(String folder) {
+        return folder.isEmpty() || FOLDER.matcher(folder).matches();
+    }
+
+    /** The file of the saved item with this id, such as {@code weapons/sword}. */
+    public static File savedItemFile(String id) {
+        return new File(generatedItemsFolder(), id + EXTENSION);
+    }
+
+    /** The ids of every saved item, subfolders included, in alphabetical order. */
+    public static List<String> savedItemIds() {
+        return walkGeneratedItems(path -> Files.isRegularFile(path) && path.toString().endsWith(EXTENSION)).stream()
+                .map(id -> id.substring(0, id.length() - EXTENSION.length()))
+                .toList();
+    }
+
+    /** Every subfolder of GeneratedItems, as {@code /}-separated paths in alphabetical order. */
+    public static List<String> savedItemFolders() {
+        return walkGeneratedItems(Files::isDirectory);
+    }
+
+    /** The matching paths below GeneratedItems, relative to it and separated by {@code /}. */
+    private static List<String> walkGeneratedItems(Predicate<Path> filter) {
+        Path root = generatedItemsFolder().toPath();
+        try (Stream<Path> paths = Files.walk(root)) {
+            return paths.filter(path -> !Objects.equals(path, root))
+                    .filter(filter)
+                    .map(path -> root.relativize(path).toString().replace(File.separatorChar, '/'))
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            getPlugin().getLogger().log(Level.WARNING, "Could not list the saved items: " + e.getMessage(), e);
+            return List.of();
         }
     }
 

@@ -25,12 +25,10 @@ import org.skysongdev.skysongitems.utils.PermissionItemSync;
 import org.skysongdev.skysongitems.utils.PropertyRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
-import java.io.File;
 import java.util.Optional;
 
 // Not final: MockBukkit loads a plugin through a generated subclass of its main class.
 public class SkysongItems extends JavaPlugin {
-    private File ItemOutputDirectory;
     private static SkysongItems plugin;
     private Database database;
     private BookQueries bookQueries;
@@ -171,20 +169,10 @@ public class SkysongItems extends JavaPlugin {
         }
     }
 
+    /** Re-reads the ids of the saved items, subfolders included, for /si loaditem. */
     public void fixFilePaths(){
-        ItemOutputDirectory = new File(getDataFolder() + File.separator + "GeneratedItems");
-
-        if (!ItemOutputDirectory.exists()) {
-            ItemOutputDirectory.mkdir();
-        }
-        File folder = ItemTemplateRepository.generatedItemsFolder();
-        File[] files = folder.listFiles();
         Constants.itemFileNames.clear();
-        if(files != null){
-            for(File file : files){
-                Constants.itemFileNames.add(file.getName().replace(".yml", ""));
-            }
-        }
+        Constants.itemFileNames.addAll(ItemTemplateRepository.savedItemIds());
     }
 
     @Override
