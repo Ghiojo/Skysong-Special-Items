@@ -18,7 +18,7 @@ import java.util.List;
 public class LoadItem implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] strings) {
-        if(s.isEmpty()){
+        if(strings.length == 0){
             commandSender.sendMessage(SkysongItems.getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Usage: /loaditem <item_name>"));
             return true;
         }
