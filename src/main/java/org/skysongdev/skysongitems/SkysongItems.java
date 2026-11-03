@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.skysongdev.skysongitems.apiimpl.SkysongItemsApiImpl;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
 import org.skysongdev.skysongitems.commands.lore.LoreSection;
 import org.skysongdev.skysongitems.commands.lore.LoreSectionCommand;
@@ -43,6 +44,8 @@ public class SkysongItems extends JavaPlugin {
     private CraftEngineItemIds craftEngine;
     // Null when LuckPerms is not installed, as permission items then grant nothing.
     private PermissionItemListener permissionItemListener;
+    // Null until the end of onEnable, and again after onDisable.
+    private SkysongItemsApiImpl api;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -157,6 +160,10 @@ public class SkysongItems extends JavaPlugin {
         if (brewingProject != null) {
             brewingProject.markItemsReady();
         }
+
+        // Last, so other plugins only see the API once everything it reads is loaded.
+        api = new SkysongItemsApiImpl();
+        api.register(getServer().getServicesManager(), this);
     }
 
     /**
@@ -177,6 +184,11 @@ public class SkysongItems extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // First, so other plugins stop using the API before anything it reads shuts down.
+        if (api != null) {
+            api.unregister(getServer().getServicesManager());
+            api = null;
+        }
         if (permissionItemListener != null) {
             permissionItemListener.revokeOnlinePlayers();
         }
