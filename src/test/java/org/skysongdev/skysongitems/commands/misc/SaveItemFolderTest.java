@@ -17,6 +17,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 
@@ -65,6 +66,7 @@ class SaveItemFolderTest extends MockBukkitTest {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(ItemKeys.NAME, PersistentDataType.STRING, ITEM_NAME);
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        ItemData.from(meta).setLoreSections(List.of("physical", "functional", "skill"));
         item.setItemMeta(meta);
         return item;
     }
