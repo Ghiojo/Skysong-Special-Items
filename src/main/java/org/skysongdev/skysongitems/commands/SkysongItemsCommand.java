@@ -44,6 +44,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         RenameCommand renameCommand = new RenameCommand();
         ChargesCommand chargesCommand = new ChargesCommand();
         LoadItem loadItem = new LoadItem();
+        SaveItem saveItem = new SaveItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
         FurnitureIdCommand furnitureIdCommand = new FurnitureIdCommand();
 
@@ -61,7 +62,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).playerOnly());
         registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).playerOnly());
         registerItemEdit(Subcommand.builder("loaditem", loadItem).tabCompleter(loadItem));
-        registerItemEdit(Subcommand.builder("saveitem", new SaveItem()));
+        registerItemEdit(Subcommand.builder("saveitem", saveItem).tabCompleter(saveItem));
         registerItemEdit(Subcommand.builder("setmodel", new SetItemModel()));
         registerItemEdit(Subcommand.builder("cmd", customModelDataCommand).tabCompleter(customModelDataCommand).playerOnly());
         registerItemEdit(Subcommand.builder("furniture", furnitureIdCommand).alias("ceid")
