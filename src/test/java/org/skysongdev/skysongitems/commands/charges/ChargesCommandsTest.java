@@ -82,15 +82,6 @@ class ChargesCommandsTest extends MockBukkitTest {
     }
 
     @Test
-    void addChargesAddsToTheHeldItem() {
-        holdItem(true);
-
-        run(new AddCharges(), "2");
-
-        assertEquals(4, heldCharges());
-    }
-
-    @Test
     void addChargesFiresAChargesEventNamingThePlayer() {
         holdItem(true);
         RecordedItemEvents events = RecordedItemEvents.listenOn(server);

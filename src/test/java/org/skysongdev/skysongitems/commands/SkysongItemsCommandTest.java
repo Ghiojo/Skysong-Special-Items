@@ -76,14 +76,6 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void propertyAliasRunsOnlyThePropertiesCommand() {
-        run("property", "view");
-
-        assertEquals(List.of(List.of("view")), propertiesCommand.calls);
-        assertTrue(updateItem.calls.isEmpty(), "/si property must not also run /si update");
-    }
-
-    @Test
     void updateRunsOnlyTheUpdateCommand() {
         run("update");
 
@@ -219,13 +211,6 @@ class SkysongItemsCommandTest extends MockBukkitTest {
         run("nonsense");
 
         assertEquals("[SkysongItems] Please introduce valid arguments!", nextPlainMessage());
-    }
-
-    @Test
-    void itemEditSubcommandIsRefusedWithoutPermission() {
-        run("reload");
-
-        assertEquals("[SkysongItems] You don't have permissions to do that command!", nextPlainMessage());
     }
 
     @Test

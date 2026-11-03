@@ -114,6 +114,24 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
+    void setChargesAddsTheChargesPropertyNextToAnIdThatContainsIt() {
+        ItemStack item = item("nocharges");
+
+        editor.setCharges(item, 3);
+
+        assertEquals(List.of("nocharges", "charges"), properties(item));
+    }
+
+    @Test
+    void setMaxChargesDoesNotDuplicateTheChargesProperty() {
+        ItemStack item = item("spell;charges");
+
+        editor.setMaxCharges(item, 3);
+
+        assertEquals(List.of("spell", "charges"), properties(item));
+    }
+
+    @Test
     void setChargesRefusesANegativeAmount() {
         ItemStack item = chargedItem(1, 5);
 

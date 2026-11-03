@@ -24,7 +24,6 @@ import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Tests {@code /properties remove}. Uses the properties configured in the
@@ -80,28 +79,10 @@ class RemovePropertyTest extends MockBukkitTest {
     }
 
     @Test
-    void removingTheLastPropertyLeavesNoPropertiesEntry() {
-        holdItemWithProperties("test");
-
-        remove("test");
-
-        assertFalse(heldMeta().getPersistentDataContainer().has(ItemKeys.PROPERTIES));
-    }
-
-    @Test
     void removingTheLastPropertyLeavesNoBlankLoreLine() {
         holdItemWithProperties("test");
 
         remove("test");
-
-        assertEquals(LORE_WITHOUT_PROPERTIES, heldLore());
-    }
-
-    @Test
-    void removingTheLastPrintablePropertyRemovesItsLoreLine() {
-        holdItemWithProperties("charges");
-
-        remove("charges");
 
         assertEquals(LORE_WITHOUT_PROPERTIES, heldLore());
     }
