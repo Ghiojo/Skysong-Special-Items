@@ -21,7 +21,7 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
  */
 public final class SkysongItemsApiImpl implements SkysongItemsApi {
     /** The API version this implementation provides. See {@link SkysongItemsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.1.0";
+    public static final String API_VERSION = "1.2.0";
 
     private final ItemTags tags;
     private final ItemCharges charges;

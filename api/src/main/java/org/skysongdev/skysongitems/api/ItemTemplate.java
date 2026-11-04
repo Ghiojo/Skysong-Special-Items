@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.api;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,14 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.NonExtendable
 public interface ItemTemplate {
+    /**
+     * The material of the items this template creates, {@link Material#BARRIER} when its
+     * {@code type} matches no material.
+     *
+     * @return the material, never null
+     */
+    @NotNull Material material();
+
     /**
      * A new item built from this template, like {@code /si loaditem} builds a saved one.
      *

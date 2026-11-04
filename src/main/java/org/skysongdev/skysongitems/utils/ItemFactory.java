@@ -79,7 +79,7 @@ public final class ItemFactory {
     }
 
     /** The template's material, or {@link Material#BARRIER} when the name matches none. */
-    static Material materialOf(String type) {
+    public static Material materialOf(String type) {
         Material material = Material.getMaterial(type.toUpperCase());
         return material == null ? Material.BARRIER : material;
     }

@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.apiimpl;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.ItemTemplate;
@@ -17,6 +18,11 @@ final class SkysongItemTemplate implements ItemTemplate {
 
     SkysongItemTemplate(SkysongItem template) {
         this.template = template;
+    }
+
+    @Override
+    public @NotNull Material material() {
+        return ItemFactory.materialOf(template.getType());
     }
 
     @Override

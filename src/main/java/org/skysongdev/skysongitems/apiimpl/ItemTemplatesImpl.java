@@ -47,7 +47,7 @@ final class ItemTemplatesImpl implements ItemTemplates {
     }
 
     @Override
-    public ItemStack create(Path file) {
+    public @NotNull ItemTemplate load(Path file) {
         StoredValues.requireMainThread();
         if (file == null || !Files.isRegularFile(file)) {
             throw new IllegalArgumentException("No item template file at " + file);
@@ -56,7 +56,7 @@ final class ItemTemplatesImpl implements ItemTemplates {
         if (yaml.getString("name") == null || yaml.getString("type") == null) {
             throw new IllegalArgumentException("Not a valid item template, it needs a name and a type: " + file);
         }
-        return ItemFactory.create(ItemTemplateRepository.load(file.toFile()));
+        return new SkysongItemTemplate(ItemTemplateRepository.load(file.toFile()));
     }
 
     /** Runs the same version steps as {@code /si update}, so a plain item counts as version 0. */

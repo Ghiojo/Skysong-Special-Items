@@ -29,12 +29,30 @@ public interface ItemTemplates {
     Optional<ItemStack> create(String templateId);
 
     /**
-     * Creates the item a template file describes, for example one in the calling
-     * plugin's own data folder, in the format {@code /si saveitem} writes.
+     * Reads a template file, for example one in the calling plugin's own data folder, in
+     * the format {@code /si saveitem} writes. The file is read once, and the template
+     * creates an item from it as often as it is asked, so a plugin can read its files at
+     * load time and create items from them while the server runs.
+     *
+     * <p>Reading is lenient, like {@code /si loaditem}: a {@code type} that matches no
+     * material becomes {@link org.bukkit.Material#BARRIER}, and tags the file names that
+     * SkysongItems doesn't have are left out. A file needs a {@code name} and a
+     * {@code type}, as there is nothing to create without them.
      *
      * @throws IllegalArgumentException when the file does not exist or is not a valid template
      */
-    ItemStack create(Path file);
+    @NotNull ItemTemplate load(Path file);
+
+    /**
+     * Creates the item a template file describes, reading the file each time. A plugin
+     * that creates items from the same file over and over reads it once with
+     * {@link #load(Path)} instead.
+     *
+     * @throws IllegalArgumentException when the file does not exist or is not a valid template
+     */
+    default @NotNull ItemStack create(Path file) {
+        return load(file).create();
+    }
 
     /** Whether the item was made by SkysongItems, which marks every item it makes with a version. */
     boolean isSkysongItem(@Nullable ItemStack item);
