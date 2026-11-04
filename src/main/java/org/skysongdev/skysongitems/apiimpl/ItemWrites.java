@@ -25,15 +25,32 @@ final class ItemWrites {
         REFUSALS.put(Result.UNKNOWN_PROPERTY, "there is no property with this id");
     }
 
+    /** Which items a write accepts. */
+    enum ItemCheck {
+        /**
+         * Only SkysongItems items. Writing to a plain item would skip the version
+         * migration {@code /si update} runs, so plugins convert it explicitly with
+         * {@code templates().toSkysongItem} first.
+         */
+        SKYSONG_ITEM,
+        /** Any item that isn't null or air, for items nobody holds yet. */
+        ANY_ITEM;
+
+        /** Throws unless called on the main thread with an item this check accepts. */
+        void require(ItemStack item) {
+            if (SKYSONG_ITEM.equals(this)) {
+                requireSkysongItem(item);
+            } else {
+                requireItem(item);
+            }
+        }
+    }
+
     private ItemWrites() {
         // Static methods only.
     }
 
-    /**
-     * Throws unless called on the main thread with a SkysongItems item. Writing to a
-     * plain item would skip the version migration {@code /si update} runs, so plugins
-     * convert it explicitly with {@code templates().toSkysongItem} first.
-     */
+    /** Throws unless called on the main thread with a SkysongItems item. */
     static void requireSkysongItem(ItemStack item) {
         requireItem(item);
         if (!ItemFactory.isSkysongItem(item)) {

@@ -24,6 +24,11 @@ import java.util.function.Supplier;
  * changes leave the lore alone. An item without stored lore is never redrawn,
  * as there is nothing to draw it from.
  * <p>
+ * {@link #silently()} returns an editor that makes the same changes and nothing
+ * more, for items nobody holds: no events, no lore redraw, and no value tags set
+ * for a printable property. {@link Effects} is the one place that says which of
+ * the three an editor does.
+ * <p>
  * Methods report what they did with a {@link Result}, and the caller decides
  * how to tell the player. When the result is anything other than
  * {@link Result#DONE}, the item is left unchanged.
@@ -64,24 +69,38 @@ public final class ItemEditor {
         NO_PROPERTIES
     }
 
+    /**
+     * What an edit does beyond storing the value: tell the server about it with the
+     * change events, show it in the item's lore, and give a printable property's value
+     * tags their empty value. An edit to an item nobody holds needs none of the three.
+     */
+    public record Effects(boolean fireEvents, boolean redrawLore, boolean initialiseValueTags) {
+        /** Everything an edit to an item a player holds does. */
+        public static final Effects ALL = new Effects(true, true, true);
+        /** Nothing: the value is stored and that is all. */
+        public static final Effects NONE = new Effects(false, false, false);
+    }
+
     private final TagRegistry tags;
     private final PropertyRegistry properties;
     private final ItemChangeEvents events;
     private final Player holder;
     private final ItemChangeCause cause;
+    private final Effects effects;
 
     /** An editor whose changes fire their events as {@link ItemChangeCause#COMMAND} with no holder. */
     public ItemEditor(TagRegistry tags, PropertyRegistry properties) {
-        this(tags, properties, new ItemChangeEvents(tags), null, ItemChangeCause.COMMAND);
+        this(tags, properties, new ItemChangeEvents(tags), null, ItemChangeCause.COMMAND, Effects.ALL);
     }
 
     private ItemEditor(TagRegistry tags, PropertyRegistry properties, ItemChangeEvents events,
-                       Player holder, ItemChangeCause cause) {
+                       Player holder, ItemChangeCause cause, Effects effects) {
         this.tags = Objects.requireNonNull(tags, "tags");
         this.properties = Objects.requireNonNull(properties, "properties");
         this.events = events;
         this.holder = holder;
         this.cause = Objects.requireNonNull(cause, "cause");
+        this.effects = Objects.requireNonNull(effects, "effects");
     }
 
     /**
@@ -90,7 +109,15 @@ public final class ItemEditor {
      * @param holder the player holding the edited items, or null when unknown
      */
     public ItemEditor editedBy(@Nullable Player holder, ItemChangeCause cause) {
-        return new ItemEditor(tags, properties, events, holder, cause);
+        return new ItemEditor(tags, properties, events, holder, cause, effects);
+    }
+
+    /**
+     * An editor for items nobody holds, which makes the same changes and nothing more:
+     * no change events, no lore redraw, and no value tags set for a printable property.
+     */
+    public ItemEditor silently() {
+        return new ItemEditor(tags, properties, events, holder, cause, Effects.NONE);
     }
 
     /** An editor for a {@code /si} command run by this player, holding the item they edit. */
@@ -206,7 +233,7 @@ public final class ItemEditor {
         // line here when charges was the last property.
         ItemData data = new ItemData(container);
         if (data.removeProperty(CHARGES_PROPERTY) && !data.hasProperties()) {
-            ItemLoreRenderer.renderWithoutProperties(meta);
+            clearPropertyLore(meta);
         }
         saveAndRedraw(item, meta);
         return Result.DONE;
@@ -314,7 +341,7 @@ public final class ItemEditor {
             return Result.ALREADY_PRESENT;
         }
         data.addProperty(propertyId);
-        if (properties.get(propertyId) instanceof PrintableProperty printable) {
+        if (effects.initialiseValueTags() && properties.get(propertyId) instanceof PrintableProperty printable) {
             for (String valueTag : printable.getValuetags()) {
                 NamespacedKey key = ItemKeys.named(valueTag);
                 TagValues.writeEmpty(container, key, tags.getType(key));
@@ -347,7 +374,7 @@ public final class ItemEditor {
             return Result.MISSING;
         }
         if (!data.hasProperties()) {
-            ItemLoreRenderer.renderWithoutProperties(meta);
+            clearPropertyLore(meta);
         }
         saveAndRedraw(item, meta);
         return Result.DONE;
@@ -358,6 +385,9 @@ public final class ItemEditor {
      * changes nothing, including every one that doesn't return {@link Result#DONE}, fires none.
      */
     private Result tracked(ItemStack item, Supplier<Result> edit) {
+        if (!effects.fireEvents()) {
+            return edit.get();
+        }
         Map<NamespacedKey, Object> before = events.snapshot(item);
         Result result = edit.get();
         events.fireChanges(holder, item, before, cause);
@@ -380,11 +410,18 @@ public final class ItemEditor {
         }
     }
 
-    private static void saveAndRedraw(ItemStack item, ItemMeta meta) {
+    private void saveAndRedraw(ItemStack item, ItemMeta meta) {
         boolean hasStoredLore = meta.getPersistentDataContainer().has(ItemKeys.LORE, PersistentDataType.STRING);
         item.setItemMeta(meta);
-        if (hasStoredLore) {
+        if (hasStoredLore && effects.redrawLore()) {
             ItemLoreRenderer.refresh(item);
+        }
+    }
+
+    /** Clears the lore lines a property drew, for an item that just lost its last property. */
+    private void clearPropertyLore(ItemMeta meta) {
+        if (effects.redrawLore()) {
+            ItemLoreRenderer.renderWithoutProperties(meta);
         }
     }
 }

@@ -14,9 +14,11 @@ import java.util.OptionalInt;
 /** Reads the charges stored on items, and changes them through the {@link ItemEditor}. */
 final class ItemChargesImpl implements ItemCharges {
     private final ItemEditor editor;
+    private final ItemWrites.ItemCheck check;
 
-    ItemChargesImpl(ItemEditor editor) {
+    ItemChargesImpl(ItemEditor editor, ItemWrites.ItemCheck check) {
         this.editor = editor;
+        this.check = check;
     }
 
     @Override
@@ -36,7 +38,7 @@ final class ItemChargesImpl implements ItemCharges {
 
     @Override
     public int set(Player holder, ItemStack item, int charges) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         ItemWrites.requireDone(editorFor(holder).setCharges(item, charges), "charges " + charges);
         return get(item).orElse(0);
     }
@@ -44,14 +46,14 @@ final class ItemChargesImpl implements ItemCharges {
     /** Like {@code /si charges add} by a player without the permission to add to locked items. */
     @Override
     public int add(Player holder, ItemStack item, int amount) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         ItemWrites.requireDone(editorFor(holder).addCharges(item, amount, false), "charges " + amount);
         return get(item).orElse(0);
     }
 
     @Override
     public void setMax(Player holder, ItemStack item, int maxCharges) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         ItemWrites.requireDone(editorFor(holder).setMaxCharges(item, maxCharges), "max charges " + maxCharges);
     }
 

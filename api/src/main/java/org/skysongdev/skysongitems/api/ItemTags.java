@@ -27,6 +27,10 @@ import java.util.Set;
  * a plain item first with {@link ItemTemplates#toSkysongItem}. The overloads that take a
  * {@code holder} name that player in the events.
  *
+ * <p>This is the view for items a player holds. The same methods reached through
+ * {@link SkysongItemsApi#detached()} store the value and nothing else, for an item
+ * nobody holds yet.
+ *
  * <p>Methods that take an {@link ItemStack} must be called on the server's main thread, and throw
  * {@link IllegalStateException} otherwise;
  * the others are safe from any thread.

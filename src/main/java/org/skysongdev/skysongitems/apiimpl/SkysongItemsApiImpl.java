@@ -5,6 +5,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.api.ItemAccess;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.ItemTags;
@@ -21,11 +22,10 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
  */
 public final class SkysongItemsApiImpl implements SkysongItemsApi {
     /** The API version this implementation provides. See {@link SkysongItemsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.1.0";
+    public static final String API_VERSION = "1.2.0";
 
-    private final ItemTags tags;
-    private final ItemCharges charges;
-    private final ItemProperties properties;
+    private final ItemAccess held;
+    private final ItemAccess detached;
     private final ItemTemplates templates;
 
     /** An API reading through the plugin's tag and property registries and writing through its item editor. */
@@ -34,25 +34,29 @@ public final class SkysongItemsApiImpl implements SkysongItemsApi {
     }
 
     SkysongItemsApiImpl(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor, Updater updater) {
-        this.charges = new ItemChargesImpl(editor);
-        this.tags = new ItemTagsImpl(tagRegistry, charges, editor);
-        this.properties = new ItemPropertiesImpl(propertyRegistry, editor);
+        this.held = ItemAccessImpl.held(tagRegistry, propertyRegistry, editor);
+        this.detached = ItemAccessImpl.detached(tagRegistry, propertyRegistry, editor);
         this.templates = new ItemTemplatesImpl(updater);
     }
 
     @Override
     public @NotNull ItemTags tags() {
-        return tags;
+        return held.tags();
     }
 
     @Override
     public @NotNull ItemCharges charges() {
-        return charges;
+        return held.charges();
     }
 
     @Override
     public @NotNull ItemProperties properties() {
-        return properties;
+        return held.properties();
+    }
+
+    @Override
+    public @NotNull ItemAccess detached() {
+        return detached;
     }
 
     @Override

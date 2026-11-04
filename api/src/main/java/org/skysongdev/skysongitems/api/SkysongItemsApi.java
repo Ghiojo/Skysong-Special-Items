@@ -27,7 +27,7 @@ import java.util.OptionalInt;
  * <p>SkysongItems implements this interface; other plugins must not.
  */
 @ApiStatus.NonExtendable
-public interface SkysongItemsApi {
+public interface SkysongItemsApi extends ItemAccess {
 
     /**
      * The API registered by SkysongItems.
@@ -55,17 +55,32 @@ public interface SkysongItemsApi {
      */
     @NotNull String apiVersion();
 
-    /** Reads and writes the tags stored on items, and tells which tags exist. */
-    @NotNull ItemTags tags();
-
-    /** Reads and writes the charges stored on items. */
-    @NotNull ItemCharges charges();
-
-    /** Reads and writes the properties stored on items, and tells which properties exist. */
-    @NotNull ItemProperties properties();
-
     /** Creates items from templates, recognises SkysongItems items and converts plain ones. */
     @NotNull ItemTemplates templates();
+
+    /**
+     * The same {@link #tags()}, {@link #charges()} and {@link #properties()} for items
+     * nobody holds, such as a copy a plugin is building before it gives it to anyone.
+     *
+     * <pre>{@code
+     * items.tags().set(item, "arcrot", 3);              // an item a player holds
+     * items.detached().tags().set(copy, "arcrot", 3);   // a copy being built
+     * }</pre>
+     *
+     * <p>A detached write stores the value and nothing else: it doesn't redraw the item's
+     * lore, doesn't fire the change events in
+     * {@code org.skysongdev.skysongitems.api.event}, doesn't set a printable property's
+     * value tags, and takes plain items as well as SkysongItems ones. Everything else is
+     * checked the same way, so a tag or property that SkysongItems doesn't have is still
+     * refused; a plugin registers the tags it needs in {@code SkysongItemsRegisterEvent}.
+     *
+     * <p>Use it for items in the making, and {@link #tags()} and the rest for items that
+     * are in someone's inventory, where the lore and the events are what keeps the server
+     * in step with the change.
+     *
+     * @return the detached view, the same instance every time
+     */
+    @NotNull ItemAccess detached();
 
     /**
      * The value of an int tag on one item, for example {@code getIntTag(item, "arcrot")}.
