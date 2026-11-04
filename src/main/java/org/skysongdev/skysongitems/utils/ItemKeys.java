@@ -2,6 +2,8 @@ package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.NamespacedKey;
 
+import java.util.Set;
+
 /**
  * Every persistent data key the plugin reads from or writes to an item.
  * <p>
@@ -38,7 +40,20 @@ public final class ItemKeys {
     /** Model key owned by the FurnitureLib plugin, not by this one. */
     public static final NamespacedKey FURNITURE_MODEL = new NamespacedKey("furniturelib", "model");
 
+    // Every key above in this plugin's namespace. Declared after them, as it reads them.
+    private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES, VERSION, LORE,
+            NAME, DELETED_LINES, PROPERTIES, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
+            DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY);
+
     private ItemKeys() {
+    }
+
+    /**
+     * Whether the plugin itself stores data under this key name, so other plugins
+     * must not register a tag with it.
+     */
+    public static boolean isReserved(String name) {
+        return OWN_KEYS.contains(named(name));
     }
 
     /**

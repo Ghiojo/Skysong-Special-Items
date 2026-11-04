@@ -6,10 +6,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.skysongdev.skysongitems.api.TagType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -19,7 +21,8 @@ import java.util.logging.Logger;
 
 /**
  * The tags an item can carry and the data type of each: the built-in tags the plugin
- * relies on, plus the ones configured in the {@code tags} section of config.yml.
+ * relies on, the ones configured in the {@code tags} section of config.yml, and the ones
+ * other plugins register through the API.
  *
  * <p>Each load builds new maps and swaps them in at once, so lookups from any thread
  * see either the old tags or the new ones, never a half-loaded registry. Tags are
@@ -27,10 +30,15 @@ import java.util.logging.Logger;
  * lookup however many tags are configured.
  */
 public class TagRegistry {
-    private volatile Snapshot snapshot = new Snapshot(Collections.emptyMap(), Collections.emptyMap());
+    private volatile Snapshot snapshot = new Snapshot(Collections.emptyMap(), Collections.emptyMap(),
+            Collections.emptySet(), Collections.emptyMap());
 
-    /** The registered tags and their id index, published together. */
-    private record Snapshot(Map<NamespacedKey, PersistentDataType<?, ?>> types, Map<String, NamespacedKey> keysById) {
+    /**
+     * The registered tags and their id index, published together, with the built-in keys
+     * and the plugin that registered each tag (config.yml and built-in tags have none).
+     */
+    private record Snapshot(Map<NamespacedKey, PersistentDataType<?, ?>> types, Map<String, NamespacedKey> keysById,
+                            Set<NamespacedKey> builtIn, Map<NamespacedKey, String> owners) {
     }
 
     /**
@@ -42,6 +50,7 @@ public class TagRegistry {
         Map<NamespacedKey, PersistentDataType<?, ?>> loaded = new LinkedHashMap<>();
         Set<String> ids = config.getConfigurationSection("tags").getKeys(false);
         registerBuiltInTags(loaded);
+        Set<NamespacedKey> builtIn = new HashSet<>(loaded.keySet());
         for (String id : ids) {
             String typeName = config.getString("tags." + id + ".type");
             PersistentDataType<?, ?> type = parseType(typeName);
@@ -52,7 +61,7 @@ public class TagRegistry {
             NamespacedKey key = ItemKeys.named(config.getString("tags." + id + ".namespace"));
             loaded.put(key, type);
         }
-        swapIn(loaded);
+        swapIn(loaded, builtIn, new HashMap<>());
     }
 
     /**
@@ -60,13 +69,65 @@ public class TagRegistry {
      * namespaces, lookups by id find the one registered first, so a built-in tag
      * wins over a configured one.
      */
-    private void swapIn(Map<NamespacedKey, PersistentDataType<?, ?>> loaded) {
+    private void swapIn(Map<NamespacedKey, PersistentDataType<?, ?>> loaded, Set<NamespacedKey> builtIn,
+                        Map<NamespacedKey, String> owners) {
         Map<String, NamespacedKey> index = new HashMap<>();
         for (NamespacedKey key : loaded.keySet()) {
             index.putIfAbsent(normalise(key.getKey()), key);
         }
-        snapshot = new Snapshot(Collections.unmodifiableMap(loaded), Collections.unmodifiableMap(index));
+        snapshot = new Snapshot(Collections.unmodifiableMap(loaded), Collections.unmodifiableMap(index),
+                Collections.unmodifiableSet(builtIn), Collections.unmodifiableMap(owners));
     }
+
+    /**
+     * Adds a tag registered by another plugin, after the built-in and configured ones.
+     * The caller checks the registration is allowed first.
+     */
+    public void register(NamespacedKey key, TagType type, String owner) {
+        Snapshot current = snapshot;
+        Map<NamespacedKey, PersistentDataType<?, ?>> types = new LinkedHashMap<>(current.types());
+        Map<NamespacedKey, String> owners = new HashMap<>(current.owners());
+        types.put(key, TagTypes.dataType(type));
+        owners.put(key, owner);
+        swapIn(types, current.builtIn(), owners);
+    }
+
+    /** Removes every tag the named plugin registered. */
+    public void removeOwnedBy(String owner) {
+        Snapshot current = snapshot;
+        if (!current.owners().containsValue(owner)) {
+            return;
+        }
+        Map<NamespacedKey, PersistentDataType<?, ?>> types = new LinkedHashMap<>(current.types());
+        Map<NamespacedKey, String> owners = new HashMap<>(current.owners());
+        owners.entrySet().removeIf(entry -> {
+            boolean owned = entry.getValue().equals(owner);
+            if (owned) {
+                types.remove(entry.getKey());
+            }
+            return owned;
+        });
+        swapIn(types, current.builtIn(), owners);
+    }
+
+    /**
+     * Puts the other registry's tags in use here in one step, so code holding this
+     * registry sees a load built elsewhere without ever seeing it half-built.
+     */
+    public void replaceWith(TagRegistry other) {
+        snapshot = other.snapshot;
+    }
+
+    /** Whether this key is one of the tags the plugin itself relies on. */
+    public boolean isBuiltIn(NamespacedKey key) {
+        return snapshot.builtIn().contains(key);
+    }
+
+    /** The name of the plugin that registered the tag, or null for a built-in, configured or unknown tag. */
+    public String ownerOf(NamespacedKey key) {
+        return snapshot.owners().get(key);
+    }
+
 
     private static String normalise(String id) {
         return id.toLowerCase(Locale.ROOT);

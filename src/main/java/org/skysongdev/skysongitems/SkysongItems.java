@@ -19,6 +19,8 @@ import org.skysongdev.skysongitems.integration.CraftEngineItemIds;
 import org.skysongdev.skysongitems.integration.LuckPermsIntegration;
 import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
+import org.skysongdev.skysongitems.registration.RegistrationListener;
+import org.skysongdev.skysongitems.registration.RegistryLoader;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
@@ -38,6 +40,7 @@ public class SkysongItems extends JavaPlugin {
     private final PropertyRegistry propertyRegistry = new PropertyRegistry();
     private final TagRegistry tagRegistry = new TagRegistry();
     private final ItemEditor itemEditor = new ItemEditor(tagRegistry, propertyRegistry);
+    private RegistryLoader registryLoader;
     private final MaterialPermissions materialPermissions = new MaterialPermissions();
     private MiniMessage miniMessage = MiniMessage.miniMessage();
     // Each integration is null when its plugin is not installed.
@@ -83,6 +86,21 @@ public class SkysongItems extends JavaPlugin {
     /** The item tags, built-in and configured in config.yml. */
     public TagRegistry getTagRegistry() {
         return tagRegistry;
+    }
+
+    /**
+     * Rebuilds the tags and properties from config.yml and asks other plugins for theirs
+     * through {@link org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent}.
+     * Main thread only. Reload config.yml first to pick up changes on disk.
+     */
+    public void reloadRegistries() {
+        registryLoader.loadWithPlugins(getConfig(), this::useRegistries);
+    }
+
+    // The registries are shared with the item editor and the API, so a load is copied into them.
+    private void useRegistries(TagRegistry tags, PropertyRegistry properties) {
+        tagRegistry.replaceWith(tags);
+        propertyRegistry.replaceWith(properties);
     }
 
     /** Changes items' charges, tags and properties. */
@@ -152,8 +170,10 @@ public class SkysongItems extends JavaPlugin {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
 
-        tagRegistry.load(getConfig(), getLogger());
-        propertyRegistry.load(getConfig(), getLogger());
+        // Other plugins add their tags and properties once all plugins have enabled.
+        registryLoader = new RegistryLoader(getServer().getPluginManager(), getLogger());
+        registryLoader.loadConfig(getConfig(), this::useRegistries);
+        getServer().getPluginManager().registerEvents(new RegistrationListener(this), this);
         materialPermissions.load(getDataFolder(), getLogger());
         fixFilePaths();
 
