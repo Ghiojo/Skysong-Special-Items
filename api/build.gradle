@@ -42,6 +42,13 @@ publishing {
         maven(MavenPublication) {
             artifactId = 'api'
             from components.java
+            // JitPack only serves what the build installs as com.github.<user>:<module>:<tag>.
+            // With a custom install command it does not pass the group and tag in, so they
+            // are read from the environment variables JitPack sets for every build.
+            if (System.getenv('JITPACK')) {
+                groupId = System.getenv('GROUP')
+                version = System.getenv('VERSION')
+            }
         }
     }
 }
