@@ -21,7 +21,7 @@ import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -113,25 +113,36 @@ class ItemTagWritesTest extends MockBukkitTest {
     }
 
     @Test
-    void thePermissionTagCanNeverBeWrittenOrRemoved() {
+    void thePermissionTagCanBeWrittenAndRemoved() {
         ItemStack item = skysongItem();
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(ItemKeys.PERMISSION, PersistentDataType.STRING, "some.node");
         item.setItemMeta(meta);
 
-        assertThrows(IllegalArgumentException.class, () -> tags.set(item, "permission", "admin.everything"));
-        assertThrows(IllegalArgumentException.class, () -> tags.remove(item, "permission"));
-        assertEquals("some.node", tags.getString(item, "permission").orElseThrow());
-        assertTrue(events.tagChanges().isEmpty());
+        tags.set(item, "permission", "skysong.crafted.sword");
+
+        assertEquals("skysong.crafted.sword", tags.getString(item, "permission").orElseThrow());
+        assertTrue(tags.remove(item, "permission"));
+        assertEquals(Optional.empty(), tags.getString(item, "permission"));
     }
 
     @Test
-    void skysongItemsBookkeepingTagsCanNotBeWritten() {
+    void theStoredNameAndDescriptionCanBeWritten() {
         ItemStack item = skysongItem();
 
-        for (String tagId : List.of("version", "lore", "name")) {
-            assertThrows(IllegalArgumentException.class, () -> tags.set(item, tagId, "x"), tagId);
-        }
+        tags.set(item, "name", "&6Renamed");
+        tags.set(item, "lore", "physical");
+
+        assertEquals("&6Renamed", tags.getString(item, "name").orElseThrow());
+        assertEquals("physical", tags.getString(item, "lore").orElseThrow());
+    }
+
+    @Test
+    void theVersionTagCanNotBeWritten() {
+        ItemStack item = skysongItem();
+
+        assertThrows(IllegalArgumentException.class, () -> tags.set(item, "version", "0"));
+        assertThrows(IllegalArgumentException.class, () -> tags.remove(item, "version"));
         assertEquals(Constants.ITEM_VERSION, tags.getString(item, "version").orElseThrow());
     }
 

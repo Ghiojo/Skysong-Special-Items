@@ -17,9 +17,16 @@ import java.util.Set;
  * It is matched ignoring case. Every read is empty for a null or air item, an item without
  * the tag, an unknown id, or a tag of another type.
  *
- * <p>The {@code permission} tag, which grants permissions to whoever holds the item, can be
- * read but never written or removed through the API. Neither can the tags SkysongItems keeps
- * for itself: {@code version}, {@code lore} and {@code name}.
+ * <p>The one tag that can be read but never written or removed is {@code version}: it says
+ * which of SkysongItems' migration steps the item has been through, so writing it would make
+ * the item lie about its own shape. Use {@link ItemTemplates#toSkysongItem} to bring an item
+ * up to date instead.
+ *
+ * <p>Every other tag can be written, {@code permission} among them: an item that grants a
+ * permission is something a plugin is meant to be able to make. Writing {@code name} or
+ * {@code lore} stores the text SkysongItems draws the item's name and physical description
+ * from; as with {@code /si tag set}, what the item shows follows the next time its lore is
+ * drawn, for example after a charge or property change or a {@code /si update}.
  *
  * <p>Writes change the item in place, go through the same checks as the {@code /si}
  * commands, redraw the lore when the change shows in it, and fire the change events in
