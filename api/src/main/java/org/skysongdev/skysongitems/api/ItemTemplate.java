@@ -17,8 +17,9 @@ import org.jetbrains.annotations.NotNull;
  * carried, such as enchantments or durability, is not part of it.
  *
  * <p>A template keeps the values it was read with, so it is not affected by later changes
- * to the item or file it came from. Which tags it writes is decided when it is read, so a
- * template read before a {@code /si reload} still writes the tags that were registered then.
+ * to the item or file it came from. Tags are the one exception: only tags that are
+ * registered are written, both when the template is read and when it creates an item, so a
+ * tag that a {@code /si reload} takes out of the config stops being written.
  *
  * <p>SkysongItems implements this interface; other plugins must not.
  */
