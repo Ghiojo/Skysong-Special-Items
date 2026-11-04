@@ -20,6 +20,8 @@ import org.skysongdev.skysongitems.testsupport.TaggedItems;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,12 +53,19 @@ class ItemRebuildTest extends MockBukkitTest {
                 .with(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges")
                 .with(ItemKeys.MATERIAL_ID, PersistentDataType.STRING, "ancient_sword")
                 .with(ItemKeys.CHARGES, PersistentDataType.INTEGER, 5)
+                .with(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 10)
                 .with(UNREGISTERED, PersistentDataType.STRING, "dropped")
                 .build();
     }
 
     private static PersistentDataContainer dataOf(ItemStack item) {
         return item.getItemMeta().getPersistentDataContainer();
+    }
+
+    private static List<String> plainLore(ItemStack item) {
+        return item.getItemMeta().lore().stream()
+                .map(PlainTextComponentSerializer.plainText()::serialize)
+                .toList();
     }
 
     private static String plainName(ItemStack item) {
@@ -74,6 +83,16 @@ class ItemRebuildTest extends MockBukkitTest {
         assertEquals("physical§functional", data.get(ItemKeys.LORE, PersistentDataType.STRING));
         assertEquals("charges", data.get(ItemKeys.PROPERTIES, PersistentDataType.STRING));
         assertEquals(Constants.ITEM_VERSION, data.get(ItemKeys.VERSION, PersistentDataType.STRING));
+    }
+
+    @Test
+    void thePrintablePropertiesAreDrawnIntoTheLore() {
+        ItemStack rebuilt = templates.rebuild(storedItem());
+
+        // "charges" is a printable property in the bundled config, printing "[Charges: $1/$2]".
+        assertTrue(plainLore(rebuilt).contains("[Charges: 5/10]"),
+                "the printable property lines are missing from " + plainLore(rebuilt));
+        assertTrue(plainLore(rebuilt).contains("physical"));
     }
 
     @Test
