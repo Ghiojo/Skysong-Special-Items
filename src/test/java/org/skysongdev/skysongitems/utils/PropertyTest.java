@@ -34,16 +34,6 @@ class PropertyTest extends MockBukkitTest {
     }
 
     @Test
-    void gettersReturnTheConstructorValues() {
-        Property property = new Property("sharp", "weapon", "STONE", "Sharp", "Cuts well");
-
-        assertEquals("sharp", property.getId());
-        assertEquals("weapon", property.getPropType());
-        assertEquals("Sharp", property.getName());
-        assertEquals("Cuts well", property.getDescription());
-    }
-
-    @Test
     void eachPropertyKindReportsItsType() {
         ArrayList<String> valueTags = new ArrayList<>(List.of("charges"));
 

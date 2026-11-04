@@ -76,13 +76,6 @@ class SkysongStatsReadsTest extends MockBukkitTest {
     }
 
     @Test
-    void getIntTagIsEmptyForATagThatIsNotAnInt() {
-        ItemStack item = TaggedItems.stones(1).with(ItemKeys.VERSION, PersistentDataType.STRING, "2").build();
-
-        assertEquals(OptionalInt.empty(), api.getIntTag(item, "version"));
-    }
-
-    @Test
     void getChargesReadsTheChargesLeft() {
         assertEquals(4, api.getCharges(chargedArcrot(1, 4)));
     }

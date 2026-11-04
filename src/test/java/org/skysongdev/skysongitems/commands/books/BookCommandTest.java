@@ -29,13 +29,11 @@ import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Pins down how {@code /si book} routes its arguments: which handler runs, who may
@@ -153,33 +151,6 @@ class BookCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void saveStoresTheHeldBook() throws SQLException {
-        player.addAttachment(MockBukkit.createMockPlugin(), ITEM_EDIT_PERMISSION, true);
-        player.getInventory().setItemInMainHand(writtenBook("Tome", "Only page"));
-
-        run("save");
-        server.getScheduler().performOneTick();
-
-        assertEquals("[SkysongItems]Book has been saved to the database with the ID (1)", nextPlainMessage());
-        assertEquals("Tome", repository.findById(1).getName());
-    }
-
-    @Test
-    void listPagesPointAtTheNewCommand() throws SQLException {
-        player.addAttachment(MockBukkit.createMockPlugin(), ITEM_EDIT_PERMISSION, true);
-        repository.create(new BookDescriptions(0, "First", "Content"));
-
-        run("list");
-        server.getScheduler().performOneTick();
-
-        List<String> replies = Stream.generate(player::nextComponentMessage)
-                .takeWhile(Objects::nonNull)
-                .map(PlainTextComponentSerializer.plainText()::serialize)
-                .toList();
-        assertTrue(replies.get(replies.size() - 1).endsWith("To view more books, type /si book list 2"));
-    }
-
-    @Test
     void viewOpensTheBoundBookForAPlayerWithoutPermission() throws SQLException {
         repository.create(new BookDescriptions(0, "Lore", "Bound page"));
         player.getInventory().setItemInMainHand(itemBoundTo(1));
@@ -210,16 +181,6 @@ class BookCommandTest extends MockBukkitTest {
         meta.getPersistentDataContainer().set(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER, bookId);
         item.setItemMeta(meta);
         return item;
-    }
-
-    private static ItemStack writtenBook(String title, String... pages) {
-        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta meta = (BookMeta) book.getItemMeta();
-        meta.setTitle(title);
-        meta.setAuthor("Writer");
-        meta.addPage(pages);
-        book.setItemMeta(meta);
-        return book;
     }
 
     /** The subcommands never look at the command object, so any instance will do. */

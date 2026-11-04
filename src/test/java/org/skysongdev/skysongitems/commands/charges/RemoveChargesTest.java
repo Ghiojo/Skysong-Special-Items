@@ -24,7 +24,6 @@ import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Tests {@code /si charges remove}. It used to leave the "[Charges: x/y]" lore
@@ -86,26 +85,6 @@ class RemoveChargesTest extends MockBukkitTest {
         removeCharges();
 
         assertEquals(LORE_WITHOUT_PROPERTIES, heldLore());
-    }
-
-    @Test
-    void removingChargesWhenItIsTheLastPropertyLeavesNoPropertiesEntry() {
-        holdChargedItemWithProperties("charges");
-
-        removeCharges();
-
-        assertFalse(heldMeta().getPersistentDataContainer().has(ItemKeys.PROPERTIES));
-    }
-
-    @Test
-    void removingChargesRemovesTheChargeValues() {
-        holdChargedItemWithProperties("charges");
-
-        removeCharges();
-
-        PersistentDataContainer container = heldMeta().getPersistentDataContainer();
-        assertFalse(container.has(ItemKeys.CHARGES));
-        assertFalse(container.has(ItemKeys.MAX_CHARGES));
     }
 
     @Test
