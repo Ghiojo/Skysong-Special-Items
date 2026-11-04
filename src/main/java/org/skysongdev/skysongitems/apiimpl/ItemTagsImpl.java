@@ -26,10 +26,12 @@ import java.util.Set;
  */
 final class ItemTagsImpl implements ItemTags {
     /**
-     * Tags the API never writes: {@code permission} grants permissions to whoever holds
-     * the item, and the others are SkysongItems' own bookkeeping, written by its own code.
+     * Tags the API never writes. Only {@code version} is one: it says which migration
+     * steps {@code /si update} has run on the item, so writing it would make the item lie
+     * about its own shape. Every other tag, {@code permission} included, is a plugin's to
+     * write, the same as {@code /si tag set}.
      */
-    private static final Set<NamespacedKey> PROTECTED = Set.of(ItemKeys.PERMISSION, ItemKeys.VERSION, ItemKeys.LORE, ItemKeys.NAME);
+    private static final Set<NamespacedKey> PROTECTED = Set.of(ItemKeys.VERSION);
 
     /** The Java type of the values each tag type takes; a float tag takes any number. */
     private static final Map<TagType, Class<?>> VALUE_CLASSES = new EnumMap<>(Map.of(
