@@ -15,7 +15,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -30,15 +29,15 @@ public final class ItemFactory {
      * potions get the template's colour.
      */
     public static ItemStack create(SkysongItem template) {
-        if (Objects.equals(template.getType(), Material.PLAYER_HEAD.toString())) {
-            SkysongSkullItem skull = (SkysongSkullItem) template;
+        // A template read from an item carries neither skin nor potion colour, even when its
+        // type is a head or a potion, so the subclass decides and not the type.
+        if (template instanceof SkysongSkullItem skull) {
             getPlugin().getLogger().info("Generating SkysongSkullItem with ID: " + skull.getId() + ", Player Name: " + skull.getPlayerName() + ", Texture: " + skull.getTexture());
             return create(template, skull, null);
         }
-        if (isPotion(template.getType())) {
-            Color color = ((SkysongPotionItem) template).getColor();
-            getPlugin().getLogger().info("Generating SkysongPotionItem with color: " + color);
-            return create(template, null, color);
+        if (template instanceof SkysongPotionItem potion) {
+            getPlugin().getLogger().info("Generating SkysongPotionItem with color: " + potion.getColor());
+            return create(template, null, potion.getColor());
         }
         return create(template, null, null);
     }
@@ -50,12 +49,6 @@ public final class ItemFactory {
         }
         // Reads the item's data in place instead of copying its meta.
         return item.getPersistentDataContainer().has(ItemKeys.VERSION, PersistentDataType.STRING);
-    }
-
-    private static boolean isPotion(String type) {
-        return Objects.equals(type, Material.POTION.toString())
-                || Objects.equals(type, Material.SPLASH_POTION.toString())
-                || Objects.equals(type, Material.LINGERING_POTION.toString());
     }
 
     /**
@@ -74,7 +67,11 @@ public final class ItemFactory {
         }
 
         item.setItemMeta(meta);
-        applyCustomModelData(item, template.getCustomModelData());
+        // A template read from an item that has no custom model data component leaves it unset.
+        CustomModelData customModelData = template.getCustomModelData();
+        if (customModelData != null) {
+            applyCustomModelData(item, customModelData);
+        }
         if (potionColor != null) {
             applyPotionColor(item, potionColor);
         }

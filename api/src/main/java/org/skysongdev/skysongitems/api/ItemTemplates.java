@@ -2,6 +2,7 @@ package org.skysongdev.skysongitems.api;
 
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -37,6 +38,38 @@ public interface ItemTemplates {
 
     /** Whether the item was made by SkysongItems, which marks every item it makes with a version. */
     boolean isSkysongItem(@Nullable ItemStack item);
+
+    /**
+     * A template of everything SkysongItems stores on the item, which
+     * {@link ItemTemplate#create()} turns back into a fresh item. A plugin that changes an
+     * item's tags or properties and then wants a clean item of the result rebuilds it
+     * with {@link #rebuild(ItemStack)}.
+     *
+     * <p>The snapshot is taken when this method is called, so later changes to the item
+     * don't show in items the template creates.
+     *
+     * @param item a SkysongItems item with a stored name and physical description
+     * @throws IllegalArgumentException when the item is null, air, not a SkysongItems item,
+     *                                  or has no stored name or physical description
+     */
+    @NotNull ItemTemplate snapshot(ItemStack item);
+
+    /**
+     * A new item built from what SkysongItems stores on this one: its material, stored
+     * name and physical description, deleted lines, properties text, item model, registered
+     * tags with their values, and custom model data. Everything else the item carried is
+     * left behind, such as enchantments, durability and tags that are no longer registered.
+     *
+     * <p>The item itself is not changed. Same as {@code snapshot(item).create()}.
+     *
+     * @param item a SkysongItems item with a stored name and physical description
+     * @return a new item, rebuilt from the stored data
+     * @throws IllegalArgumentException when the item is null, air, not a SkysongItems item,
+     *                                  or has no stored name or physical description
+     */
+    default @NotNull ItemStack rebuild(ItemStack item) {
+        return snapshot(item).create();
+    }
 
     /**
      * Turns the item into a SkysongItems item of the current version, in place, so the write
