@@ -23,15 +23,17 @@ import java.util.Set;
 final class ItemPropertiesImpl implements ItemProperties {
     private final PropertyRegistry registry;
     private final ItemEditor editor;
+    private final ItemWrites.ItemCheck check;
 
-    ItemPropertiesImpl(PropertyRegistry registry, ItemEditor editor) {
+    ItemPropertiesImpl(PropertyRegistry registry, ItemEditor editor, ItemWrites.ItemCheck check) {
         this.registry = registry;
         this.editor = editor;
+        this.check = check;
     }
 
     @Override
     public boolean add(Player holder, ItemStack item, String propertyId) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         ItemEditor.Result result = editorFor(holder).addProperty(item, propertyId);
         if (ItemEditor.Result.ALREADY_PRESENT.equals(result)) {
             return false;
@@ -42,7 +44,7 @@ final class ItemPropertiesImpl implements ItemProperties {
 
     @Override
     public boolean remove(Player holder, ItemStack item, String propertyId) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         return ItemEditor.Result.DONE.equals(editorFor(holder).removeProperty(item, propertyId));
     }
 

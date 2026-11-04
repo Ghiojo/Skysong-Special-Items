@@ -17,6 +17,10 @@ import java.util.OptionalInt;
  * a plain item first with {@link ItemTemplates#toSkysongItem}. The overloads that take a
  * {@code holder} name that player in the events.
  *
+ * <p>This is the view for items a player holds. The same methods reached through
+ * {@link SkysongItemsApi#detached()} store the value and nothing else, for an item
+ * nobody holds yet.
+ *
  * <p>Must be called on the server's main thread, and throws {@link IllegalStateException} otherwise.
  */
 @ApiStatus.NonExtendable

@@ -41,16 +41,18 @@ final class ItemTagsImpl implements ItemTags {
     private final TagRegistry registry;
     private final ItemCharges charges;
     private final ItemEditor editor;
+    private final ItemWrites.ItemCheck check;
 
-    ItemTagsImpl(TagRegistry registry, ItemCharges charges, ItemEditor editor) {
+    ItemTagsImpl(TagRegistry registry, ItemCharges charges, ItemEditor editor, ItemWrites.ItemCheck check) {
         this.registry = registry;
         this.charges = charges;
         this.editor = editor;
+        this.check = check;
     }
 
     @Override
     public void set(Player holder, ItemStack item, String tagId, Object value) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         RegisteredTag tag = writableTag(tagId);
         String text = asText(TagTypes.of(tag.type()), value, tagId);
         ItemWrites.requireDone(editor.editedBy(holder, ItemChangeCause.API).setTag(item, tagId, text), "tag " + tagId);
@@ -58,7 +60,7 @@ final class ItemTagsImpl implements ItemTags {
 
     @Override
     public boolean remove(Player holder, ItemStack item, String tagId) {
-        ItemWrites.requireSkysongItem(item);
+        check.require(item);
         writableTag(tagId);
         return ItemEditor.Result.DONE.equals(editor.editedBy(holder, ItemChangeCause.API).removeTag(item, tagId));
     }
