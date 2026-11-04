@@ -88,7 +88,7 @@ class DetachedItemEditsTest extends MockBukkitTest {
 
         api.tags().set(item, "arcrot", 7);
 
-        assertEquals("arcrot", events.onlyTagChange().tagId());
+        assertEquals("arcrot", events.onlyTagChange().getTagId());
     }
 
     @Test
