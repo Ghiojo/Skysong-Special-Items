@@ -89,10 +89,10 @@ public final class ItemLoreRenderer {
             return;
         }
         if (trait.getBrewedPrinting(item) == null) {
-            Bukkit.getLogger().warning("BreweryPrintableProperty " + trait.getId() + " returned null for brewed printing. Skipping.");
+            Bukkit.getLogger().warning("BreweryPrintableTrait " + trait.getId() + " returned null for brewed printing. Skipping.");
             return;
         }
-        Bukkit.getLogger().warning("Adding lore for BreweryPrintableProperty " + trait.getId() + ": " + trait.getBrewedPrinting(item));
+        Bukkit.getLogger().warning("Adding lore for BreweryPrintableTrait " + trait.getId() + ": " + trait.getBrewedPrinting(item));
         lore.add(trait.getBrewedPrinting(item));
     }
 

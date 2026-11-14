@@ -35,11 +35,11 @@ public class DetailsCommand implements CommandExecutor {
         ItemData data = ItemData.from(itemInMainHand.getItemMeta());
         String description = data.hasTraits() ? describe(data.getTraits()) : "";
         if (description.isEmpty()) {
-            player.sendMessage("This item has no properties.");
+            player.sendMessage("This item has no traits.");
             return true;
         }
 
-        player.sendMessage(getPlugin().getMiniMessage().deserialize("<#864811>Item properties:"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize("<#864811>Item traits:"));
         player.sendMessage(getPlugin().getMiniMessage().deserialize(description));
         return true;
     }
@@ -58,7 +58,7 @@ public class DetailsCommand implements CommandExecutor {
 
     private static String describe(Trait trait) {
         return "<gold><hover:show_text:\"<gold>" + trait.getName()
-                + "<newline><gray><i>" + trait.getType() + " property"
+                + "<newline><gray><i>" + trait.getType() + " trait"
                 + "<newline><newline><gray>" + trait.getDescription() + "\">"
                 + trait.getName() + "</hover></gold>";
     }

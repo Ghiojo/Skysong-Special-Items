@@ -51,7 +51,7 @@ class DetailsCommandTest extends MockBukkitTest {
 
         run();
 
-        assertEquals("This item has no properties.", player.nextMessage());
+        assertEquals("This item has no traits.", player.nextMessage());
         assertNull(player.nextMessage());
     }
 
@@ -61,7 +61,7 @@ class DetailsCommandTest extends MockBukkitTest {
 
         run();
 
-        assertEquals("Item properties:", nextPlainMessage());
+        assertEquals("Item traits:", nextPlainMessage());
         assertEquals("Test, Charges", nextPlainMessage());
     }
 
@@ -72,7 +72,7 @@ class DetailsCommandTest extends MockBukkitTest {
         run();
         player.nextComponentMessage();
 
-        assertEquals(List.of("Test\nbase property\n\nDescription"), hoverTexts(player.nextComponentMessage()));
+        assertEquals(List.of("Test\nbase trait\n\nDescription"), hoverTexts(player.nextComponentMessage()));
     }
 
     @Test
@@ -81,7 +81,7 @@ class DetailsCommandTest extends MockBukkitTest {
 
         run();
 
-        assertEquals("Item properties:", nextPlainMessage());
+        assertEquals("Item traits:", nextPlainMessage());
         assertEquals("Test", nextPlainMessage());
     }
 
@@ -91,7 +91,7 @@ class DetailsCommandTest extends MockBukkitTest {
 
         run();
 
-        assertEquals("This item has no properties.", player.nextMessage());
+        assertEquals("This item has no traits.", player.nextMessage());
     }
 
     private static ItemStack itemWithTraits(String... traitIds) {

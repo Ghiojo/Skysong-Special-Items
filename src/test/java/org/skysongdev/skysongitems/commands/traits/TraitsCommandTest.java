@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.commands.traits;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 
 import java.io.InputStream;
@@ -29,6 +31,8 @@ class TraitsCommandTest extends MockBukkitTest {
 
     @BeforeEach
     void setUp() {
+        // The usage message is built with the plugin's MiniMessage instance.
+        MockBukkit.load(SkysongItems.class);
         traitsCommand = new TraitsCommand(addTrait, removeTrait, new ViewTraits());
         player = server.addPlayer();
         player.addAttachment(MockBukkit.createMockPlugin(), TraitsCommand.EDIT_PERMISSION, true);
@@ -60,8 +64,16 @@ class TraitsCommandTest extends MockBukkitTest {
         assertEquals(List.of(List.of("glowing")), removeTrait.calls);
     }
 
+    @Test
+    void noSubcommandShowsTheTraitUsage() {
+        run();
+
+        assertEquals("[SkysongItems] Usage: /si trait <sub-command>",
+                PlainTextComponentSerializer.plainText().serialize(player.nextComponentMessage()));
+    }
+
     private void run(String... args) {
-        traitsCommand.onCommand(player, new StubCommand(), "properties", args);
+        traitsCommand.onCommand(player, new StubCommand(), "si", args);
     }
 
     /** Records the arguments of every call instead of editing the held item. */
@@ -89,7 +101,7 @@ class TraitsCommandTest extends MockBukkitTest {
     /** The sub-commands never look at the command object, so any instance will do. */
     private static final class StubCommand extends Command {
         private StubCommand() {
-            super("properties");
+            super("si");
         }
 
         @Override

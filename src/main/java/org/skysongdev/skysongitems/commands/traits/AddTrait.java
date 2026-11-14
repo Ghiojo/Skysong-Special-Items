@@ -28,7 +28,7 @@ public class AddTrait implements TabExecutor {
 
 
         if(args.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si property add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait add <trait>"));
             return true;
         }
 
@@ -40,18 +40,18 @@ public class AddTrait implements TabExecutor {
         }
 
         if(!getPlugin().getTraitRegistry().contains(args[0])){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + getPlugin().getTraitRegistry().getAll().stream().map(Trait::getId).toList()));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid trait!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid traits: " + getPlugin().getTraitRegistry().getAll().stream().map(Trait::getId).toList()));
             return true;
         }
 
         if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addTrait(itemInMainHand, args[0]))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this trait!"));
             return true;
         }
 
         player.updateInventory();
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Property added!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Trait added!"));
         return true;
     }
 
