@@ -27,7 +27,7 @@ public class RemoveTrait implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /properties add <property>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait remove <trait>"));
             return true;
         }
 
@@ -38,7 +38,7 @@ public class RemoveTrait implements TabExecutor {
         }
 
         if(!getPlugin().getTraitRegistry().contains(strings[0])){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid trait!"));
         }
 
         // The updater may replace the held item, so edit the one it leaves in the hand.
@@ -47,16 +47,16 @@ public class RemoveTrait implements TabExecutor {
 
         ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeTrait(updatedItem, strings[0]);
         if(ItemEditor.Result.NO_TRAITS.equals(result)){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no traits."));
             return true;
         }
         if(ItemEditor.Result.MISSING.equals(result)){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this property."));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this trait."));
             return true;
         }
 
         player.updateInventory();
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Property removed successfully!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Trait removed successfully!"));
         return true;
     }
 

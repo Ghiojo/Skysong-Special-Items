@@ -40,12 +40,12 @@ public class ViewTraits implements TabExecutor {
         ItemData data = ItemData.from(buffer);
 
         if(!data.hasTraits()){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no properties!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no traits!"));
             return true;
         }
 
         if(!(getPlugin().getTraitRegistry().getTraitTypes().contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Invalid property type!"));
+            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Invalid trait type!"));
             return true;
         }
 

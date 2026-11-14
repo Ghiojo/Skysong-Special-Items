@@ -64,6 +64,20 @@ class TagCommandsTest extends MockBukkitTest {
     }
 
     @Test
+    void tagWithoutSubcommandShowsTheTagUsage() {
+        run(new TagCommand());
+
+        assertEquals("[SkysongItems] Usage: /si tag <sub-command>", nextMessage());
+    }
+
+    @Test
+    void removeTagWithoutTagIdShowsTheRemoveUsage() {
+        run(new RemoveTag());
+
+        assertEquals("[SkysongItems] Usage: /si tag remove <tag>", nextMessage());
+    }
+
+    @Test
     void setTagStoresTheValueAndConfirms() {
         run(new SetTag(), "arcrot", "4");
 

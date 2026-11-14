@@ -30,7 +30,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
     }
 
     /**
-     * Lets tests replace the handlers of the {@code prop} and {@code update}
+     * Lets tests replace the handlers of the {@code trait} and {@code update}
      * subcommands, so dispatch can be checked without running them.
      */
     SkysongItemsCommand(TraitsCommand traitsCommand, UpdateItem updateItem) {
@@ -53,8 +53,9 @@ public class SkysongItemsCommand extends SubcommandRouter {
         register(Subcommand.builder("book", bookCommand).tabCompleter(bookCommand).build());
         registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE).playerOnly());
         registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand).playerOnly());
-        // prop and update check their own permissions; details only reads the held item.
-        register(Subcommand.builder("prop", traitsCommand).alias("property")
+        // trait and update check their own permissions; details only reads the held item.
+        // prop and property are the names trait had before traits were renamed.
+        register(Subcommand.builder("trait", traitsCommand).alias("prop").alias("property")
                 .tabCompleter(traitsCommand).build());
         register(Subcommand.builder("details", new DetailsCommand()).playerOnly().build());
         register(Subcommand.builder("update", updateItem).playerOnly().build());

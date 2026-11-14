@@ -45,10 +45,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
     private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
-            "disable", "dis", "book", "updatelore", "tag", "prop", "property", "details", "update", "reload",
+            "disable", "dis", "book", "updatelore", "tag", "trait", "prop", "property", "details", "update", "reload",
             "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid");
     /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
-    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("book", "prop", "property", "details", "update");
+    private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("book", "trait", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
@@ -68,11 +68,16 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void propRunsOnlyTheTraitsCommand() {
-        run("prop", "view");
+    void traitRunsOnlyTheTraitsCommand() {
+        run("trait", "view");
 
         assertEquals(List.of(List.of("view")), traitsCommand.calls);
-        assertTrue(updateItem.calls.isEmpty(), "/si prop must not also run /si update");
+        assertTrue(updateItem.calls.isEmpty(), "/si trait must not also run /si update");
+    }
+
+    @Test
+    void traitIsTheNameAndTheOldNamesAreItsAliases() {
+        assertEquals(List.of("trait", "prop", "property"), siCommand.getRegistry().find("prop").orElseThrow().names());
     }
 
     @Test
@@ -85,7 +90,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
 
     @Test
     void subcommandNameIsCaseInsensitive() {
-        run("PROP", "view");
+        run("TRAIT", "view");
 
         assertEquals(List.of(List.of("view")), traitsCommand.calls);
     }
@@ -96,6 +101,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of("dis", DisableFunc.class),
                 Arguments.of("book", BookCommand.class),
                 Arguments.of("tag", TagCommand.class),
+                Arguments.of("trait", TraitsCommand.class),
                 Arguments.of("prop", TraitsCommand.class),
                 Arguments.of("property", TraitsCommand.class),
                 Arguments.of("details", DetailsCommand.class),
@@ -241,6 +247,11 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     @Test
     void tabCompletionOfArgumentsIsBlankForSubcommandThePlayerMayNotRun() {
         assertEquals(List.of(""), tabComplete("charges", ""));
+    }
+
+    @Test
+    void tabCompletionOffersTraitWithoutPermission() {
+        assertEquals(List.of("trait"), tabComplete("t"));
     }
 
     @Test

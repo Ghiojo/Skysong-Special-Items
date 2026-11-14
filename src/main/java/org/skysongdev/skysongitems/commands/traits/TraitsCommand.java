@@ -37,7 +37,7 @@ public class TraitsCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(args.length < 1){
-            sender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<gray>Usage: /properties <sub-command>"));
+            sender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<gray>Usage: /si trait <sub-command>"));
             return true;
         }
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);

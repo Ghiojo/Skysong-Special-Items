@@ -26,7 +26,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Tests {@code /properties remove}. Uses the traits configured in the
+ * Tests {@code /si trait remove}. Uses the traits configured in the
  * bundled config.yml: "test" (base), "charges" (printable, "[Charges: $1/$2]")
  * and "spell" (rename, "[Spell]").
  */
@@ -46,6 +46,7 @@ class RemoveTraitTest extends MockBukkitTest {
     /**
      * Puts in the player's hand an item at the current version, so the lore
      * updater leaves it alone, with its lore and name already rendered.
+     * A null {@code traits} leaves the item without a traits entry.
      */
     private void holdItemWithTraits(String traits) {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
@@ -57,7 +58,9 @@ class RemoveTraitTest extends MockBukkitTest {
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 5);
         ItemData data = ItemData.from(meta);
         data.setLoreSections(SECTIONS);
-        data.setTraitsText(traits);
+        if (traits != null) {
+            data.setTraitsText(traits);
+        }
         item.setItemMeta(meta);
         player.getInventory().setItemInMainHand(ItemLoreRenderer.refresh(item));
     }
@@ -75,7 +78,49 @@ class RemoveTraitTest extends MockBukkitTest {
     }
 
     private void remove(String traitId) {
-        removeTrait.onCommand(player, new StubCommand(), "properties", new String[]{traitId});
+        run(traitId);
+    }
+
+    private void run(String... args) {
+        removeTrait.onCommand(player, new StubCommand(), "si", args);
+    }
+
+    private String nextMessage() {
+        return plain(player.nextComponentMessage());
+    }
+
+    @Test
+    void noTraitIdShowsTheRemoveUsage() {
+        run();
+
+        assertEquals("[SkysongItems] Usage: /si trait remove <trait>", nextMessage());
+    }
+
+    @Test
+    void removingATraitTheItemDoesNotHaveSaysSo() {
+        holdItemWithTraits("test");
+
+        remove("charges");
+
+        assertEquals("[SkysongItems] This item does not have this trait.", nextMessage());
+    }
+
+    @Test
+    void removingFromAnItemWithoutTraitsSaysSo() {
+        holdItemWithTraits(null);
+
+        remove("test");
+
+        assertEquals("[SkysongItems] This item has no traits.", nextMessage());
+    }
+
+    @Test
+    void removingATraitConfirms() {
+        holdItemWithTraits("test");
+
+        remove("test");
+
+        assertEquals("[SkysongItems] Trait removed successfully!", nextMessage());
     }
 
     @Test
@@ -109,7 +154,7 @@ class RemoveTraitTest extends MockBukkitTest {
     /** The command never looks at the command object, so any instance will do. */
     private static final class StubCommand extends Command {
         private StubCommand() {
-            super("properties");
+            super("si");
         }
 
         @Override
