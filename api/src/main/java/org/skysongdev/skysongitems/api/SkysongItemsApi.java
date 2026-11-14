@@ -59,7 +59,7 @@ public interface SkysongItemsApi extends ItemAccess {
     @NotNull ItemTemplates templates();
 
     /**
-     * The same {@link #tags()}, {@link #charges()} and {@link #properties()} for items
+     * The same {@link #tags()}, {@link #charges()} and {@link #traits()} for items
      * nobody holds, such as a copy a plugin is building before it gives it to anyone.
      *
      * <pre>{@code
@@ -69,9 +69,9 @@ public interface SkysongItemsApi extends ItemAccess {
      *
      * <p>A detached write stores the value and nothing else: it doesn't redraw the item's
      * lore, doesn't fire the change events in
-     * {@code org.skysongdev.skysongitems.api.event}, doesn't set a printable property's
+     * {@code org.skysongdev.skysongitems.api.event}, doesn't set a printable trait's
      * value tags, and takes plain items as well as SkysongItems ones. Everything else is
-     * checked the same way, so a tag or property that SkysongItems doesn't have is still
+     * checked the same way, so a tag or trait that SkysongItems doesn't have is still
      * refused; a plugin registers the tags it needs in {@code SkysongItemsRegisterEvent}.
      *
      * <p>Use it for items in the making, and {@link #tags()} and the rest for items that

@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Fired once SkysongItems' tags and properties are loaded and in use, right after
+ * Fired once SkysongItems' tags and traits are loaded and in use, right after
  * {@link SkysongItemsRegisterEvent}: once all plugins have enabled, and again after every
  * {@code /si reload}. Check your own configuration against SkysongItems' tags here.
  */

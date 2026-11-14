@@ -42,7 +42,7 @@ public interface ItemTemplates {
     /**
      * A template of everything SkysongItems stores on the item, which
      * {@link ItemTemplate#create()} turns back into a fresh item. A plugin that changes an
-     * item's tags or properties and then wants a clean item of the result rebuilds it
+     * item's tags or traits and then wants a clean item of the result rebuilds it
      * with {@link #rebuild(ItemStack)}.
      *
      * <p>The snapshot is taken when this method is called, so later changes to the item
@@ -56,7 +56,7 @@ public interface ItemTemplates {
 
     /**
      * A new item built from what SkysongItems stores on this one: its material, stored
-     * name and physical description, deleted lines, properties text, item model, registered
+     * name and physical description, deleted lines, traits text, item model, registered
      * tags with their values, and custom model data. Everything else the item carried is
      * left behind, such as enchantments, durability and tags that are no longer registered.
      *

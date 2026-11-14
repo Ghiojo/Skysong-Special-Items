@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The tags, charges and properties of items, read and written one way.
+ * The tags, charges and traits of items, read and written one way.
  *
  * <p>{@link SkysongItemsApi} itself is the way items a player holds are edited: a write is
  * checked the way the {@code /si} commands check it, shows in the item's lore, fires the
@@ -23,6 +23,15 @@ public interface ItemAccess {
     /** Reads and writes the charges stored on items. */
     @NotNull ItemCharges charges();
 
-    /** Reads and writes the properties stored on items, and tells which properties exist. */
+    /** Reads and writes the traits stored on items, and tells which traits exist. */
+    @NotNull ItemTraits traits();
+
+    /**
+     * The same object as {@link #traits()}, under its name from before properties were
+     * renamed to traits.
+     *
+     * @deprecated use {@link #traits()}. This method is removed in the next major version of the API.
+     */
+    @Deprecated(since = "1.4.0", forRemoval = true)
     @NotNull ItemProperties properties();
 }

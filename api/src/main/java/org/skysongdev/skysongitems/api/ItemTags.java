@@ -26,7 +26,7 @@ import java.util.Set;
  * permission is something a plugin is meant to be able to make. Writing {@code name} or
  * {@code lore} stores the text SkysongItems draws the item's name and physical description
  * from; as with {@code /si tag set}, what the item shows follows the next time its lore is
- * drawn, for example after a charge or property change or a {@code /si update}.
+ * drawn, for example after a charge or trait change or a {@code /si update}.
  *
  * <p>Writes change the item in place, go through the same checks as the {@code /si}
  * commands, redraw the lore when the change shows in it, and fire the change events in

@@ -4,131 +4,124 @@ import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
- * A property another plugin registers through {@link org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent},
- * built like the three property kinds in SkysongItems' config.yml:
- * <ul>
- *     <li>{@link #base(String)}: a plain property, shown in {@code /si prop view} and on the item's details;</li>
- *     <li>{@link #printable(String, String, List)}: also prints a lore line, where {@code $1}, {@code $2}...
- *     are replaced by the values of the listed tags;</li>
- *     <li>{@link #rename(String, String)}: also adds a text in front of the item's name.</li>
- * </ul>
- * The setters return this definition so they can be chained. SkysongItems copies the values
- * when the property is registered, so changing a definition afterwards has no effect.
+ * The old name of {@link TraitDefinition}, from before properties were renamed to traits.
+ * Every method does the same as the {@link TraitDefinition} method of the same name.
+ *
+ * @deprecated use {@link TraitDefinition} with
+ *             {@link org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent#registerTrait}.
+ *             This name is removed in the next major version of the API.
  */
+@Deprecated(since = "1.4.0", forRemoval = true)
 public final class PropertyDefinition {
-    /** The kinds of property, matching the {@code type} values in config.yml. */
+    /**
+     * The old name of {@link TraitDefinition.Kind}.
+     *
+     * @deprecated use {@link TraitDefinition.Kind}.
+     */
+    @Deprecated(since = "1.4.0", forRemoval = true)
     public enum Kind {
         BASE,
         PRINTABLE,
         RENAME
     }
 
-    private final Kind kind;
-    private final String id;
-    private final String template;
-    private final List<String> valueTags;
-    private String name;
-    private String description = "";
-    private String category = "Other";
-    private Material icon = Material.PAPER;
-    private int weight;
+    private final TraitDefinition trait;
 
-    private PropertyDefinition(Kind kind, String id, String template, List<String> valueTags) {
-        this.kind = kind;
-        this.id = Objects.requireNonNull(id, "id");
-        this.template = template;
-        this.valueTags = List.copyOf(valueTags);
-        this.name = id;
+    private PropertyDefinition(TraitDefinition trait) {
+        this.trait = trait;
     }
 
-    /** A plain property with this id. */
+    /** See {@link TraitDefinition#base(String)}. */
     public static @NotNull PropertyDefinition base(@NotNull String id) {
-        return new PropertyDefinition(Kind.BASE, id, null, List.of());
+        return new PropertyDefinition(TraitDefinition.base(id));
+    }
+
+    /** See {@link TraitDefinition#printable(String, String, List)}. */
+    public static @NotNull PropertyDefinition printable(@NotNull String id, @NotNull String template,
+                                                        @NotNull List<String> valueTags) {
+        return new PropertyDefinition(TraitDefinition.printable(id, template, valueTags));
+    }
+
+    /** See {@link TraitDefinition#rename(String, String)}. */
+    public static @NotNull PropertyDefinition rename(@NotNull String id, @NotNull String prefix) {
+        return new PropertyDefinition(TraitDefinition.rename(id, prefix));
+    }
+
+    /** See {@link TraitDefinition#name(String)}. */
+    public @NotNull PropertyDefinition name(@NotNull String name) {
+        trait.name(name);
+        return this;
+    }
+
+    /** See {@link TraitDefinition#description(String)}. */
+    public @NotNull PropertyDefinition description(@NotNull String description) {
+        trait.description(description);
+        return this;
+    }
+
+    /** See {@link TraitDefinition#category(String)}. */
+    public @NotNull PropertyDefinition category(@NotNull String category) {
+        trait.category(category);
+        return this;
+    }
+
+    /** See {@link TraitDefinition#icon(Material)}. */
+    public @NotNull PropertyDefinition icon(@NotNull Material icon) {
+        trait.icon(icon);
+        return this;
+    }
+
+    /** See {@link TraitDefinition#weight(int)}. */
+    public @NotNull PropertyDefinition weight(int weight) {
+        trait.weight(weight);
+        return this;
     }
 
     /**
-     * A property that prints {@code template} as a lore line, with {@code $1}, {@code $2}...
-     * replaced by the item's values of {@code valueTags}, in order. Every value tag must be
-     * registered when the property is.
+     * The trait definition this one stands for, the one SkysongItems registers.
+     * Setters called on either show in both.
      */
-    public static @NotNull PropertyDefinition printable(@NotNull String id, @NotNull String template,
-                                                        @NotNull List<String> valueTags) {
-        return new PropertyDefinition(Kind.PRINTABLE, id, Objects.requireNonNull(template, "template"), valueTags);
-    }
-
-    /** A property that adds {@code prefix} (MiniMessage) in front of the item's name. */
-    public static @NotNull PropertyDefinition rename(@NotNull String id, @NotNull String prefix) {
-        return new PropertyDefinition(Kind.RENAME, id, Objects.requireNonNull(prefix, "prefix"), List.of());
-    }
-
-    /** The name shown in menus; the id when not set. */
-    public @NotNull PropertyDefinition name(@NotNull String name) {
-        this.name = Objects.requireNonNull(name, "name");
-        return this;
-    }
-
-    /** The description shown in menus; empty when not set. */
-    public @NotNull PropertyDefinition description(@NotNull String description) {
-        this.description = Objects.requireNonNull(description, "description");
-        return this;
-    }
-
-    /** The group the property is listed under, config.yml's {@code proptype}; "Other" when not set. */
-    public @NotNull PropertyDefinition category(@NotNull String category) {
-        this.category = Objects.requireNonNull(category, "category");
-        return this;
-    }
-
-    /** The item shown for the property in menus; paper when not set. */
-    public @NotNull PropertyDefinition icon(@NotNull Material icon) {
-        this.icon = Objects.requireNonNull(icon, "icon");
-        return this;
-    }
-
-    /** For printable properties, where the line goes among the item's printed lines; 0 when not set. */
-    public @NotNull PropertyDefinition weight(int weight) {
-        this.weight = weight;
-        return this;
+    public @NotNull TraitDefinition toTrait() {
+        return trait;
     }
 
     public @NotNull Kind kind() {
-        return kind;
+        return Kind.valueOf(trait.kind().name());
     }
 
     public @NotNull String id() {
-        return id;
+        return trait.id();
     }
 
-    /** The printed line of a printable property or the name prefix of a rename property; null for a base one. */
+    /** See {@link TraitDefinition#template()}. */
     public String template() {
-        return template;
+        return trait.template();
     }
 
-    /** The tags whose values a printable property prints; empty for the other kinds. */
+    /** See {@link TraitDefinition#valueTags()}. */
     public @NotNull List<String> valueTags() {
-        return valueTags;
+        return trait.valueTags();
     }
 
     public @NotNull String name() {
-        return name;
+        return trait.name();
     }
 
     public @NotNull String description() {
-        return description;
+        return trait.description();
     }
 
     public @NotNull String category() {
-        return category;
+        return trait.category();
     }
 
     public @NotNull Material icon() {
-        return icon;
+        return trait.icon();
     }
 
     public int weight() {
-        return weight;
+        return trait.weight();
     }
 }
