@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests {@code SkysongItemsApi.transformations()} and {@link ItemTransformEvent}, with a real transformations.yml. */
 class ItemTransformationsApiTest extends MockBukkitTest {
-    private SkysongItems plugin;
     private SkysongItemsApi api;
     private PlayerMock player;
     private final List<ItemTransformEvent> events = new ArrayList<>();
@@ -47,7 +46,7 @@ class ItemTransformationsApiTest extends MockBukkitTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        plugin = MockBukkit.load(SkysongItems.class);
+        SkysongItems plugin = MockBukkit.load(SkysongItems.class);
         api = SkysongItemsApi.get();
         player = server.addPlayer();
         deleteSavedItems();
