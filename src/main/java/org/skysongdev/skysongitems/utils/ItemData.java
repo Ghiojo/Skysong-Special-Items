@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.utils;
 
+import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -21,7 +22,10 @@ import java.util.Objects;
  *     <li>Deleted lines is a mask with one '0' or '1' per lore section, where
  *     '1' hides that section.</li>
  *     <li>Traits are one string of trait ids joined by ';', stored under
- *     the {@code properties} key.</li>
+ *     the {@code traits} key. Items older than item version 1.2 store them
+ *     under the {@code properties} key instead, which is read when an item has
+ *     no {@code traits} entry. Every write goes to {@code traits} and drops the
+ *     old entry.</li>
  * </ul>
  * Changes are written to the container straight away, but like any other
  * {@link ItemMeta} change they only reach the item once the caller calls
@@ -77,7 +81,7 @@ public final class ItemData {
     }
 
     public boolean hasTraits() {
-        return container.has(ItemKeys.PROPERTIES);
+        return container.has(ItemKeys.TRAITS) || container.has(ItemKeys.LEGACY_TRAITS);
     }
 
     /**
@@ -140,7 +144,8 @@ public final class ItemData {
     }
 
     public void clearTraits() {
-        container.remove(ItemKeys.PROPERTIES);
+        container.remove(ItemKeys.TRAITS);
+        container.remove(ItemKeys.LEGACY_TRAITS);
     }
 
     /**
@@ -149,11 +154,28 @@ public final class ItemData {
      * {@link #getTraits()} everywhere else.
      */
     public String getTraitsText() {
-        return container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
+        return readTraitsText(container);
     }
 
-    /** Stores the traits exactly as given. Counterpart of {@link #getTraitsText()}. */
+    /**
+     * Returns the traits exactly as stored in the given data, or {@code null} if there
+     * are none: the {@code traits} entry, or the {@code properties} entry of items
+     * not yet updated to item version 1.2.
+     */
+    public static String readTraitsText(PersistentDataContainerView data) {
+        if (data.has(ItemKeys.TRAITS, PersistentDataType.STRING)) {
+            return data.get(ItemKeys.TRAITS, PersistentDataType.STRING);
+        }
+        return data.has(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING)
+                ? data.get(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING) : null;
+    }
+
+    /**
+     * Stores the traits exactly as given under the {@code traits} key, dropping the
+     * old {@code properties} entry. Counterpart of {@link #getTraitsText()}.
+     */
     public void setTraitsText(String traits) {
-        container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, traits);
+        container.set(ItemKeys.TRAITS, PersistentDataType.STRING, traits);
+        container.remove(ItemKeys.LEGACY_TRAITS);
     }
 }

@@ -41,10 +41,13 @@ public class Updater {
         if(isCurrent(item))
             return item;
 
-        // Add a branch for each item version when a new version for items is added.
+        // Each version runs the steps after it. Add a branch when a new version for items is added.
         String version = item.getPersistentDataContainer().get(ItemKeys.VERSION, PersistentDataType.STRING);
         if("1.0".equals(version)){
-            return UpdateOnePointOne(item);
+            return updateOnePointTwo(UpdateOnePointOne(item));
+        }
+        if("1.1".equals(version)){
+            return updateOnePointTwo(item);
         }
         return UpdateAll(item);
     }
@@ -99,11 +102,28 @@ public class Updater {
             buffer.displayName(getPlugin().getMiniMessage().deserialize(bufferString.trim()).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
         }
 
-        bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        bufferDataContainer.set(ItemKeys.VERSION, PersistentDataType.STRING, "1.1");
 
         newItem.setItemMeta(buffer);
 
         return newItem;
+    }
+
+    /**
+     * Moves the item's traits from the old {@code properties} entry to the
+     * {@code traits} entry. An item that already has a {@code traits} entry keeps
+     * it, and the old entry is dropped either way.
+     */
+    public ItemStack updateOnePointTwo(ItemStack item){
+        ItemMeta meta = item.getItemMeta();
+        ItemData data = ItemData.from(meta);
+        String traits = data.getTraitsText();
+        if(traits != null){
+            data.setTraitsText(traits);
+        }
+        meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
+        item.setItemMeta(meta);
+        return item;
     }
 
     //Add every update method here when a new update to items occurs.
@@ -112,6 +132,7 @@ public class Updater {
 
         finishedItem = UpdateZero(finishedItem);
         finishedItem = UpdateOnePointOne(finishedItem);
+        finishedItem = updateOnePointTwo(finishedItem);
 
         return finishedItem;
     }

@@ -50,7 +50,7 @@ class ItemRebuildTest extends MockBukkitTest {
                 .with(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION)
                 .with(ItemKeys.NAME, PersistentDataType.STRING, "&6Ancient Sword")
                 .with(ItemKeys.LORE, PersistentDataType.STRING, "physical§functional")
-                .with(ItemKeys.PROPERTIES, PersistentDataType.STRING, "charges")
+                .with(ItemKeys.TRAITS, PersistentDataType.STRING, "charges")
                 .with(ItemKeys.MATERIAL_ID, PersistentDataType.STRING, "ancient_sword")
                 .with(ItemKeys.CHARGES, PersistentDataType.INTEGER, 5)
                 .with(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 10)
@@ -81,7 +81,7 @@ class ItemRebuildTest extends MockBukkitTest {
         assertEquals("Ancient Sword", plainName(rebuilt));
         assertEquals("&6Ancient Sword", data.get(ItemKeys.NAME, PersistentDataType.STRING));
         assertEquals("physical§functional", data.get(ItemKeys.LORE, PersistentDataType.STRING));
-        assertEquals("charges", data.get(ItemKeys.PROPERTIES, PersistentDataType.STRING));
+        assertEquals("charges", data.get(ItemKeys.TRAITS, PersistentDataType.STRING));
         assertEquals(Constants.ITEM_VERSION, data.get(ItemKeys.VERSION, PersistentDataType.STRING));
     }
 

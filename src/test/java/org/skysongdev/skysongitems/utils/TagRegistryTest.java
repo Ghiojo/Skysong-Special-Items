@@ -82,7 +82,7 @@ class TagRegistryTest extends MockBukkitTest {
 
     @Test
     void itemDataKeysAreNotTags() {
-        assertFalse(isRegistered(ItemKeys.PROPERTIES));
+        assertFalse(isRegistered(ItemKeys.LEGACY_TRAITS));
         assertFalse(isRegistered(ItemKeys.DELETED_LINES));
     }
 

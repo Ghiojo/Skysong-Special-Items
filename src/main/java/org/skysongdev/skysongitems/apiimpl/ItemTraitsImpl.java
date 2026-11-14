@@ -2,12 +2,10 @@ package org.skysongdev.skysongitems.apiimpl;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemEditor;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.Trait;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
 
@@ -55,8 +53,10 @@ final class ItemTraitsImpl implements ItemProperties {
     @Override
     public List<String> get(ItemStack item) {
         StoredValues.requireMainThread();
-        String stored = StoredValues.read(item, ItemKeys.PROPERTIES, PersistentDataType.STRING);
-        return List.copyOf(ItemData.parseTraits(stored));
+        if (item == null || item.getType().isAir()) {
+            return List.of();
+        }
+        return List.copyOf(ItemData.parseTraits(ItemData.readTraitsText(item.getPersistentDataContainer())));
     }
 
     @Override
