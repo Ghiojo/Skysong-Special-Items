@@ -132,6 +132,26 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
     }
 
     @Test
+    void traitsAreSavedUnderTheTraitsField() {
+        ItemTemplateRepository.save(item("STONE", null));
+
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(savedFile());
+        assertEquals("charges", yaml.getString("traits"));
+        assertFalse(yaml.contains("properties"));
+    }
+
+    @Test
+    void templatesSavedBeforeTheRenameLoadTheirTraits() throws IOException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("name", NAME);
+        yaml.set("type", "STONE");
+        yaml.set("properties", "charges;spell");
+        yaml.save(savedFile());
+
+        assertEquals("charges;spell", ItemTemplateRepository.load(savedFile()).getTraits());
+    }
+
+    @Test
     void customModelDataSurvivesSaveAndLoad() {
         CustomModelData data = new CustomModelData(List.of(1.5f, 2f), List.of(true, false),
                 List.of("glow"), List.of(Color.fromRGB(10, 20, 30)));

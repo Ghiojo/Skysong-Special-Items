@@ -99,10 +99,10 @@ class ItemDataTest extends MockBukkitTest {
     @Test
     void addingTraitsAppendsThemSeparatedBySemicolons() {
         data.addTrait("charges");
-        assertEquals("charges", storedString(ItemKeys.PROPERTIES));
+        assertEquals("charges", storedString(ItemKeys.TRAITS));
 
         data.addTrait("spell");
-        assertEquals("charges;spell", storedString(ItemKeys.PROPERTIES));
+        assertEquals("charges;spell", storedString(ItemKeys.TRAITS));
         assertEquals(List.of("charges", "spell"), data.getTraits());
     }
 
@@ -120,7 +120,7 @@ class ItemDataTest extends MockBukkitTest {
 
         data.setTraits(List.of("test"));
 
-        assertEquals("test", storedString(ItemKeys.PROPERTIES));
+        assertEquals("test", storedString(ItemKeys.TRAITS));
     }
 
     @Test
@@ -151,7 +151,7 @@ class ItemDataTest extends MockBukkitTest {
 
         assertTrue(data.removeTrait("spell"));
 
-        assertEquals("charges;test", storedString(ItemKeys.PROPERTIES));
+        assertEquals("charges;test", storedString(ItemKeys.TRAITS));
     }
 
     @Test
@@ -161,7 +161,7 @@ class ItemDataTest extends MockBukkitTest {
         assertTrue(data.removeTrait("charges"));
 
         assertFalse(data.hasTraits());
-        assertFalse(container.has(ItemKeys.PROPERTIES));
+        assertFalse(container.has(ItemKeys.TRAITS));
     }
 
     @Test
@@ -170,7 +170,7 @@ class ItemDataTest extends MockBukkitTest {
 
         assertFalse(data.removeTrait("spell"));
 
-        assertEquals("charges", storedString(ItemKeys.PROPERTIES));
+        assertEquals("charges", storedString(ItemKeys.TRAITS));
     }
 
     @Test
@@ -179,7 +179,43 @@ class ItemDataTest extends MockBukkitTest {
 
         data.clearTraits();
 
-        assertFalse(container.has(ItemKeys.PROPERTIES));
+        assertFalse(container.has(ItemKeys.TRAITS));
+    }
+
+    @Test
+    void traitsOfAnItemNotYetUpdatedAreReadFromTheOldEntry() {
+        container.set(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING, "charges;spell");
+
+        assertTrue(data.hasTraits());
+        assertEquals(List.of("charges", "spell"), data.getTraits());
+    }
+
+    @Test
+    void theTraitsEntryWinsOverTheOldOne() {
+        container.set(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING, "spell");
+        container.set(ItemKeys.TRAITS, PersistentDataType.STRING, "charges");
+
+        assertEquals(List.of("charges"), data.getTraits());
+    }
+
+    @Test
+    void editingTheTraitsOfAnItemNotYetUpdatedMovesThemToTheTraitsEntry() {
+        container.set(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING, "charges");
+
+        data.addTrait("spell");
+
+        assertEquals("charges;spell", storedString(ItemKeys.TRAITS));
+        assertFalse(container.has(ItemKeys.LEGACY_TRAITS));
+    }
+
+    @Test
+    void removingTheLastTraitOfAnItemNotYetUpdatedRemovesTheOldEntry() {
+        container.set(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING, "charges");
+
+        assertTrue(data.removeTrait("charges"));
+
+        assertFalse(data.hasTraits());
+        assertFalse(container.has(ItemKeys.LEGACY_TRAITS));
     }
 
     @Test

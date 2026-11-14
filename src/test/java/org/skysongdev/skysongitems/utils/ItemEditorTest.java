@@ -253,7 +253,7 @@ class ItemEditorTest extends MockBukkitTest {
 
         assertNull(charges(item));
         assertNull(maxCharges(item));
-        assertFalse(data(item).has(ItemKeys.PROPERTIES));
+        assertFalse(data(item).has(ItemKeys.TRAITS));
         assertEquals(LORE_WITHOUT_TRAITS, lore(item));
     }
 
@@ -358,7 +358,7 @@ class ItemEditorTest extends MockBukkitTest {
 
         assertEquals(ItemEditor.Result.UNKNOWN_TRAIT, editor.addTrait(item, "nope"));
 
-        assertFalse(data(item).has(ItemKeys.PROPERTIES));
+        assertFalse(data(item).has(ItemKeys.TRAITS));
     }
 
     @Test
@@ -376,7 +376,7 @@ class ItemEditorTest extends MockBukkitTest {
 
         editor.removeTrait(item, "charges");
 
-        assertFalse(data(item).has(ItemKeys.PROPERTIES));
+        assertFalse(data(item).has(ItemKeys.TRAITS));
         assertEquals(LORE_WITHOUT_TRAITS, lore(item));
     }
 

@@ -128,7 +128,8 @@ public final class ItemTemplateRepository {
         NamespacedKey itemModel = readItemModel(yaml);
         CustomModelData customModelData = readCustomModelData(yaml);
         String deleted = yaml.getString("deleted", "");
-        String traits = yaml.getString("properties", "");
+        // Templates saved before traits were renamed keep them under "properties".
+        String traits = yaml.getString("traits", yaml.getString("properties", ""));
         LinkedHashMap<NamespacedKey, String> tagValues = readTagValues(yaml, file);
         SkysongItem item = new SkysongItem(name, lore, type, itemModel, deleted, traits, tagValues)
                 .withCustomModelData(customModelData);
@@ -162,7 +163,7 @@ public final class ItemTemplateRepository {
         if(item.getItemModel() != null)
             yaml.set("itemModel", item.getItemModel().getNamespace() + ":" + item.getItemModel().getKey());
         yaml.set("deleted", item.getDeleted());
-        yaml.set("properties", item.getTraits());
+        yaml.set("traits", item.getTraits());
         yaml.set("tags", item.getTagsAsStrings());
         yaml.set("values", item.getValues());
 

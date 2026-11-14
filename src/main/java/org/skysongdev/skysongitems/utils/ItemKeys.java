@@ -25,7 +25,12 @@ public final class ItemKeys {
     public static final NamespacedKey LORE = named("lore");
     public static final NamespacedKey NAME = named("name");
     public static final NamespacedKey DELETED_LINES = named("deleted_lines");
-    public static final NamespacedKey PROPERTIES = named("properties");
+    public static final NamespacedKey TRAITS = named("traits");
+    /**
+     * Where items older than item version 1.2 store their traits. Still read when an
+     * item has no {@link #TRAITS} entry, and moved to it by {@code /si update}.
+     */
+    public static final NamespacedKey LEGACY_TRAITS = named("properties");
     public static final NamespacedKey PERMISSION = named("permission");
     public static final NamespacedKey SHIFT_RIGHT_CLICKABLE = named("is_shift_rightclickable");
     public static final NamespacedKey MATERIAL_ID = named("material_id");
@@ -42,7 +47,7 @@ public final class ItemKeys {
 
     // Every key above in this plugin's namespace. Declared after them, as it reads them.
     private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES, VERSION, LORE,
-            NAME, DELETED_LINES, PROPERTIES, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
+            NAME, DELETED_LINES, TRAITS, LEGACY_TRAITS, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
             DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY);
 
     private ItemKeys() {

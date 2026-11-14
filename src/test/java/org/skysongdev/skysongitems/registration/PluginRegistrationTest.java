@@ -144,11 +144,13 @@ class PluginRegistrationTest extends MockBukkitTest {
     @Test
     void keysThePluginStoresDataUnderAreRefused() {
         registerTag(stats, "properties", TagType.STRING);
+        registerTag(stats, "traits", TagType.STRING);
 
         fireServerLoad();
 
-        assertEquals(List.of(false), results);
-        assertFalse(plugin.getTagRegistry().contains(ItemKeys.PROPERTIES));
+        assertEquals(List.of(false, false), results);
+        assertFalse(plugin.getTagRegistry().contains(ItemKeys.LEGACY_TRAITS));
+        assertFalse(plugin.getTagRegistry().contains(ItemKeys.TRAITS));
     }
 
     @Test

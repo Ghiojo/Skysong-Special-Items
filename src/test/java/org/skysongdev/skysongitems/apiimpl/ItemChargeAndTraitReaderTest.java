@@ -34,7 +34,7 @@ class ItemChargeAndTraitReaderTest extends MockBukkitTest {
     }
 
     private static ItemStack withTraits(String stored) {
-        return TaggedItems.stones(1).with(ItemKeys.PROPERTIES, PersistentDataType.STRING, stored).build();
+        return TaggedItems.stones(1).with(ItemKeys.TRAITS, PersistentDataType.STRING, stored).build();
     }
 
     @Test
@@ -65,6 +65,13 @@ class ItemChargeAndTraitReaderTest extends MockBukkitTest {
         assertEquals(List.of("charges", "spell"), traits.get(item));
         assertTrue(traits.has(item, "spell"));
         assertFalse(traits.has(item, "spel"));
+    }
+
+    @Test
+    void traitsOfAnItemNotYetUpdatedAreRead() {
+        ItemStack item = TaggedItems.stones(1).with(ItemKeys.LEGACY_TRAITS, PersistentDataType.STRING, "spell").build();
+
+        assertEquals(List.of("spell"), traits.get(item));
     }
 
     @Test
