@@ -59,6 +59,8 @@ public class SkysongItems extends JavaPlugin {
     private SkysongItemsApiImpl api;
     // Empty until the registries are first loaded with other plugins' tags.
     private TransformationRules transformations = TransformationRules.empty();
+    // Null until onEnable.
+    private ItemTransformer itemTransformer;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -105,6 +107,11 @@ public class SkysongItems extends JavaPlugin {
         registryLoader.loadWithPlugins(getConfig(), this::useRegistries);
         // The saved items the rules point to are read with the tags just registered.
         reloadTransformations();
+    }
+
+    /** Turns held items into their next form, for {@code /transform} and the API. */
+    public ItemTransformer getItemTransformer() {
+        return itemTransformer;
     }
 
     /** The transformations loaded from transformations.yml. */
@@ -195,9 +202,9 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
-        ItemTransformer transformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
+        itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
                 updater::upgrade);
-        getCommand("transform").setExecutor(new TransformCommand(transformer, this::getTransformations));
+        getCommand("transform").setExecutor(new TransformCommand(itemTransformer, this::getTransformations));
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
