@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class RemoveProperty implements TabExecutor {
+public class RemoveTrait implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player)) {
@@ -37,7 +37,7 @@ public class RemoveProperty implements TabExecutor {
             return true;
         }
 
-        if(!getPlugin().getPropertyRegistry().contains(strings[0])){
+        if(!getPlugin().getTraitRegistry().contains(strings[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
         }
 
@@ -45,8 +45,8 @@ public class RemoveProperty implements TabExecutor {
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
-        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeProperty(updatedItem, strings[0]);
-        if(ItemEditor.Result.NO_PROPERTIES.equals(result)){
+        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeTrait(updatedItem, strings[0]);
+        if(ItemEditor.Result.NO_TRAITS.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item has no properties."));
             return true;
         }
@@ -62,21 +62,21 @@ public class RemoveProperty implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        ArrayList<String> properties = new ArrayList<>();
+        ArrayList<String> traits = new ArrayList<>();
         Player player = (Player) commandSender;
         if(player.getInventory().getItemInMainHand().getType().isAir())
             return List.of("NO ITEM IN MAIN HAND");
         ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 
         ItemData data = ItemData.from(meta);
-        if(!data.hasProperties())
+        if(!data.hasTraits())
             return List.of();
 
-        for(String property : data.getProperties()){
-            if(property.toLowerCase().startsWith(strings[0].toLowerCase())){
-                properties.add(property);
+        for(String trait : data.getTraits()){
+            if(trait.toLowerCase().startsWith(strings[0].toLowerCase())){
+                traits.add(trait);
             }
         }
-        return properties;
+        return traits;
     }
 }

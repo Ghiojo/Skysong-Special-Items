@@ -22,14 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests {@link ItemEditor} against the tags and properties in the bundled
- * config.yml: the "arcrot" int tag, and the properties "test" (base),
+ * Tests {@link ItemEditor} against the tags and traits in the bundled
+ * config.yml: the "arcrot" int tag, and the traits "test" (base),
  * "charges" (printable, "[Charges: $1/$2]", value tags charges and max_charges)
  * and "spell" (rename).
  */
 class ItemEditorTest extends MockBukkitTest {
     private static final List<String> SECTIONS = List.of("physical", "functional", "skill");
-    private static final List<String> LORE_WITHOUT_PROPERTIES = List.of("physical", "", "functional", "", "skill");
+    private static final List<String> LORE_WITHOUT_TRAITS = List.of("physical", "", "functional", "", "skill");
     private static final NamespacedKey ARCROT = ItemKeys.named("arcrot");
 
     private ItemEditor editor;
@@ -40,15 +40,15 @@ class ItemEditorTest extends MockBukkitTest {
         editor = SkysongItems.getPlugin().getItemEditor();
     }
 
-    /** An item with stored lore and, unless null, the given properties text. */
-    private static ItemStack item(String properties) {
+    /** An item with stored lore and, unless null, the given traits text. */
+    private static ItemStack item(String traits) {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);
         ItemData data = ItemData.from(meta);
         data.setLoreSections(SECTIONS);
-        if (properties != null) {
-            data.setPropertiesText(properties);
+        if (traits != null) {
+            data.setTraitsText(traits);
         }
         item.setItemMeta(meta);
         return item;
@@ -81,8 +81,8 @@ class ItemEditorTest extends MockBukkitTest {
         return data(item).get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
     }
 
-    private static List<String> properties(ItemStack item) {
-        return ItemData.from(item.getItemMeta()).getProperties();
+    private static List<String> traits(ItemStack item) {
+        return ItemData.from(item.getItemMeta()).getTraits();
     }
 
     private static List<String> lore(ItemStack item) {
@@ -103,32 +103,32 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
-    void setChargesOnAnUnchargedItemAlsoSetsTheMaxAndTheProperty() {
+    void setChargesOnAnUnchargedItemAlsoSetsTheMaxAndTheTrait() {
         ItemStack item = item(null);
 
         editor.setCharges(item, 3);
 
         assertEquals(3, charges(item));
         assertEquals(3, maxCharges(item));
-        assertEquals(List.of("charges"), properties(item));
+        assertEquals(List.of("charges"), traits(item));
     }
 
     @Test
-    void setChargesAddsTheChargesPropertyNextToAnIdThatContainsIt() {
+    void setChargesAddsTheChargesTraitNextToAnIdThatContainsIt() {
         ItemStack item = item("nocharges");
 
         editor.setCharges(item, 3);
 
-        assertEquals(List.of("nocharges", "charges"), properties(item));
+        assertEquals(List.of("nocharges", "charges"), traits(item));
     }
 
     @Test
-    void setMaxChargesDoesNotDuplicateTheChargesProperty() {
+    void setMaxChargesDoesNotDuplicateTheChargesTrait() {
         ItemStack item = item("spell;charges");
 
         editor.setMaxCharges(item, 3);
 
-        assertEquals(List.of("spell", "charges"), properties(item));
+        assertEquals(List.of("spell", "charges"), traits(item));
     }
 
     @Test
@@ -160,13 +160,13 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
-    void setMaxChargesOnAnUnchargedItemAlsoSetsTheChargesAndTheProperty() {
+    void setMaxChargesOnAnUnchargedItemAlsoSetsTheChargesAndTheTrait() {
         ItemStack item = item("test");
 
         editor.setMaxCharges(item, 6);
 
         assertEquals(6, charges(item));
-        assertEquals(List.of("test", "charges"), properties(item));
+        assertEquals(List.of("test", "charges"), traits(item));
     }
 
     @Test
@@ -246,7 +246,7 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
-    void removeChargesClearsTheValuesThePropertyAndItsLine() {
+    void removeChargesClearsTheValuesTheTraitAndItsLine() {
         ItemStack item = chargedItem(3, 5);
 
         editor.removeCharges(item);
@@ -254,7 +254,7 @@ class ItemEditorTest extends MockBukkitTest {
         assertNull(charges(item));
         assertNull(maxCharges(item));
         assertFalse(data(item).has(ItemKeys.PROPERTIES));
-        assertEquals(LORE_WITHOUT_PROPERTIES, lore(item));
+        assertEquals(LORE_WITHOUT_TRAITS, lore(item));
     }
 
     @Test
@@ -336,58 +336,58 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
-    void addPropertyGivesAPrintablePropertyEmptyValuesAndDrawsIt() {
+    void addTraitGivesAPrintableTraitEmptyValuesAndDrawsIt() {
         ItemStack item = item("test");
 
-        assertEquals(ItemEditor.Result.DONE, editor.addProperty(item, "charges"));
+        assertEquals(ItemEditor.Result.DONE, editor.addTrait(item, "charges"));
 
-        assertEquals(List.of("test", "charges"), properties(item));
+        assertEquals(List.of("test", "charges"), traits(item));
         assertEquals(0, charges(item));
         assertEquals(0, maxCharges(item));
         assertEquals("[Charges: 0/0]", lore(item).getLast());
     }
 
     @Test
-    void addPropertyRefusesAPropertyTheItemHas() {
-        assertEquals(ItemEditor.Result.ALREADY_PRESENT, editor.addProperty(item("test"), "test"));
+    void addTraitRefusesATraitTheItemHas() {
+        assertEquals(ItemEditor.Result.ALREADY_PRESENT, editor.addTrait(item("test"), "test"));
     }
 
     @Test
-    void addPropertyRefusesAnUnknownProperty() {
+    void addTraitRefusesAnUnknownTrait() {
         ItemStack item = item(null);
 
-        assertEquals(ItemEditor.Result.UNKNOWN_PROPERTY, editor.addProperty(item, "nope"));
+        assertEquals(ItemEditor.Result.UNKNOWN_TRAIT, editor.addTrait(item, "nope"));
 
         assertFalse(data(item).has(ItemKeys.PROPERTIES));
     }
 
     @Test
-    void removePropertyKeepsTheOthers() {
+    void removeTraitKeepsTheOthers() {
         ItemStack item = item("test;spell");
 
-        assertEquals(ItemEditor.Result.DONE, editor.removeProperty(item, "test"));
+        assertEquals(ItemEditor.Result.DONE, editor.removeTrait(item, "test"));
 
-        assertEquals(List.of("spell"), properties(item));
+        assertEquals(List.of("spell"), traits(item));
     }
 
     @Test
-    void removingTheLastPropertyRedrawsTheLoreWithoutProperties() {
+    void removingTheLastTraitRedrawsTheLoreWithoutTraits() {
         ItemStack item = chargedItem(3, 5);
 
-        editor.removeProperty(item, "charges");
+        editor.removeTrait(item, "charges");
 
         assertFalse(data(item).has(ItemKeys.PROPERTIES));
-        assertEquals(LORE_WITHOUT_PROPERTIES, lore(item));
+        assertEquals(LORE_WITHOUT_TRAITS, lore(item));
     }
 
     @Test
-    void removePropertyReportsAnItemWithoutProperties() {
-        assertEquals(ItemEditor.Result.NO_PROPERTIES, editor.removeProperty(item(null), "test"));
+    void removeTraitReportsAnItemWithoutTraits() {
+        assertEquals(ItemEditor.Result.NO_TRAITS, editor.removeTrait(item(null), "test"));
     }
 
     @Test
-    void removePropertyReportsAMissingProperty() {
-        assertEquals(ItemEditor.Result.MISSING, editor.removeProperty(item("test"), "spell"));
+    void removeTraitReportsAMissingTrait() {
+        assertEquals(ItemEditor.Result.MISSING, editor.removeTrait(item("test"), "spell"));
     }
 
     @Test

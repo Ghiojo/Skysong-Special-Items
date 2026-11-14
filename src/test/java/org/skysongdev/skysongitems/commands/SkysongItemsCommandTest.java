@@ -24,8 +24,8 @@ import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
 import org.skysongdev.skysongitems.commands.misc.SaveItem;
 import org.skysongdev.skysongitems.commands.misc.SetItemModel;
 import org.skysongdev.skysongitems.commands.misc.UpdateItem;
-import org.skysongdev.skysongitems.commands.properties.DetailsCommand;
-import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
+import org.skysongdev.skysongitems.commands.traits.DetailsCommand;
+import org.skysongdev.skysongitems.commands.traits.TraitsCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 
@@ -54,7 +54,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
             "disable", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "cmd", "furniture");
 
-    private final RecordingPropertiesCommand propertiesCommand = new RecordingPropertiesCommand();
+    private final RecordingTraitsCommand traitsCommand = new RecordingTraitsCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
     private SkysongItemsCommand siCommand;
     private PlayerMock player;
@@ -63,15 +63,15 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     void setUp() {
         // The error messages are built with the plugin's MiniMessage instance.
         MockBukkit.load(SkysongItems.class);
-        siCommand = new SkysongItemsCommand(propertiesCommand, updateItem);
+        siCommand = new SkysongItemsCommand(traitsCommand, updateItem);
         player = server.addPlayer();
     }
 
     @Test
-    void propRunsOnlyThePropertiesCommand() {
+    void propRunsOnlyTheTraitsCommand() {
         run("prop", "view");
 
-        assertEquals(List.of(List.of("view")), propertiesCommand.calls);
+        assertEquals(List.of(List.of("view")), traitsCommand.calls);
         assertTrue(updateItem.calls.isEmpty(), "/si prop must not also run /si update");
     }
 
@@ -80,14 +80,14 @@ class SkysongItemsCommandTest extends MockBukkitTest {
         run("update");
 
         assertEquals(List.of(List.of()), updateItem.calls);
-        assertTrue(propertiesCommand.calls.isEmpty());
+        assertTrue(traitsCommand.calls.isEmpty());
     }
 
     @Test
     void subcommandNameIsCaseInsensitive() {
         run("PROP", "view");
 
-        assertEquals(List.of(List.of("view")), propertiesCommand.calls);
+        assertEquals(List.of(List.of("view")), traitsCommand.calls);
     }
 
     static Stream<Arguments> handlerForEachName() {
@@ -96,8 +96,8 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of("dis", DisableFunc.class),
                 Arguments.of("book", BookCommand.class),
                 Arguments.of("tag", TagCommand.class),
-                Arguments.of("prop", PropertiesCommand.class),
-                Arguments.of("property", PropertiesCommand.class),
+                Arguments.of("prop", TraitsCommand.class),
+                Arguments.of("property", TraitsCommand.class),
                 Arguments.of("details", DetailsCommand.class),
                 Arguments.of("update", UpdateItem.class),
                 Arguments.of("reload", ReloadCommand.class),
@@ -289,7 +289,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     }
 
     /** Records the arguments of every call instead of editing the held item. */
-    private static final class RecordingPropertiesCommand extends PropertiesCommand {
+    private static final class RecordingTraitsCommand extends TraitsCommand {
         private final List<List<String>> calls = new ArrayList<>();
 
         @Override

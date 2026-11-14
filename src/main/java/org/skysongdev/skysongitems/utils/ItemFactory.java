@@ -84,7 +84,7 @@ public final class ItemFactory {
         return material == null ? Material.BARRIER : material;
     }
 
-    /** Writes the template's name, lore, item model, properties, version and tags into the item meta. */
+    /** Writes the template's name, lore, item model, traits, version and tags into the item meta. */
     static void applyTemplate(ItemMeta meta, SkysongItem template) {
         String name = template.getName();
         meta.displayName(getPlugin().getMiniMessage().deserialize(TextParser.translateColorCodes(TextParser.translateHexColorCodes("&#", "", name))).decoration(TextDecoration.ITALIC, false));
@@ -105,9 +105,9 @@ public final class ItemFactory {
         }
         getPlugin().getLogger().warning("custommodeldata: " + itemModel);
 
-        String properties = template.getProperties();
-        if (properties != null && !properties.isEmpty()) {
-            data.setPropertiesText(properties);
+        String traits = template.getTraits();
+        if (traits != null && !traits.isEmpty()) {
+            data.setTraitsText(traits);
         }
 
         meta.getPersistentDataContainer().set(ItemKeys.VERSION, PersistentDataType.STRING, Constants.ITEM_VERSION);

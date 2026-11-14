@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -10,14 +10,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.ItemData;
-import org.skysongdev.skysongitems.utils.Property;
+import org.skysongdev.skysongitems.utils.Trait;
 
 import java.util.List;
 import java.util.Objects;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class ViewProperties implements TabExecutor {
+public class ViewTraits implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -39,12 +39,12 @@ public class ViewProperties implements TabExecutor {
         buffer = item.getItemMeta();
         ItemData data = ItemData.from(buffer);
 
-        if(!data.hasProperties()){
+        if(!data.hasTraits()){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>This item has no properties!"));
             return true;
         }
 
-        if(!(getPlugin().getPropertyRegistry().getPropertyTypes().contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
+        if(!(getPlugin().getTraitRegistry().getTraitTypes().contains(proptype)) && !(proptype.equalsIgnoreCase("all"))){
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<red>Invalid property type!"));
             return true;
         }
@@ -52,13 +52,13 @@ public class ViewProperties implements TabExecutor {
         StringBuilder bufferString = new StringBuilder();
 
         if(proptype.equalsIgnoreCase("all")){
-            for(String prop : getPlugin().getPropertyRegistry().getPropertyTypes()){
-                for(String string : data.getProperties()){
-                    if(!Objects.equals(getPlugin().getPropertyRegistry().get(string).getPropType(), prop)){
+            for(String prop : getPlugin().getTraitRegistry().getTraitTypes()){
+                for(String string : data.getTraits()){
+                    if(!Objects.equals(getPlugin().getTraitRegistry().get(string).getPropType(), prop)){
                         continue;
                     }
-                    Property property = getPlugin().getPropertyRegistry().get(string);
-                    bufferString.append("<hover:show_text:\"<gray>").append(property.getDescription()).append("\"><gray>").append(property.getName()).append("</hover>, ");
+                    Trait trait = getPlugin().getTraitRegistry().get(string);
+                    bufferString.append("<hover:show_text:\"<gray>").append(trait.getDescription()).append("\"><gray>").append(trait.getName()).append("</hover>, ");
                 }
                 if(bufferString.length() > 0) {
                     bufferString.replace(0, bufferString.length(), bufferString.substring(0, bufferString.length() - 2)) ;
@@ -69,12 +69,12 @@ public class ViewProperties implements TabExecutor {
             }
         } else {
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize("<gold><u><b>" + proptype));
-            for(String string : data.getProperties()){
-                if(!Objects.equals(getPlugin().getPropertyRegistry().get(string).getPropType(), proptype)){
+            for(String string : data.getTraits()){
+                if(!Objects.equals(getPlugin().getTraitRegistry().get(string).getPropType(), proptype)){
                     continue;
                 }
-                Property property = getPlugin().getPropertyRegistry().get(string);
-                bufferString.append("<hover:show_text:\"<gray>").append(property.getDescription()).append("\"><gray>").append(property.getName()).append("<reset>, ");
+                Trait trait = getPlugin().getTraitRegistry().get(string);
+                bufferString.append("<hover:show_text:\"<gray>").append(trait.getDescription()).append("\"><gray>").append(trait.getName()).append("<reset>, ");
                 bufferString.replace(0, bufferString.length(), bufferString.substring(0, bufferString.length() - 2)) ;
             }
             commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(bufferString.toString()));
@@ -85,6 +85,6 @@ public class ViewProperties implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return getPlugin().getPropertyRegistry().getPropertyTypes().stream().filter(a -> a.startsWith(strings[0])).toList();
+        return getPlugin().getTraitRegistry().getTraitTypes().stream().filter(a -> a.startsWith(strings[0])).toList();
     }
 }

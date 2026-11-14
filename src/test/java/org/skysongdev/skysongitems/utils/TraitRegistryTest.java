@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Characterisation tests for the properties loaded from the {@code properties}
+ * Characterisation tests for the traits loaded from the {@code properties}
  * section of config.yml. The bundled config.yml defines test, charges and spell.
  */
-class PropertyRegistryTest extends MockBukkitTest {
+class TraitRegistryTest extends MockBukkitTest {
     private SkysongItems plugin;
 
     @BeforeEach
@@ -32,28 +32,28 @@ class PropertyRegistryTest extends MockBukkitTest {
         plugin = MockBukkit.load(SkysongItems.class);
     }
 
-    private void reloadProperties() {
-        plugin.getPropertyRegistry().load(plugin.getConfig(), plugin.getLogger());
+    private void reloadTraits() {
+        plugin.getTraitRegistry().load(plugin.getConfig(), plugin.getLogger());
     }
 
-    private Property property(String id) {
-        return plugin.getPropertyRegistry().get(id);
+    private Trait trait(String id) {
+        return plugin.getTraitRegistry().get(id);
     }
 
-    private boolean isProperty(String id) {
-        return plugin.getPropertyRegistry().contains(id);
+    private boolean isTrait(String id) {
+        return plugin.getTraitRegistry().contains(id);
     }
 
-    private List<Property> allProperties() {
-        return plugin.getPropertyRegistry().getAll();
+    private List<Trait> allTraits() {
+        return plugin.getTraitRegistry().getAll();
     }
 
-    private List<String> propertyTypes() {
-        return plugin.getPropertyRegistry().getPropertyTypes();
+    private List<String> traitTypes() {
+        return plugin.getTraitRegistry().getTraitTypes();
     }
 
-    /** Replaces the properties section with a single property of the given type. */
-    private void configureOnlyProperty(String id, String type, String propType) {
+    /** Replaces the traits section with a single trait of the given type. */
+    private void configureOnlyTrait(String id, String type, String propType) {
         FileConfiguration config = plugin.getConfig();
         config.createSection("properties");
         config.set("properties." + id + ".type", type);
@@ -73,15 +73,15 @@ class PropertyRegistryTest extends MockBukkitTest {
     }
 
     @Test
-    void bundledPropertiesAreLoadedInConfigOrder() {
-        assertEquals(List.of("test", "charges", "spell"), allProperties().stream().map(Property::getId).toList());
+    void bundledTraitsAreLoadedInConfigOrder() {
+        assertEquals(List.of("test", "charges", "spell"), allTraits().stream().map(Trait::getId).toList());
     }
 
     @Test
-    void baseTypeLoadsAPlainProperty() {
-        Property test = property("test");
+    void baseTypeLoadsAPlainTrait() {
+        Trait test = trait("test");
 
-        assertSame(Property.class, test.getClass());
+        assertSame(Trait.class, test.getClass());
         assertEquals("Weapon", test.getPropType());
         assertEquals("Test", test.getName());
         assertEquals("Description", test.getDescription());
@@ -89,7 +89,7 @@ class PropertyRegistryTest extends MockBukkitTest {
 
     @Test
     void printableTypeLoadsItsPrintingValueTagsAndWeight() {
-        PrintableProperty charges = assertInstanceOf(PrintableProperty.class, property("charges"));
+        PrintableTrait charges = assertInstanceOf(PrintableTrait.class, trait("charges"));
 
         assertEquals(List.of("charges", "max_charges"), charges.getValuetags());
         assertEquals(0, charges.getWeight());
@@ -98,77 +98,77 @@ class PropertyRegistryTest extends MockBukkitTest {
 
     @Test
     void renameTypeLoadsItsNameTag() {
-        RenameProperty spell = assertInstanceOf(RenameProperty.class, property("spell"));
+        RenameTrait spell = assertInstanceOf(RenameTrait.class, trait("spell"));
 
         assertEquals("<gray>[<gold>Spell<gray>]", spell.getTag());
     }
 
     @Test
-    void breweryPrintableTypeLoadsABreweryPrintableProperty() {
-        configureOnlyProperty("quality", "BreweryPrintable", "Brew");
+    void breweryPrintableTypeLoadsABreweryPrintableTrait() {
+        configureOnlyTrait("quality", "BreweryPrintable", "Brew");
         plugin.getConfig().set("properties.quality.printable", "Quality: ;!");
         plugin.getConfig().set("properties.quality.weight", 3);
 
-        reloadProperties();
+        reloadTraits();
 
-        BreweryPrintableProperty quality = assertInstanceOf(BreweryPrintableProperty.class, property("quality"));
+        BreweryPrintableTrait quality = assertInstanceOf(BreweryPrintableTrait.class, trait("quality"));
         assertEquals(3, quality.getWeight());
     }
 
     @Test
-    void unknownTypeLoadsAPlainProperty() {
-        configureOnlyProperty("odd", "not_a_type", "Misc");
+    void unknownTypeLoadsAPlainTrait() {
+        configureOnlyTrait("odd", "not_a_type", "Misc");
 
-        reloadProperties();
+        reloadTraits();
 
-        assertSame(Property.class, property("odd").getClass());
+        assertSame(Trait.class, trait("odd").getClass());
     }
 
     @Test
     void lookupIgnoresCase() {
-        assertTrue(isProperty("CHARGES"));
-        assertEquals("spell", property("Spell").getId());
+        assertTrue(isTrait("CHARGES"));
+        assertEquals("spell", trait("Spell").getId());
     }
 
     @Test
-    void unknownIdIsNotAProperty() {
-        assertFalse(isProperty("missing"));
-        assertNull(property("missing"));
+    void unknownIdIsNotATrait() {
+        assertFalse(isTrait("missing"));
+        assertNull(trait("missing"));
     }
 
     @Test
-    void eachPropertyTypeIsListedOnce() {
-        assertTrue(propertyTypes().containsAll(List.of("Weapon", "Magic")));
-        assertEquals(1, propertyTypes().stream().filter("Magic"::equals).count());
+    void eachTraitTypeIsListedOnce() {
+        assertTrue(traitTypes().containsAll(List.of("Weapon", "Magic")));
+        assertEquals(1, traitTypes().stream().filter("Magic"::equals).count());
     }
 
     @Test
-    void reloadReplacesTheProperties() {
-        configureOnlyProperty("fresh", "base", "Weapon");
+    void reloadReplacesTheTraits() {
+        configureOnlyTrait("fresh", "base", "Weapon");
 
-        reloadProperties();
+        reloadTraits();
 
-        assertEquals(List.of("fresh"), allProperties().stream().map(Property::getId).toList());
-        assertFalse(isProperty("charges"));
+        assertEquals(List.of("fresh"), allTraits().stream().map(Trait::getId).toList());
+        assertFalse(isTrait("charges"));
     }
 
     @Test
-    void reloadForgetsPropertyTypesRemovedFromTheConfig() {
+    void reloadForgetsTraitTypesRemovedFromTheConfig() {
         // Reproduces the registry quirk: Weapon and Magic used to stay listed until restart.
-        configureOnlyProperty("fresh", "base", "Tool");
+        configureOnlyTrait("fresh", "base", "Tool");
 
-        reloadProperties();
+        reloadTraits();
 
-        assertEquals(List.of("Tool"), propertyTypes());
+        assertEquals(List.of("Tool"), traitTypes());
     }
 
     @Test
-    void reloadWithAnEmptyPropertiesSectionLeavesNoPropertyTypes() {
+    void reloadWithAnEmptyTraitsSectionLeavesNoTraitTypes() {
         plugin.getConfig().createSection("properties");
 
-        reloadProperties();
+        reloadTraits();
 
-        assertTrue(allProperties().isEmpty());
-        assertTrue(propertyTypes().isEmpty());
+        assertTrue(allTraits().isEmpty());
+        assertTrue(traitTypes().isEmpty());
     }
 }

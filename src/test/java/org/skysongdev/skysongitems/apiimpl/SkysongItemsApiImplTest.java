@@ -8,7 +8,7 @@ import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.ItemEditor;
-import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,8 +61,8 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
 
     private static SkysongItemsApiImpl newApi() {
         TagRegistry tags = new TagRegistry();
-        PropertyRegistry properties = new PropertyRegistry();
-        return new SkysongItemsApiImpl(tags, properties, new ItemEditor(tags, properties), new Updater());
+        TraitRegistry traits = new TraitRegistry();
+        return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), new Updater());
     }
 
     @Test

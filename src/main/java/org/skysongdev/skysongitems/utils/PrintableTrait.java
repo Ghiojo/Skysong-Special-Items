@@ -9,12 +9,12 @@ import java.util.regex.Pattern;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class PrintableProperty extends Property {
+public class PrintableTrait extends Trait {
     protected String printable;
     protected ArrayList<String> valuetags;
     protected int weight;
 
-    public PrintableProperty(String id, String type, String item, String name, String description, String printable, ArrayList<String> valuetags, int weight) {
+    public PrintableTrait(String id, String type, String item, String name, String description, String printable, ArrayList<String> valuetags, int weight) {
         super(id, type, item, name, description);
         this.printable = printable;
         this.valuetags = valuetags;

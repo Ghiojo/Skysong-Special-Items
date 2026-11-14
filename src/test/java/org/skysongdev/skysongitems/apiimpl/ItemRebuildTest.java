@@ -73,7 +73,7 @@ class ItemRebuildTest extends MockBukkitTest {
     }
 
     @Test
-    void theStoredNameDescriptionAndPropertiesAreRebuilt() {
+    void theStoredNameDescriptionAndTraitsAreRebuilt() {
         ItemStack rebuilt = templates.rebuild(storedItem());
 
         PersistentDataContainer data = dataOf(rebuilt);
@@ -86,10 +86,10 @@ class ItemRebuildTest extends MockBukkitTest {
     }
 
     @Test
-    void thePrintablePropertiesAreDrawnIntoTheLore() {
+    void thePrintableTraitsAreDrawnIntoTheLore() {
         ItemStack rebuilt = templates.rebuild(storedItem());
 
-        // "charges" is a printable property in the bundled config, printing "[Charges: $1/$2]".
+        // "charges" is a printable trait in the bundled config, printing "[Charges: $1/$2]".
         assertTrue(plainLore(rebuilt).contains("[Charges: 5/10]"),
                 "the printable property lines are missing from " + plainLore(rebuilt));
         assertTrue(plainLore(rebuilt).contains("physical"));

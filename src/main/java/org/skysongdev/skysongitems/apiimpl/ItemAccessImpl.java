@@ -7,7 +7,7 @@ import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.apiimpl.ItemWrites.ItemCheck;
 import org.skysongdev.skysongitems.utils.ItemEditor;
-import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 /**
@@ -19,22 +19,22 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
 final class ItemAccessImpl implements ItemAccess {
     private final ItemTags tags;
     private final ItemCharges charges;
-    private final ItemProperties properties;
+    private final ItemProperties traits;
 
     /** Edits as the {@code /si} commands do: events, lore redraw, SkysongItems items only. */
-    static ItemAccessImpl held(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor) {
-        return new ItemAccessImpl(tagRegistry, propertyRegistry, editor, ItemCheck.SKYSONG_ITEM);
+    static ItemAccessImpl held(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor) {
+        return new ItemAccessImpl(tagRegistry, traitRegistry, editor, ItemCheck.SKYSONG_ITEM);
     }
 
     /** Stores the value and nothing else, for an item nobody holds. */
-    static ItemAccessImpl detached(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor) {
-        return new ItemAccessImpl(tagRegistry, propertyRegistry, editor.silently(), ItemCheck.ANY_ITEM);
+    static ItemAccessImpl detached(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor) {
+        return new ItemAccessImpl(tagRegistry, traitRegistry, editor.silently(), ItemCheck.ANY_ITEM);
     }
 
-    private ItemAccessImpl(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor, ItemCheck check) {
+    private ItemAccessImpl(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, ItemCheck check) {
         this.charges = new ItemChargesImpl(editor, check);
         this.tags = new ItemTagsImpl(tagRegistry, charges, editor, check);
-        this.properties = new ItemPropertiesImpl(propertyRegistry, editor, check);
+        this.traits = new ItemTraitsImpl(traitRegistry, editor, check);
     }
 
     @Override
@@ -49,6 +49,6 @@ final class ItemAccessImpl implements ItemAccess {
 
     @Override
     public @NotNull ItemProperties properties() {
-        return properties;
+        return traits;
     }
 }

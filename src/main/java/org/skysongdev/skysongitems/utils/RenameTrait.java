@@ -1,8 +1,8 @@
 package org.skysongdev.skysongitems.utils;
 
-public class RenameProperty extends Property {
+public class RenameTrait extends Trait {
     private String tag;
-    public RenameProperty(String id, String type, String item, String name, String description, String tag) {
+    public RenameTrait(String id, String type, String item, String name, String description, String tag) {
         super(id, type, item, name, description);
         this.tag = tag;
     }

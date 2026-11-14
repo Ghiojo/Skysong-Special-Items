@@ -55,7 +55,7 @@ class ChargesCommandsTest extends MockBukkitTest {
         if (charged) {
             container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, 2);
             container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 5);
-            data.setPropertiesText("charges");
+            data.setTraitsText("charges");
         }
         item.setItemMeta(meta);
         player.getInventory().setItemInMainHand(item);

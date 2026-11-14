@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,26 +12,26 @@ import java.util.List;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class PropertiesCommand implements TabExecutor {
-    /** Permission needed to add or remove properties, as declared in plugin.yml. */
+public class TraitsCommand implements TabExecutor {
+    /** Permission needed to add or remove traits, as declared in plugin.yml. */
     static final String EDIT_PERMISSION = "skysongspecialitems.cit";
 
-    private final AddProperty addProperty;
-    private final RemoveProperty removeProperty;
-    private final ViewProperties viewProperties;
+    private final AddTrait addTrait;
+    private final RemoveTrait removeTrait;
+    private final ViewTraits viewTraits;
 
-    public PropertiesCommand() {
-        this(new AddProperty(), new RemoveProperty(), new ViewProperties());
+    public TraitsCommand() {
+        this(new AddTrait(), new RemoveTrait(), new ViewTraits());
     }
 
     /**
      * Lets tests replace the sub-command handlers, so the permission check can
      * be verified without running them.
      */
-    PropertiesCommand(AddProperty addProperty, RemoveProperty removeProperty, ViewProperties viewProperties) {
-        this.addProperty = addProperty;
-        this.removeProperty = removeProperty;
-        this.viewProperties = viewProperties;
+    TraitsCommand(AddTrait addTrait, RemoveTrait removeTrait, ViewTraits viewTraits) {
+        this.addTrait = addTrait;
+        this.removeTrait = removeTrait;
+        this.viewTraits = viewTraits;
     }
 
     @Override
@@ -45,20 +45,20 @@ public class PropertiesCommand implements TabExecutor {
         switch(args[0].toLowerCase()){
             case "add":
                 if(sender.hasPermission(EDIT_PERMISSION)){
-                    addProperty.onCommand(sender, command, label, subArgs);
+                    addTrait.onCommand(sender, command, label, subArgs);
                 } else{
                     sender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You do not have permission to use this command."));
                 }
                 break;
             case "remove":
                 if(sender.hasPermission(EDIT_PERMISSION)){
-                    removeProperty.onCommand(sender, command, label, subArgs);
+                    removeTrait.onCommand(sender, command, label, subArgs);
                 } else{
                     sender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You do not have permission to use this command."));
                 }
                 break;
             case "view":
-                viewProperties.onCommand(sender, command, label, subArgs);
+                viewTraits.onCommand(sender, command, label, subArgs);
                 break;
             default:
                 sender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>Invalid sub-command!"));
@@ -77,9 +77,9 @@ public class PropertiesCommand implements TabExecutor {
             String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
             switch(args[0].toLowerCase()){
                 case "add":
-                    return addProperty.onTabComplete(sender, command, label, subArgs);
+                    return addTrait.onTabComplete(sender, command, label, subArgs);
                 case "remove":
-                    return removeProperty.onTabComplete(sender, command, label, subArgs);
+                    return removeTrait.onTabComplete(sender, command, label, subArgs);
                 default:
                     return List.of("");
             }

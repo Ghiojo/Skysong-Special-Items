@@ -21,18 +21,18 @@ public class SkysongItem {
     private String type;
     private NamespacedKey itemModel;
     private String deleted;
-    private String properties;
+    private String traits;
     // Each tag is stored with its own value so the two can never get out of step.
     private LinkedHashMap<NamespacedKey, String> tagValues;
     private CustomModelData customModelData;
 
-    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String properties, Map<NamespacedKey, String> tagValues) {
+    public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String traits, Map<NamespacedKey, String> tagValues) {
         this.name = name;
         this.lore = lore;
         this.type = type;
         this.itemModel = itemModel;
         this.deleted = deleted;
-        this.properties = properties;
+        this.traits = traits;
         this.tagValues = new LinkedHashMap<>(tagValues);
         this.customModelData = null;
     }
@@ -44,7 +44,7 @@ public class SkysongItem {
         this.type = other.type;
         this.itemModel = other.itemModel;
         this.deleted = other.deleted;
-        this.properties = other.properties;
+        this.traits = other.traits;
         this.tagValues = new LinkedHashMap<>(other.tagValues);
         this.customModelData = other.customModelData;
     }
@@ -66,7 +66,7 @@ public class SkysongItem {
         this.type = item.getType().name();
         this.itemModel = meta.getItemModel();
         this.deleted = data.getDeletedLines();
-        this.properties = data.getPropertiesText();
+        this.traits = data.getTraitsText();
         this.tagValues = new LinkedHashMap<>();
         for(NamespacedKey tag : getPlugin().getTagRegistry().getTagsIn(item)) {
             Object returnValue = dataContainer.get(tag, getPlugin().getTagRegistry().getType(tag));
@@ -113,8 +113,8 @@ public class SkysongItem {
         return deleted;
     }
 
-    public String getProperties() {
-        return properties;
+    public String getTraits() {
+        return traits;
     }
 
     /**

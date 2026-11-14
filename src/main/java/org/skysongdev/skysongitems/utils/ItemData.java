@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Reads and writes the lore and properties a Skysong item stores in its
+ * Reads and writes the lore and traits a Skysong item stores in its
  * persistent data container.
  * <p>
  * The storage format is fixed by the items already in circulation:
@@ -20,7 +20,8 @@ import java.util.Objects;
  *     and 2 the skill description.</li>
  *     <li>Deleted lines is a mask with one '0' or '1' per lore section, where
  *     '1' hides that section.</li>
- *     <li>Properties is one string of property ids joined by ';'.</li>
+ *     <li>Traits are one string of trait ids joined by ';', stored under
+ *     the {@code properties} key.</li>
  * </ul>
  * Changes are written to the container straight away, but like any other
  * {@link ItemMeta} change they only reach the item once the caller calls
@@ -28,7 +29,7 @@ import java.util.Objects;
  */
 public final class ItemData {
     private static final String LORE_SEPARATOR = "§";
-    private static final String PROPERTY_SEPARATOR = ";";
+    private static final String TRAIT_SEPARATOR = ";";
     private static final String NO_DELETED_LINES = "000";
 
     private final PersistentDataContainer container;
@@ -75,84 +76,84 @@ public final class ItemData {
         setDeletedLines(mask.toString());
     }
 
-    public boolean hasProperties() {
+    public boolean hasTraits() {
         return container.has(ItemKeys.PROPERTIES);
     }
 
     /**
-     * Returns the item's property ids as a list the caller may change, empty if
-     * it has none. Blank ids, left behind on items whose last property was
+     * Returns the item's trait ids as a list the caller may change, empty if
+     * it has none. Blank ids, left behind on items whose last trait was
      * removed by older versions of the plugin, are skipped.
      */
-    public List<String> getProperties() {
-        return parseProperties(getPropertiesText());
+    public List<String> getTraits() {
+        return parseTraits(getTraitsText());
     }
 
     /**
-     * Splits properties as stored on an item into their ids, skipping blank ones like
-     * {@link #getProperties()} does. Gives a list the caller may change, empty for null.
+     * Splits traits as stored on an item into their ids, skipping blank ones like
+     * {@link #getTraits()} does. Gives a list the caller may change, empty for null.
      */
-    public static List<String> parseProperties(String propertiesText) {
-        List<String> propertyIds = new ArrayList<>();
-        if (propertiesText == null) {
-            return propertyIds;
+    public static List<String> parseTraits(String traitsText) {
+        List<String> traitIds = new ArrayList<>();
+        if (traitsText == null) {
+            return traitIds;
         }
-        for (String propertyId : propertiesText.split(PROPERTY_SEPARATOR)) {
-            if (!propertyId.isBlank()) {
-                propertyIds.add(propertyId);
+        for (String traitId : traitsText.split(TRAIT_SEPARATOR)) {
+            if (!traitId.isBlank()) {
+                traitIds.add(traitId);
             }
         }
-        return propertyIds;
+        return traitIds;
     }
 
-    public boolean hasProperty(String propertyId) {
-        return getProperties().contains(propertyId);
+    public boolean hasTrait(String traitId) {
+        return getTraits().contains(traitId);
     }
 
-    /** Appends a property id. Does not check whether the item already has it. */
-    public void addProperty(String propertyId) {
-        String properties = getPropertiesText();
-        setPropertiesText(properties == null ? propertyId : properties + PROPERTY_SEPARATOR + propertyId);
+    /** Appends a trait id. Does not check whether the item already has it. */
+    public void addTrait(String traitId) {
+        String traits = getTraitsText();
+        setTraitsText(traits == null ? traitId : traits + TRAIT_SEPARATOR + traitId);
     }
 
     /**
-     * Removes a property id. Removing the last one removes the properties entry
-     * altogether, so the item no longer counts as having properties.
+     * Removes a trait id. Removing the last one removes the traits entry
+     * altogether, so the item no longer counts as having traits.
      *
-     * @return whether the item had the property
+     * @return whether the item had the trait
      */
-    public boolean removeProperty(String propertyId) {
-        List<String> propertyIds = getProperties();
-        if (!propertyIds.remove(propertyId)) {
+    public boolean removeTrait(String traitId) {
+        List<String> traitIds = getTraits();
+        if (!traitIds.remove(traitId)) {
             return false;
         }
-        if (propertyIds.isEmpty()) {
-            clearProperties();
+        if (traitIds.isEmpty()) {
+            clearTraits();
         } else {
-            setProperties(propertyIds);
+            setTraits(traitIds);
         }
         return true;
     }
 
-    public void setProperties(List<String> propertyIds) {
-        setPropertiesText(String.join(PROPERTY_SEPARATOR, propertyIds));
+    public void setTraits(List<String> traitIds) {
+        setTraitsText(String.join(TRAIT_SEPARATOR, traitIds));
     }
 
-    public void clearProperties() {
+    public void clearTraits() {
         container.remove(ItemKeys.PROPERTIES);
     }
 
     /**
-     * Returns the properties exactly as stored, or {@code null} if the item has
+     * Returns the traits exactly as stored, or {@code null} if the item has
      * none. Meant for copying an item to and from its YAML template; prefer
-     * {@link #getProperties()} everywhere else.
+     * {@link #getTraits()} everywhere else.
      */
-    public String getPropertiesText() {
+    public String getTraitsText() {
         return container.get(ItemKeys.PROPERTIES, PersistentDataType.STRING);
     }
 
-    /** Stores the properties exactly as given. Counterpart of {@link #getPropertiesText()}. */
-    public void setPropertiesText(String properties) {
-        container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, properties);
+    /** Stores the traits exactly as given. Counterpart of {@link #getTraitsText()}. */
+    public void setTraitsText(String traits) {
+        container.set(ItemKeys.PROPERTIES, PersistentDataType.STRING, traits);
     }
 }

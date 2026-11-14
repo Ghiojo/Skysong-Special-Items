@@ -13,7 +13,7 @@ import org.skysongdev.skysongitems.api.ItemTemplates;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.utils.ItemEditor;
-import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 /**
@@ -28,14 +28,14 @@ public final class SkysongItemsApiImpl implements SkysongItemsApi {
     private final ItemAccess detached;
     private final ItemTemplates templates;
 
-    /** An API reading through the plugin's tag and property registries and writing through its item editor. */
+    /** An API reading through the plugin's tag and trait registries and writing through its item editor. */
     public SkysongItemsApiImpl(SkysongItems plugin) {
-        this(plugin.getTagRegistry(), plugin.getPropertyRegistry(), plugin.getItemEditor(), plugin.getUpdater());
+        this(plugin.getTagRegistry(), plugin.getTraitRegistry(), plugin.getItemEditor(), plugin.getUpdater());
     }
 
-    SkysongItemsApiImpl(TagRegistry tagRegistry, PropertyRegistry propertyRegistry, ItemEditor editor, Updater updater) {
-        this.held = ItemAccessImpl.held(tagRegistry, propertyRegistry, editor);
-        this.detached = ItemAccessImpl.detached(tagRegistry, propertyRegistry, editor);
+    SkysongItemsApiImpl(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, Updater updater) {
+        this.held = ItemAccessImpl.held(tagRegistry, traitRegistry, editor);
+        this.detached = ItemAccessImpl.detached(tagRegistry, traitRegistry, editor);
         this.templates = new ItemTemplatesImpl(updater);
     }
 

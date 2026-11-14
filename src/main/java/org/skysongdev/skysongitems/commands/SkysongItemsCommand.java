@@ -7,8 +7,8 @@ import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
-import org.skysongdev.skysongitems.commands.properties.DetailsCommand;
-import org.skysongdev.skysongitems.commands.properties.PropertiesCommand;
+import org.skysongdev.skysongitems.commands.traits.DetailsCommand;
+import org.skysongdev.skysongitems.commands.traits.TraitsCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -26,19 +26,19 @@ public class SkysongItemsCommand extends SubcommandRouter {
     };
 
     public SkysongItemsCommand() {
-        this(new PropertiesCommand(), new UpdateItem());
+        this(new TraitsCommand(), new UpdateItem());
     }
 
     /**
      * Lets tests replace the handlers of the {@code prop} and {@code update}
      * subcommands, so dispatch can be checked without running them.
      */
-    SkysongItemsCommand(PropertiesCommand propertiesCommand, UpdateItem updateItem) {
+    SkysongItemsCommand(TraitsCommand traitsCommand, UpdateItem updateItem) {
         super("/si");
-        registerSubcommands(propertiesCommand, updateItem);
+        registerSubcommands(traitsCommand, updateItem);
     }
 
-    private void registerSubcommands(PropertiesCommand propertiesCommand, UpdateItem updateItem) {
+    private void registerSubcommands(TraitsCommand traitsCommand, UpdateItem updateItem) {
         BookCommand bookCommand = new BookCommand(getPlugin().getBookQueries());
         TagCommand tagCommand = new TagCommand();
         RenameCommand renameCommand = new RenameCommand();
@@ -54,8 +54,8 @@ public class SkysongItemsCommand extends SubcommandRouter {
         registerItemEdit(Subcommand.builder("updatelore", UPDATE_LORE).playerOnly());
         registerItemEdit(Subcommand.builder("tag", tagCommand).tabCompleter(tagCommand).playerOnly());
         // prop and update check their own permissions; details only reads the held item.
-        register(Subcommand.builder("prop", propertiesCommand).alias("property")
-                .tabCompleter(propertiesCommand).build());
+        register(Subcommand.builder("prop", traitsCommand).alias("property")
+                .tabCompleter(traitsCommand).build());
         register(Subcommand.builder("details", new DetailsCommand()).playerOnly().build());
         register(Subcommand.builder("update", updateItem).playerOnly().build());
         registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());

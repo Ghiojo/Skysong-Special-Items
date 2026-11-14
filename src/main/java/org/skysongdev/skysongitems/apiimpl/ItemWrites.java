@@ -22,7 +22,7 @@ final class ItemWrites {
         REFUSALS.put(Result.UNKNOWN_TAG, "there is no tag with this id");
         REFUSALS.put(Result.NOT_A_NUMBER, "the tag holds numbers");
         REFUSALS.put(Result.NOT_A_BOOLEAN, "the tag holds true or false");
-        REFUSALS.put(Result.UNKNOWN_PROPERTY, "there is no property with this id");
+        REFUSALS.put(Result.UNKNOWN_TRAIT, "there is no property with this id");
     }
 
     /** Which items a write accepts. */

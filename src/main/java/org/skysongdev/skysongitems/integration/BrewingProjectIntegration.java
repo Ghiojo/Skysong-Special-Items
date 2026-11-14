@@ -30,7 +30,7 @@ public final class BrewingProjectIntegration {
 
     /**
      * Tells TheBrewingProject that Skysong items can now be created. Call once
-     * tags and properties are loaded.
+     * tags and traits are loaded.
      */
     public void markItemsReady() {
         itemIntegration.registerComplete();

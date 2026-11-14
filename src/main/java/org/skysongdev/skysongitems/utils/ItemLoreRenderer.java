@@ -16,7 +16,7 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 /**
  * Rebuilds an item's lore and display name from the data stored on it: its
- * lore sections, its printable properties and its rename properties.
+ * lore sections, its printable traits and its rename traits.
  */
 public final class ItemLoreRenderer {
     private ItemLoreRenderer() {
@@ -24,7 +24,7 @@ public final class ItemLoreRenderer {
 
     /**
      * Refreshes the lore and name of the item in place and returns it. The lore
-     * is only rewritten when the item has properties. Returns null for a missing item.
+     * is only rewritten when the item has traits. Returns null for a missing item.
      */
     public static ItemStack refresh(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
@@ -36,11 +36,11 @@ public final class ItemLoreRenderer {
         }
         ItemData data = ItemData.from(meta);
         List<Component> lore = TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines());
-        if (data.hasProperties()) {
-            List<String> propertyIds = data.getProperties();
+        if (data.hasTraits()) {
+            List<String> traitIds = data.getTraits();
             lore.add(getPlugin().getMiniMessage().deserialize(""));
-            addPrintableProperties(lore, item, propertyIds);
-            applyRenameProperties(meta, item, propertyIds);
+            addPrintableTraits(lore, item, traitIds);
+            applyRenameTraits(meta, item, traitIds);
             meta.lore(lore);
         }
         item.setItemMeta(meta);
@@ -49,62 +49,62 @@ public final class ItemLoreRenderer {
 
     /**
      * Rewrites the lore from the stored lore sections and the display name from
-     * the stored name, without any property lines or tags. {@link #refresh}
-     * leaves items without properties alone, so call this when an item loses
-     * its last property.
+     * the stored name, without any trait lines or tags. {@link #refresh}
+     * leaves items without traits alone, so call this when an item loses
+     * its last trait.
      */
-    public static void renderWithoutProperties(ItemMeta meta) {
+    public static void renderWithoutTraits(ItemMeta meta) {
         ItemData data = ItemData.from(meta);
         meta.lore(TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines()));
         applyStoredName(meta);
     }
 
-    /** Adds one lore line per printable property, heaviest first. */
-    private static void addPrintableProperties(List<Component> lore, ItemStack item, List<String> propertyIds) {
-        for (PrintableProperty property : printablePropertiesByWeight(propertyIds)) {
-            if (property instanceof BreweryPrintableProperty brewProperty) {
-                addBrewedPrinting(lore, item, brewProperty);
+    /** Adds one lore line per printable trait, heaviest first. */
+    private static void addPrintableTraits(List<Component> lore, ItemStack item, List<String> traitIds) {
+        for (PrintableTrait trait : printableTraitsByWeight(traitIds)) {
+            if (trait instanceof BreweryPrintableTrait brewTrait) {
+                addBrewedPrinting(lore, item, brewTrait);
             } else {
-                lore.add(getPlugin().getMiniMessage().deserialize(property.getParsedPrinting(item))
+                lore.add(getPlugin().getMiniMessage().deserialize(trait.getParsedPrinting(item))
                         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.byBoolean(false)));
             }
         }
     }
 
-    /** The item's printable properties, heaviest first; properties of equal weight keep their order. */
-    static List<PrintableProperty> printablePropertiesByWeight(List<String> propertyIds) {
-        List<PrintableProperty> printable = new ArrayList<>();
-        for (String propertyId : propertyIds) {
-            if (getPlugin().getPropertyRegistry().get(propertyId) instanceof PrintableProperty property) {
-                printable.add(property);
+    /** The item's printable traits, heaviest first; traits of equal weight keep their order. */
+    static List<PrintableTrait> printableTraitsByWeight(List<String> traitIds) {
+        List<PrintableTrait> printable = new ArrayList<>();
+        for (String traitId : traitIds) {
+            if (getPlugin().getTraitRegistry().get(traitId) instanceof PrintableTrait trait) {
+                printable.add(trait);
             }
         }
-        printable.sort(Comparator.comparingInt(PrintableProperty::getWeight).reversed());
+        printable.sort(Comparator.comparingInt(PrintableTrait::getWeight).reversed());
         return printable;
     }
 
-    private static void addBrewedPrinting(List<Component> lore, ItemStack item, BreweryPrintableProperty property) {
+    private static void addBrewedPrinting(List<Component> lore, ItemStack item, BreweryPrintableTrait trait) {
         // Brew scores come from TheBrewingProject; without it there is nothing to print.
         if (getPlugin().getBrewingProject().isEmpty()) {
             return;
         }
-        if (property.getBrewedPrinting(item) == null) {
-            Bukkit.getLogger().warning("BreweryPrintableProperty " + property.getId() + " returned null for brewed printing. Skipping.");
+        if (trait.getBrewedPrinting(item) == null) {
+            Bukkit.getLogger().warning("BreweryPrintableProperty " + trait.getId() + " returned null for brewed printing. Skipping.");
             return;
         }
-        Bukkit.getLogger().warning("Adding lore for BreweryPrintableProperty " + property.getId() + ": " + property.getBrewedPrinting(item));
-        lore.add(property.getBrewedPrinting(item));
+        Bukkit.getLogger().warning("Adding lore for BreweryPrintableProperty " + trait.getId() + ": " + trait.getBrewedPrinting(item));
+        lore.add(trait.getBrewedPrinting(item));
     }
 
-    /** Rebuilds the display name from the stored name, prefixed by the tag of each rename property. */
-    private static void applyRenameProperties(ItemMeta meta, ItemStack item, List<String> propertyIds) {
+    /** Rebuilds the display name from the stored name, prefixed by the tag of each rename trait. */
+    private static void applyRenameTraits(ItemMeta meta, ItemStack item, List<String> traitIds) {
         applyStoredName(meta);
-        for (String propertyId : propertyIds) {
-            if (getPlugin().getPropertyRegistry().get(propertyId) instanceof RenameProperty property && item.getItemMeta().displayName() != null) {
+        for (String traitId : traitIds) {
+            if (getPlugin().getTraitRegistry().get(traitId) instanceof RenameTrait trait && item.getItemMeta().displayName() != null) {
                 String newName = meta.getPersistentDataContainer().get(ItemKeys.NAME, PersistentDataType.STRING);
                 newName = TextParser.translateHexColorCodes("&#", "", newName);
                 newName = TextParser.translateColorCodes(newName);
-                meta.displayName(nameComponent(property.getTag() + " " + newName));
+                meta.displayName(nameComponent(trait.getTag() + " " + newName));
             }
         }
     }

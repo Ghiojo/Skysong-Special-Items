@@ -26,7 +26,7 @@ import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.MaterialPermissions;
 import org.skysongdev.skysongitems.utils.PermissionItemSync;
-import org.skysongdev.skysongitems.utils.PropertyRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import java.util.Optional;
@@ -37,9 +37,9 @@ public class SkysongItems extends JavaPlugin {
     private Database database;
     private BookQueries bookQueries;
     private Updater updater;
-    private final PropertyRegistry propertyRegistry = new PropertyRegistry();
+    private final TraitRegistry traitRegistry = new TraitRegistry();
     private final TagRegistry tagRegistry = new TagRegistry();
-    private final ItemEditor itemEditor = new ItemEditor(tagRegistry, propertyRegistry);
+    private final ItemEditor itemEditor = new ItemEditor(tagRegistry, traitRegistry);
     private RegistryLoader registryLoader;
     private final MaterialPermissions materialPermissions = new MaterialPermissions();
     private MiniMessage miniMessage = MiniMessage.miniMessage();
@@ -78,9 +78,9 @@ public class SkysongItems extends JavaPlugin {
         return Optional.ofNullable(craftEngine);
     }
 
-    /** The item properties configured in config.yml. */
-    public PropertyRegistry getPropertyRegistry() {
-        return propertyRegistry;
+    /** The item traits configured in config.yml. */
+    public TraitRegistry getTraitRegistry() {
+        return traitRegistry;
     }
 
     /** The item tags, built-in and configured in config.yml. */
@@ -89,7 +89,7 @@ public class SkysongItems extends JavaPlugin {
     }
 
     /**
-     * Rebuilds the tags and properties from config.yml and asks other plugins for theirs
+     * Rebuilds the tags and traits from config.yml and asks other plugins for theirs
      * through {@link org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent}.
      * Main thread only. Reload config.yml first to pick up changes on disk.
      */
@@ -98,12 +98,12 @@ public class SkysongItems extends JavaPlugin {
     }
 
     // The registries are shared with the item editor and the API, so a load is copied into them.
-    private void useRegistries(TagRegistry tags, PropertyRegistry properties) {
+    private void useRegistries(TagRegistry tags, TraitRegistry traits) {
         tagRegistry.replaceWith(tags);
-        propertyRegistry.replaceWith(properties);
+        traitRegistry.replaceWith(traits);
     }
 
-    /** Changes items' charges, tags and properties. */
+    /** Changes items' charges, tags and traits. */
     public ItemEditor getItemEditor() {
         return itemEditor;
     }
@@ -170,7 +170,7 @@ public class SkysongItems extends JavaPlugin {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
 
-        // Other plugins add their tags and properties once all plugins have enabled.
+        // Other plugins add their tags and traits once all plugins have enabled.
         registryLoader = new RegistryLoader(getServer().getPluginManager(), getLogger());
         registryLoader.loadConfig(getConfig(), this::useRegistries);
         getServer().getPluginManager().registerEvents(new RegistrationListener(this), this);

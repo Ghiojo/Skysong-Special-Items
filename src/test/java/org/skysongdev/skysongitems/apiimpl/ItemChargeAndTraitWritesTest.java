@@ -29,20 +29,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Charge and property writes through {@code charges()} and {@code properties()}, which
+ * Charge and trait writes through {@code charges()} and {@code properties()}, which
  * follow the same rules as {@code /si charges} and {@code /si prop}. Uses the "test" and
- * "charges" properties from the bundled config.yml.
+ * "charges" traits from the bundled config.yml.
  */
-class ItemChargeAndPropertyWritesTest extends MockBukkitTest {
+class ItemChargeAndTraitWritesTest extends MockBukkitTest {
     private ItemCharges charges;
-    private ItemProperties properties;
+    private ItemProperties traits;
     private RecordedItemEvents events;
 
     @BeforeEach
     void enablePlugin() {
         MockBukkit.load(SkysongItems.class);
         charges = SkysongItemsApi.get().charges();
-        properties = SkysongItemsApi.get().properties();
+        traits = SkysongItemsApi.get().properties();
         events = RecordedItemEvents.listenOn(server);
     }
 
@@ -60,7 +60,7 @@ class ItemChargeAndPropertyWritesTest extends MockBukkitTest {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, charges);
         meta.getPersistentDataContainer().set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, maxCharges);
-        ItemData.from(meta).setPropertiesText("charges");
+        ItemData.from(meta).setTraitsText("charges");
         item.setItemMeta(meta);
         return item;
     }
@@ -80,7 +80,7 @@ class ItemChargeAndPropertyWritesTest extends MockBukkitTest {
         assertEquals(4, charges.set(item, 4));
 
         assertEquals(4, charges.getMax(item).orElseThrow());
-        assertTrue(properties.has(item, "charges"));
+        assertTrue(traits.has(item, "charges"));
     }
 
     @Test
@@ -147,31 +147,31 @@ class ItemChargeAndPropertyWritesTest extends MockBukkitTest {
     }
 
     @Test
-    void addPropertyReportsWhetherItWasAdded() {
+    void addTraitReportsWhetherItWasAdded() {
         ItemStack item = skysongItem();
 
-        assertTrue(properties.add(item, "test"));
-        assertFalse(properties.add(item, "test"));
-        assertEquals(List.of("test"), properties.get(item));
+        assertTrue(traits.add(item, "test"));
+        assertFalse(traits.add(item, "test"));
+        assertEquals(List.of("test"), traits.get(item));
     }
 
     @Test
-    void addPropertyRefusesAnUnknownProperty() {
-        assertThrows(IllegalArgumentException.class, () -> properties.add(skysongItem(), "nope"));
+    void addTraitRefusesAnUnknownTrait() {
+        assertThrows(IllegalArgumentException.class, () -> traits.add(skysongItem(), "nope"));
     }
 
     @Test
-    void removePropertyReportsWhetherItWasRemoved() {
+    void removeTraitReportsWhetherItWasRemoved() {
         ItemStack item = skysongItem();
-        properties.add(item, "test");
+        traits.add(item, "test");
 
-        assertTrue(properties.remove(item, "test"));
-        assertFalse(properties.remove(item, "test"));
-        assertTrue(properties.get(item).isEmpty());
+        assertTrue(traits.remove(item, "test"));
+        assertFalse(traits.remove(item, "test"));
+        assertTrue(traits.get(item).isEmpty());
     }
 
     @Test
-    void propertyWritesRefuseAPlainItem() {
-        assertThrows(IllegalArgumentException.class, () -> properties.add(new ItemStack(Material.STONE), "test"));
+    void traitWritesRefuseAPlainItem() {
+        assertThrows(IllegalArgumentException.class, () -> traits.add(new ItemStack(Material.STONE), "test"));
     }
 }

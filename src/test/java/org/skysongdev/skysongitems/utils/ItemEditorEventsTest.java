@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The change events {@link ItemEditor} fires for every edit, so commands, consumption
  * and the API all fire them. Uses the "arcrot" int tag and the "test" and "charges"
- * properties from the bundled config.yml.
+ * traits from the bundled config.yml.
  */
 class ItemEditorEventsTest extends MockBukkitTest {
     private ItemEditor editor;
@@ -50,7 +50,7 @@ class ItemEditorEventsTest extends MockBukkitTest {
         meta.getPersistentDataContainer().set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, maxCharges);
         ItemData data = ItemData.from(meta);
         data.setLoreSections(List.of("physical", "functional", "skill"));
-        data.setPropertiesText("charges");
+        data.setTraitsText("charges");
         item.setItemMeta(meta);
         return item;
     }
@@ -155,13 +155,13 @@ class ItemEditorEventsTest extends MockBukkitTest {
     }
 
     @Test
-    void addingAPrintablePropertyReportsTheValueTagsItSets() {
+    void addingAPrintableTraitReportsTheValueTagsItSets() {
         ItemStack item = chargedItem(5, 10);
         editor.removeCharges(item);
         events.chargeChanges().clear();
         events.tagChanges().clear();
 
-        editor.addProperty(item, "charges");
+        editor.addTrait(item, "charges");
 
         ItemTagChangeEvent event = events.onlyTagChange();
         assertEquals("max_charges", event.getTagId());
