@@ -39,12 +39,13 @@ public class TransformCommand implements CommandExecutor {
         TransformationRules current = rules.get();
         String ruleMessage = current.find(heldMaterialId(player)).map(Transformation::message).orElse(null);
         TransformationMessages messages = current.messages();
-        switch (transformer.transform(player)) {
-            case TRANSFORMED -> send(player, ruleMessage != null ? ruleMessage : messages.transformed());
-            case NOT_HOLDING -> send(player, messages.notHolding());
-            case NO_TRANSFORMATION -> send(player, messages.noTransformation());
-            case NO_PERMISSION -> send(player, messages.noPermission());
-        }
+        String message = switch (transformer.transform(player)) {
+            case TRANSFORMED -> ruleMessage != null ? ruleMessage : messages.transformed();
+            case NOT_HOLDING -> messages.notHolding();
+            case NO_PERMISSION -> messages.noPermission();
+            default -> messages.noTransformation();
+        };
+        send(player, message);
         return true;
     }
 
