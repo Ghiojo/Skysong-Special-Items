@@ -16,14 +16,21 @@ public final class TransformationRules {
 
     private final Map<String, Transformation> byFromId;
     private final List<String> problems;
+    private final TransformationMessages messages;
 
     /**
      * @param byFromId the rules, keyed by the {@code material_id} they start from, in file order
      * @param problems why each skipped rule was skipped, in file order
      */
     public TransformationRules(Map<String, Transformation> byFromId, List<String> problems) {
+        this(byFromId, problems, TransformationMessages.DEFAULTS);
+    }
+
+    /** @param messages the lines {@code /transform} sends */
+    public TransformationRules(Map<String, Transformation> byFromId, List<String> problems, TransformationMessages messages) {
         this.byFromId = new LinkedHashMap<>(byFromId);
         this.problems = List.copyOf(problems);
+        this.messages = messages;
     }
 
     /** No rules, as before transformations.yml is first loaded. */
@@ -39,6 +46,11 @@ public final class TransformationRules {
     /** Every loaded rule, in the order transformations.yml lists them. */
     public List<Transformation> all() {
         return List.copyOf(byFromId.values());
+    }
+
+    /** The lines {@code /transform} sends. */
+    public TransformationMessages messages() {
+        return messages;
     }
 
     /** Why each rule that was skipped on load was skipped. */

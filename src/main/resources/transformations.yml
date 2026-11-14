@@ -2,6 +2,8 @@
 # the saved item named by "to" (an id as /si loaditem takes it, such as weapons/sword).
 # The saved item must have a material_id tag of its own, different from the key, as the
 # material_id says which form the item is in. Reloaded by /si reload.
+# Players run /transform (or /tf) holding the item. Charges, durability damage, a bound
+# book and other plugins' tags carry over; everything else comes from the new form.
 #
 # transformations:
 #   moon_blade_day:
@@ -11,3 +13,10 @@
 #   moon_blade_night:
 #     to: weapons/moon_blade_day
 transformations: {}
+
+# The lines /transform sends, in MiniMessage. A rule's own "message" replaces "transformed".
+messages:
+  transformed: "<green>Your item transforms."
+  no-transformation: "<gray>This item doesn't transform."
+  not-holding: "<red>Hold the item you want to transform."
+  no-permission: "<red>You can't transform this item."
