@@ -37,11 +37,11 @@ class ReloadCommandTest extends MockBukkitTest {
     /** Writes a config.yml with one extra trait and one extra tag next to the bundled ones. */
     private void saveConfigWithAdditions() {
         FileConfiguration config = plugin.getConfig();
-        config.set("properties.added.type", "base");
-        config.set("properties.added.proptype", "Weapon");
-        config.set("properties.added.item", "STONE");
-        config.set("properties.added.name", "Added");
-        config.set("properties.added.description", "Added on disk");
+        config.set("traits.added.type", "base");
+        config.set("traits.added.traittype", "Weapon");
+        config.set("traits.added.item", "STONE");
+        config.set("traits.added.name", "Added");
+        config.set("traits.added.description", "Added on disk");
         config.set("tags.added_tag.namespace", "added_tag");
         config.set("tags.added_tag.type", "int");
         plugin.saveConfig();
@@ -57,6 +57,22 @@ class ReloadCommandTest extends MockBukkitTest {
         assertTrue(plugin.getTraitRegistry().contains("added"));
         assertTrue(plugin.getTagRegistry().contains("added_tag"));
         assertTrue(plugin.getTraitRegistry().contains("charges"));
+    }
+
+    @Test
+    void reloadLoadsAnOldConfigThatStillUsesThePropertiesSection() throws IOException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("properties.old.type", "base");
+        yaml.set("properties.old.proptype", "Weapon");
+        yaml.set("properties.old.item", "STONE");
+        yaml.save(new File(plugin.getDataFolder(), "config.yml"));
+        player.addAttachment(plugin, "skysongitems.reload", true);
+
+        runReload();
+
+        assertTrue(plugin.getTraitRegistry().contains("old"));
+        assertFalse(plugin.getTraitRegistry().contains("charges"));
+        assertEquals("Weapon", plugin.getTraitRegistry().get("old").getPropType());
     }
 
     @Test

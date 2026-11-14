@@ -35,11 +35,11 @@ class ItemLoreRendererTest extends MockBukkitTest {
 
     private void addPrintableTrait(String id, int weight) {
         FileConfiguration config = plugin.getConfig();
-        config.set("properties." + id + ".type", "printable");
-        config.set("properties." + id + ".proptype", "Magic");
-        config.set("properties." + id + ".item", "STONE");
-        config.set("properties." + id + ".printable", id);
-        config.set("properties." + id + ".weight", weight);
+        config.set("traits." + id + ".type", "printable");
+        config.set("traits." + id + ".traittype", "Magic");
+        config.set("traits." + id + ".item", "STONE");
+        config.set("traits." + id + ".printable", id);
+        config.set("traits." + id + ".weight", weight);
         plugin.getTraitRegistry().load(config, plugin.getLogger());
     }
 

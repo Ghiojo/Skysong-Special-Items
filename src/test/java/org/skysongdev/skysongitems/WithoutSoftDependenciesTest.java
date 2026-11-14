@@ -102,13 +102,13 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
     @Test
     void breweryTraitsAreLeftOutOfTheLoreWithoutTheBrewingProject() {
         FileConfiguration config = plugin.getConfig();
-        config.set("properties.brew_quality.type", "breweryprintable");
-        config.set("properties.brew_quality.proptype", "quality");
-        config.set("properties.brew_quality.item", "POTION");
-        config.set("properties.brew_quality.name", "Quality");
-        config.set("properties.brew_quality.description", "Brew quality");
-        config.set("properties.brew_quality.printable", "Quality: ;!");
-        config.set("properties.brew_quality.weight", 1);
+        config.set("traits.brew_quality.type", "breweryprintable");
+        config.set("traits.brew_quality.traittype", "quality");
+        config.set("traits.brew_quality.item", "POTION");
+        config.set("traits.brew_quality.name", "Quality");
+        config.set("traits.brew_quality.description", "Brew quality");
+        config.set("traits.brew_quality.printable", "Quality: ;!");
+        config.set("traits.brew_quality.weight", 1);
         plugin.getTraitRegistry().load(config, plugin.getLogger());
         ItemStack item = new ItemStack(Material.POTION);
         ItemMeta meta = item.getItemMeta();

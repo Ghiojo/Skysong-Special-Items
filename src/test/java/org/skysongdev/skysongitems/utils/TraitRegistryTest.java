@@ -11,7 +11,12 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Characterisation tests for the traits loaded from the {@code properties}
+ * Characterisation tests for the traits loaded from the {@code traits}
  * section of config.yml. The bundled config.yml defines test, charges and spell.
  */
 class TraitRegistryTest extends MockBukkitTest {
@@ -55,12 +60,12 @@ class TraitRegistryTest extends MockBukkitTest {
     /** Replaces the traits section with a single trait of the given type. */
     private void configureOnlyTrait(String id, String type, String propType) {
         FileConfiguration config = plugin.getConfig();
-        config.createSection("properties");
-        config.set("properties." + id + ".type", type);
-        config.set("properties." + id + ".proptype", propType);
-        config.set("properties." + id + ".item", "STONE");
-        config.set("properties." + id + ".name", "Name of " + id);
-        config.set("properties." + id + ".description", "Description of " + id);
+        config.createSection("traits");
+        config.set("traits." + id + ".type", type);
+        config.set("traits." + id + ".traittype", propType);
+        config.set("traits." + id + ".item", "STONE");
+        config.set("traits." + id + ".name", "Name of " + id);
+        config.set("traits." + id + ".description", "Description of " + id);
     }
 
     private static ItemStack chargedItem(int charges, int maxCharges) {
@@ -106,8 +111,8 @@ class TraitRegistryTest extends MockBukkitTest {
     @Test
     void breweryPrintableTypeLoadsABreweryPrintableTrait() {
         configureOnlyTrait("quality", "BreweryPrintable", "Brew");
-        plugin.getConfig().set("properties.quality.printable", "Quality: ;!");
-        plugin.getConfig().set("properties.quality.weight", 3);
+        plugin.getConfig().set("traits.quality.printable", "Quality: ;!");
+        plugin.getConfig().set("traits.quality.weight", 3);
 
         reloadTraits();
 
@@ -164,11 +169,103 @@ class TraitRegistryTest extends MockBukkitTest {
 
     @Test
     void reloadWithAnEmptyTraitsSectionLeavesNoTraitTypes() {
-        plugin.getConfig().createSection("properties");
+        plugin.getConfig().createSection("traits");
 
         reloadTraits();
 
         assertTrue(allTraits().isEmpty());
         assertTrue(traitTypes().isEmpty());
+    }
+
+    /** Loads the traits with a logger that keeps the warnings it gets, and returns them. */
+    private List<String> reloadTraitsCollectingWarnings() {
+        List<String> warnings = new ArrayList<>();
+        Logger logger = Logger.getAnonymousLogger();
+        logger.setUseParentHandlers(false);
+        logger.addHandler(new Handler() {
+            @Override
+            public void publish(LogRecord logRecord) {
+                if (Level.WARNING.equals(logRecord.getLevel())) {
+                    warnings.add(logRecord.getMessage());
+                }
+            }
+
+            @Override
+            public void flush() {
+                // Nothing buffered.
+            }
+
+            @Override
+            public void close() {
+                // Nothing to release.
+            }
+        });
+        plugin.getTraitRegistry().load(plugin.getConfig(), logger);
+        return warnings;
+    }
+
+    /** Replaces the config's traits with an old-style properties section holding one trait. */
+    private void configureLegacySection(String id) {
+        FileConfiguration config = plugin.getConfig();
+        config.set("traits", null);
+        config.set("properties." + id + ".type", "base");
+        config.set("properties." + id + ".proptype", "Old");
+        config.set("properties." + id + ".item", "STONE");
+    }
+
+    private static boolean anyMentions(List<String> messages, String text) {
+        return messages.stream().anyMatch(message -> message.contains(text));
+    }
+
+    @Test
+    void oldPropertiesSectionStillLoadsWithAWarning() {
+        configureLegacySection("legacy");
+
+        List<String> warnings = reloadTraitsCollectingWarnings();
+
+        assertEquals(List.of("legacy"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals("Old", trait("legacy").getPropType());
+        assertTrue(anyMentions(warnings, "old 'properties' section"));
+    }
+
+    @Test
+    void traitsSectionWinsOverAnOldPropertiesSection() {
+        configureOnlyTrait("fresh", "base", "Weapon");
+        plugin.getConfig().set("properties.legacy.type", "base");
+
+        List<String> warnings = reloadTraitsCollectingWarnings();
+
+        assertEquals(List.of("fresh"), allTraits().stream().map(Trait::getId).toList());
+        assertTrue(anyMentions(warnings, "only 'traits' is loaded"));
+    }
+
+    @Test
+    void bundledConfigLogsNoRenameWarnings() {
+        List<String> warnings = reloadTraitsCollectingWarnings();
+
+        assertFalse(anyMentions(warnings, "rename"));
+        assertFalse(anyMentions(warnings, "only 'traits' is loaded"));
+    }
+
+    @Test
+    void oldProptypeKeyStillSetsTheTraitTypeWithAWarning() {
+        configureOnlyTrait("fresh", "base", "Weapon");
+        plugin.getConfig().set("traits.fresh.traittype", null);
+        plugin.getConfig().set("traits.fresh.proptype", "Tool");
+
+        List<String> warnings = reloadTraitsCollectingWarnings();
+
+        assertEquals("Tool", trait("fresh").getPropType());
+        assertTrue(anyMentions(warnings, "old 'proptype' key; rename it to 'traittype': fresh"));
+    }
+
+    @Test
+    void traittypeWinsOverAnOldProptypeKey() {
+        configureOnlyTrait("fresh", "base", "Weapon");
+        plugin.getConfig().set("traits.fresh.proptype", "Tool");
+
+        reloadTraits();
+
+        assertEquals("Weapon", trait("fresh").getPropType());
     }
 }
