@@ -122,7 +122,7 @@ public class SkysongItems extends JavaPlugin {
         if (!file.exists()) {
             saveResource(TransformationLoader.FILE_NAME, false);
         }
-        transformations = new TransformationLoader(TransformationLoader.savedItemsOnDisk(), getLogger())
+        transformations = new TransformationLoader(TransformationLoader.savedItemsOnDisk(), tagRegistry::contains, getLogger())
                 .load(YamlConfiguration.loadConfiguration(file));
     }
 
@@ -195,7 +195,8 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
-        ItemTransformer transformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems);
+        ItemTransformer transformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
+                updater::upgrade);
         getCommand("transform").setExecutor(new TransformCommand(transformer, this::getTransformations));
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));

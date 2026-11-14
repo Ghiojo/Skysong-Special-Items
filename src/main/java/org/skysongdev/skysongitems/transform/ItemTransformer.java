@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
@@ -16,11 +17,14 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Transforms the item a player holds into its next form, as transformations.yml says.
  *
- * <p>The item is rebuilt from the saved item of its next form, then given back what
+ * <p>A rule that lists parts copies just those parts of the new form onto the item, see
+ * {@link ItemPart}; the rest of the item stays as it is. A rule without parts swaps the
+ * whole item: it is rebuilt from the saved item of its next form, then given back what
  * belongs to this copy of the item rather than to its form:
  * <ul>
  *     <li>the stack size;</li>
@@ -47,16 +51,20 @@ public final class ItemTransformer {
     private final Supplier<TransformationRules> rules;
     private final TagRegistry tags;
     private final Consumer<Player> permissionItemSync;
+    private final UnaryOperator<ItemStack> upgrader;
 
     /**
      * @param rules              looked up on each use, since /si reload replaces them
      * @param tags               tells which tags other plugins own
      * @param permissionItemSync grants and revokes the player's permission-item permissions after the change
+     * @param upgrader           brings an item up to the current item version, as {@code /si update} does
      */
-    public ItemTransformer(Supplier<TransformationRules> rules, TagRegistry tags, Consumer<Player> permissionItemSync) {
+    public ItemTransformer(Supplier<TransformationRules> rules, TagRegistry tags, Consumer<Player> permissionItemSync,
+                           UnaryOperator<ItemStack> upgrader) {
         this.rules = rules;
         this.tags = tags;
         this.permissionItemSync = permissionItemSync;
+        this.upgrader = upgrader;
     }
 
     /** Transforms the item in the player's main hand, if its form has a transformation they may use. */
@@ -88,6 +96,41 @@ public final class ItemTransformer {
 
     /** The item the held one becomes under this rule. The held item itself is not changed. */
     public ItemStack transformed(ItemStack held, Transformation rule) {
+        return rule.isWholeItem() ? wholeItem(held, rule) : withParts(held, rule);
+    }
+
+    /**
+     * The held item with the rule's parts taken from the new form, and its new form's
+     * material_id. Items of an older item version are updated first, so their data is in
+     * the shape the parts are copied into.
+     */
+    private ItemStack withParts(ItemStack held, Transformation rule) {
+        ItemStack target = ItemFactory.create(rule.target());
+        ItemStack result = upgrader.apply(held.clone());
+        if (lists(rule, ItemPart.Kind.MATERIAL)) {
+            result = PartCopy.withMaterial(result, target.getType());
+        }
+        ItemMeta meta = result.getItemMeta();
+        PartCopy copy = new PartCopy(meta, target, tags);
+        rule.parts().forEach(part -> part.copy(copy));
+        meta.getPersistentDataContainer().set(ItemKeys.MATERIAL_ID, PersistentDataType.STRING, rule.targetMaterialId());
+        if (!ItemData.from(meta).hasTraits()) {
+            ItemLoreRenderer.renderWithoutTraits(meta);
+        }
+        result.setItemMeta(meta);
+        if (lists(rule, ItemPart.Kind.CMD)) {
+            PartCopy.copyCustomModelData(target, result);
+        }
+        // Redraws the name and lore from what the item now stores.
+        ItemLoreRenderer.refresh(result);
+        return result;
+    }
+
+    private static boolean lists(Transformation rule, ItemPart.Kind kind) {
+        return rule.parts().stream().anyMatch(part -> part.kind() == kind);
+    }
+
+    private ItemStack wholeItem(ItemStack held, Transformation rule) {
         ItemStack result = ItemFactory.create(rule.target());
         result.setAmount(held.getAmount());
         ItemMeta meta = result.getItemMeta();

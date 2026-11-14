@@ -53,7 +53,8 @@ class ItemTransformerTest extends MockBukkitTest {
         player = server.addPlayer();
         rules = rulesFor(rule("day_blade", form("Night Blade", "night_blade", Map.of(ARCROT, "3"))),
                 rule("night_blade", form("Day Blade", "day_blade", Map.of(FICTIS, "1"))));
-        transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), synced::add);
+        transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), synced::add,
+                plugin.getUpdater()::upgrade);
     }
 
     private static SkysongItem form(String name, String materialId, Map<NamespacedKey, String> tags) {

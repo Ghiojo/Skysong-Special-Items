@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems.transform;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,13 +16,26 @@ import java.util.Objects;
  * @param targetMaterialId the target's {@code material_id}, never equal to {@code fromId}
  * @param permission       the permission a player needs to use this rule, or null for none
  * @param message          the line sent when the item transforms, or null for the default one
+ * @param parts            the parts taken from the target; empty to swap the whole item
  */
 public record Transformation(String fromId, String targetId, SkysongItem target, String targetMaterialId,
-                             @Nullable String permission, @Nullable String message) {
+                             @Nullable String permission, @Nullable String message, List<ItemPart> parts) {
     public Transformation {
         Objects.requireNonNull(fromId, "fromId");
         Objects.requireNonNull(targetId, "targetId");
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(targetMaterialId, "targetMaterialId");
+        parts = List.copyOf(parts);
+    }
+
+    /** A rule that swaps the whole item. */
+    public Transformation(String fromId, String targetId, SkysongItem target, String targetMaterialId,
+                          @Nullable String permission, @Nullable String message) {
+        this(fromId, targetId, target, targetMaterialId, permission, message, List.of());
+    }
+
+    /** Whether the whole item is swapped, rather than single parts copied. */
+    public boolean isWholeItem() {
+        return parts.isEmpty();
     }
 }

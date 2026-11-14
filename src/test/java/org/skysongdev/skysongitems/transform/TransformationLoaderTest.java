@@ -3,6 +3,8 @@ package org.skysongdev.skysongitems.transform;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
@@ -25,7 +27,7 @@ class TransformationLoaderTest {
             "IRON_SWORD", null, "", "", Map.of());
 
     private final TransformationLoader loader = new TransformationLoader(TransformationLoaderTest::findSavedItem,
-            Logger.getAnonymousLogger());
+            "arcrot"::equals, Logger.getAnonymousLogger());
 
     private static SkysongItem savedItem(String materialId) {
         Map<NamespacedKey, String> tags = Map.of(ItemKeys.MATERIAL_ID, materialId);
@@ -118,16 +120,33 @@ class TransformationLoaderTest {
     }
 
     @Test
-    void aRuleListingPartsIsSkippedUntilPartsAreSupported() {
+    void partsAreReadIgnoringCaseAndWithoutPartsTheWholeItemIsSwapped() {
         TransformationRules rules = loader.load(file(
                 "transformations:",
                 "  day_blade:",
                 "    to: weapons/night_blade",
-                "    parts: [model]"));
+                "    parts: [Functional, model, tag:arcrot]",
+                "  night_blade:",
+                "    to: weapons/day_blade"));
+
+        assertEquals(List.of(new ItemPart(ItemPart.Kind.FUNCTIONAL, null), new ItemPart(ItemPart.Kind.MODEL, null),
+                new ItemPart(ItemPart.Kind.TAG, "arcrot")), rules.find("day_blade").orElseThrow().parts());
+        assertTrue(rules.find("night_blade").orElseThrow().isWholeItem());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"wings", "tag:unregistered", "tag:"})
+    void aRuleWithAnUnknownPartIsSkipped(String part) {
+        TransformationRules rules = loader.load(file(
+                "transformations:",
+                "  day_blade:",
+                "    to: weapons/night_blade",
+                "    parts: [model, '" + part + "']"));
 
         assertTrue(rules.all().isEmpty());
-        assertEquals(List.of("transformations.yml: skipped the transformation of day_blade: 'parts' is not supported yet."),
-                rules.problems());
+        assertEquals(List.of("transformations.yml: skipped the transformation of day_blade: its parts must be among "
+                + "name, physical, functional, skill, lore, traits, tags, charges, permission, model, cmd, material, "
+                + "or tag:<id> with a registered tag."), rules.problems());
     }
 
     @Test
