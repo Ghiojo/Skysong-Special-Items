@@ -1,0 +1,160 @@
+package org.skysongdev.skysongitems.transform;
+
+import io.papermc.paper.persistence.PersistentDataContainerView;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.utils.ItemFactory;
+import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
+import org.skysongdev.skysongitems.utils.TagRegistry;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+/**
+ * Transforms the item a player holds into its next form, as transformations.yml says.
+ *
+ * <p>The item is rebuilt from the saved item of its next form, then given back what
+ * belongs to this copy of the item rather than to its form:
+ * <ul>
+ *     <li>the stack size;</li>
+ *     <li>its charges, capped at the new form's maximum, so cycling forms never refills an
+ *     item (when the new form has no charges, none are kept);</li>
+ *     <li>its durability damage, when both forms can be damaged;</li>
+ *     <li>the book bound to it, with its right-click and DM-only settings;</li>
+ *     <li>the tags other plugins registered, unless the new form sets them itself.</li>
+ * </ul>
+ * Everything else comes from the new form, so tags the new form lacks are dropped.
+ */
+public final class ItemTransformer {
+    /** How a transformation attempt ended. */
+    public enum Result {
+        TRANSFORMED,
+        /** The player's main hand is empty. */
+        NOT_HOLDING,
+        /** The held item has no material_id, or no rule starts from it. */
+        NO_TRANSFORMATION,
+        /** The rule needs a permission the player lacks. */
+        NO_PERMISSION
+    }
+
+    private final Supplier<TransformationRules> rules;
+    private final TagRegistry tags;
+    private final Consumer<Player> permissionItemSync;
+
+    /**
+     * @param rules              looked up on each use, since /si reload replaces them
+     * @param tags               tells which tags other plugins own
+     * @param permissionItemSync grants and revokes the player's permission-item permissions after the change
+     */
+    public ItemTransformer(Supplier<TransformationRules> rules, TagRegistry tags, Consumer<Player> permissionItemSync) {
+        this.rules = rules;
+        this.tags = tags;
+        this.permissionItemSync = permissionItemSync;
+    }
+
+    /** Transforms the item in the player's main hand, if its form has a transformation they may use. */
+    public Result transform(Player player) {
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (held.getType().isAir()) {
+            return Result.NOT_HOLDING;
+        }
+        Transformation rule = rules.get().find(materialIdOf(held)).orElse(null);
+        if (rule == null) {
+            return Result.NO_TRANSFORMATION;
+        }
+        if (rule.permission() != null && !player.hasPermission(rule.permission())) {
+            return Result.NO_PERMISSION;
+        }
+        player.getInventory().setItemInMainHand(transformed(held, rule));
+        // Setting the hand slot fires none of the inventory events permission items follow.
+        permissionItemSync.accept(player);
+        return Result.TRANSFORMED;
+    }
+
+    /** The form the item is in: its material_id, or null for air and items without one. */
+    public static @Nullable String materialIdOf(ItemStack item) {
+        if (item.getType().isAir()) {
+            return null;
+        }
+        return item.getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
+    }
+
+    /** The item the held one becomes under this rule. The held item itself is not changed. */
+    public ItemStack transformed(ItemStack held, Transformation rule) {
+        ItemStack result = ItemFactory.create(rule.target());
+        result.setAmount(held.getAmount());
+        ItemMeta meta = result.getItemMeta();
+        PersistentDataContainerView from = held.getPersistentDataContainer();
+        PersistentDataContainer to = meta.getPersistentDataContainer();
+        keepCharges(from, to);
+        keepBoundBook(from, to);
+        keepOtherPluginsTags(from, to);
+        keepDamage(held, result, meta);
+        result.setItemMeta(meta);
+        // Redraws the trait lines, such as the charges line, with the kept values.
+        ItemLoreRenderer.refresh(result);
+        return result;
+    }
+
+    private static void keepCharges(PersistentDataContainerView from, PersistentDataContainer to) {
+        Integer charges = from.get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
+        Integer maxCharges = to.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
+        if (charges != null && maxCharges != null) {
+            to.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, Math.min(charges, maxCharges));
+        }
+    }
+
+    private static void keepBoundBook(PersistentDataContainerView from, PersistentDataContainer to) {
+        Integer book = from.get(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER);
+        if (book == null) {
+            return;
+        }
+        to.set(ItemKeys.BOUND_BOOK, PersistentDataType.INTEGER, book);
+        copyFlag(from, to, ItemKeys.RIGHT_CLICKABLE);
+        copyFlag(from, to, ItemKeys.DM_ONLY);
+    }
+
+    private static void copyFlag(PersistentDataContainerView from, PersistentDataContainer to, NamespacedKey key) {
+        Boolean flag = from.get(key, PersistentDataType.BOOLEAN);
+        if (flag == null) {
+            to.remove(key);
+        } else {
+            to.set(key, PersistentDataType.BOOLEAN, flag);
+        }
+    }
+
+    private void keepOtherPluginsTags(PersistentDataContainerView from, PersistentDataContainer to) {
+        for (NamespacedKey key : from.getKeys()) {
+            if (tags.ownerOf(key) != null && !to.has(key)) {
+                copy(from, to, key, tags.getType(key));
+            }
+        }
+    }
+
+    private static <P, C> void copy(PersistentDataContainerView from, PersistentDataContainer to,
+                                    NamespacedKey key, PersistentDataType<P, C> type) {
+        C value = from.get(key, type);
+        if (value != null) {
+            to.set(key, type, value);
+        }
+    }
+
+    /** Keeps the damage, short of breaking the new form when it is less durable. */
+    private static void keepDamage(ItemStack held, ItemStack result, ItemMeta meta) {
+        if (!(held.getItemMeta() instanceof Damageable heldDamage) || !heldDamage.hasDamage()
+                || !(meta instanceof Damageable newDamage)) {
+            return;
+        }
+        int maxDamage = newDamage.hasMaxDamage() ? newDamage.getMaxDamage() : result.getType().getMaxDurability();
+        if (maxDamage > 0) {
+            newDamage.setDamage(Math.min(heldDamage.getDamage(), maxDamage - 1));
+        }
+    }
+}

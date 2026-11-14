@@ -4,13 +4,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.Transformation;
 import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.utils.Constants;
-import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import java.util.List;
 import java.util.Locale;
@@ -70,9 +68,7 @@ public class TransformationsCommand implements TabExecutor {
             send(sender, "<red>Only players can check the item they hold.");
             return;
         }
-        ItemStack item = player.getInventory().getItemInMainHand();
-        String materialId = item.getType().isAir() ? null
-                : item.getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
+        String materialId = ItemTransformer.materialIdOf(player.getInventory().getItemInMainHand());
         if (materialId == null) {
             send(player, "This item has no material_id, so it cannot transform.");
             return;

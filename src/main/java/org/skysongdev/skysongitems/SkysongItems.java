@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.apiimpl.SkysongItemsApiImpl;
 import org.skysongdev.skysongitems.commands.SkysongItemsCommand;
+import org.skysongdev.skysongitems.commands.transform.TransformCommand;
 import org.skysongdev.skysongitems.commands.lore.LoreSection;
 import org.skysongdev.skysongitems.commands.lore.LoreSectionCommand;
 import org.skysongdev.skysongitems.commands.lore.Updater;
@@ -22,6 +23,7 @@ import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.registration.RegistrationListener;
 import org.skysongdev.skysongitems.registration.RegistryLoader;
+import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.TransformationLoader;
 import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.utils.Constants;
@@ -193,6 +195,8 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
+        ItemTransformer transformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems);
+        getCommand("transform").setExecutor(new TransformCommand(transformer, this::getTransformations));
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }

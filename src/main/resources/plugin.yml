@@ -40,6 +40,12 @@ commands:
     aliases: [ sd ]
     permission: skysongitems.sd
     permission-message: "You do not have permission to use this command!"
+  transform:
+    description: "Transforms the item in your main hand into its next form"
+    usage: "/transform"
+    aliases: [ tf ]
+    permission: skysongitems.transform
+    permission-message: "You do not have permission to use this command!"
 permissions:
   skysongspecialitems.si:
     description: "Allows you to do /si"
@@ -62,6 +68,9 @@ permissions:
   skysongitems.sd:
     description: Allows you to edit the skill description of an item.
     default: op
+  skysongitems.transform:
+    description: Allows you to transform the item you hold with /transform.
+    default: true
   skysongitems.*:
     description: Wildcard permission
     default: op
@@ -70,3 +79,4 @@ permissions:
       skysongitems.pd: true
       skysongitems.fd: true
       skysongitems.sd: true
+      skysongitems.transform: true

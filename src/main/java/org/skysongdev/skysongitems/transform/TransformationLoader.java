@@ -24,6 +24,8 @@ import java.util.logging.Logger;
  *     to: weapons/moon_blade_night  # the saved item it becomes
  *     permission: skysong.moon      # optional
  *     message: "The blade darkens." # optional
+ * messages:                         # optional, the lines /transform sends
+ *   no-transformation: "This item doesn't transform."
  * </pre>
  *
  * A rule is skipped, with a warning, when it has no {@code to}, when {@code to} is not a
@@ -38,6 +40,7 @@ public final class TransformationLoader {
     private static final String PARTS = "parts";
     private static final String PERMISSION = "permission";
     private static final String MESSAGE = "message";
+    private static final String MESSAGES = "messages";
 
     private final Function<String, Optional<SkysongItem>> savedItems;
     private final Logger logger;
@@ -71,7 +74,7 @@ public final class TransformationLoader {
             }
         }
         problems.forEach(logger::warning);
-        return new TransformationRules(rules, problems);
+        return new TransformationRules(rules, problems, TransformationMessages.from(file.getConfigurationSection(MESSAGES)));
     }
 
     private Optional<Transformation> readRule(String fromId, @Nullable ConfigurationSection rule, List<String> problems) {
