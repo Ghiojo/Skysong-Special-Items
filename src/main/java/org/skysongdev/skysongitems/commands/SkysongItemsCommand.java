@@ -9,6 +9,7 @@ import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.traits.DetailsCommand;
 import org.skysongdev.skysongitems.commands.traits.TraitsCommand;
+import org.skysongdev.skysongitems.commands.transform.TransformationsCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
@@ -47,6 +48,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         SaveItem saveItem = new SaveItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
         FurnitureIdCommand furnitureIdCommand = new FurnitureIdCommand();
+        TransformationsCommand transformationsCommand = new TransformationsCommand();
 
         registerItemEdit(Subcommand.builder("disable", new DisableFunc()).alias("dis").playerOnly());
         // Each book subcommand checks its own permission; anyone may view a bound description.
@@ -68,5 +70,6 @@ public class SkysongItemsCommand extends SubcommandRouter {
         registerItemEdit(Subcommand.builder("cmd", customModelDataCommand).tabCompleter(customModelDataCommand).playerOnly());
         registerItemEdit(Subcommand.builder("furniture", furnitureIdCommand).alias("ceid")
                 .tabCompleter(furnitureIdCommand).playerOnly());
+        registerItemEdit(Subcommand.builder("transform", transformationsCommand).tabCompleter(transformationsCommand));
     }
 }

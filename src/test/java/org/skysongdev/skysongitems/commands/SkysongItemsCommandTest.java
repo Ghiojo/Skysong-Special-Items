@@ -46,7 +46,7 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
     private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
             "disable", "dis", "book", "updatelore", "tag", "trait", "prop", "property", "details", "update", "reload",
-            "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid");
+            "rename", "charges", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid", "transform");
     /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
     private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("book", "trait", "prop", "property", "details", "update");
 

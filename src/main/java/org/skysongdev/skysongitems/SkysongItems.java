@@ -2,6 +2,7 @@ package org.skysongdev.skysongitems;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongitems.apiimpl.SkysongItemsApiImpl;
@@ -21,6 +22,8 @@ import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.registration.RegistrationListener;
 import org.skysongdev.skysongitems.registration.RegistryLoader;
+import org.skysongdev.skysongitems.transform.TransformationLoader;
+import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
@@ -29,6 +32,7 @@ import org.skysongdev.skysongitems.utils.PermissionItemSync;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
+import java.io.File;
 import java.util.Optional;
 
 // Not final: MockBukkit loads a plugin through a generated subclass of its main class.
@@ -51,6 +55,8 @@ public class SkysongItems extends JavaPlugin {
     private PermissionItemListener permissionItemListener;
     // Null until the end of onEnable, and again after onDisable.
     private SkysongItemsApiImpl api;
+    // Empty until the registries are first loaded with other plugins' tags.
+    private TransformationRules transformations = TransformationRules.empty();
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -95,6 +101,27 @@ public class SkysongItems extends JavaPlugin {
      */
     public void reloadRegistries() {
         registryLoader.loadWithPlugins(getConfig(), this::useRegistries);
+        // The saved items the rules point to are read with the tags just registered.
+        reloadTransformations();
+    }
+
+    /** The transformations loaded from transformations.yml. */
+    public TransformationRules getTransformations() {
+        return transformations;
+    }
+
+    /**
+     * Re-reads transformations.yml and the saved items its rules point to, creating the
+     * file first if it does not exist. Called with every registry reload, and after
+     * {@code /si saveitem} so a re-saved form takes effect straight away.
+     */
+    public void reloadTransformations() {
+        File file = new File(getDataFolder(), TransformationLoader.FILE_NAME);
+        if (!file.exists()) {
+            saveResource(TransformationLoader.FILE_NAME, false);
+        }
+        transformations = new TransformationLoader(TransformationLoader.savedItemsOnDisk(), getLogger())
+                .load(YamlConfiguration.loadConfiguration(file));
     }
 
     // The registries are shared with the item editor and the API, so a load is copied into them.
