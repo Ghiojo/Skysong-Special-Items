@@ -14,19 +14,19 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * The one place that changes an item's charges, tags and properties. The
+ * The one place that changes an item's charges, tags and traits. The
  * commands and consumption all go through it, so a change is validated,
  * written and drawn into the lore the same way wherever it comes from.
  * <p>
  * Every method changes the given item in place: it copies the item's meta
- * once, makes the change and writes the meta back. Charges and property
+ * once, makes the change and writes the meta back. Charges and trait
  * changes then redraw the lore with {@link ItemLoreRenderer#refresh}; tag
  * changes leave the lore alone. An item without stored lore is never redrawn,
  * as there is nothing to draw it from.
  * <p>
  * {@link #silently()} returns an editor that makes the same changes and nothing
  * more, for items nobody holds: no events, no lore redraw, and no value tags set
- * for a printable property. {@link Effects} is the one place that says which of
+ * for a printable trait. {@link Effects} is the one place that says which of
  * the three an editor does.
  * <p>
  * Methods report what they did with a {@link Result}, and the caller decides
@@ -40,8 +40,8 @@ import java.util.function.Supplier;
  * holder and cause the events carry.
  */
 public final class ItemEditor {
-    /** The property every charged item carries, so its lore shows the charges. */
-    public static final String CHARGES_PROPERTY = "charges";
+    /** The trait every charged item carries, so its lore shows the charges. */
+    public static final String CHARGES_TRAIT = "charges";
 
     /** What an edit did. */
     public enum Result {
@@ -59,19 +59,19 @@ public final class ItemEditor {
         NOT_A_NUMBER,
         /** The tag holds true or false and the value is neither. */
         NOT_A_BOOLEAN,
-        /** No property is registered with this id. */
-        UNKNOWN_PROPERTY,
-        /** The item already has the property. */
+        /** No trait is registered with this id. */
+        UNKNOWN_TRAIT,
+        /** The item already has the trait. */
         ALREADY_PRESENT,
-        /** The item doesn't have the tag or property. */
+        /** The item doesn't have the tag or trait. */
         MISSING,
-        /** The item has no properties at all. */
-        NO_PROPERTIES
+        /** The item has no traits at all. */
+        NO_TRAITS
     }
 
     /**
      * What an edit does beyond storing the value: tell the server about it with the
-     * change events, show it in the item's lore, and give a printable property's value
+     * change events, show it in the item's lore, and give a printable trait's value
      * tags their empty value. An edit to an item nobody holds needs none of the three.
      */
     public record Effects(boolean fireEvents, boolean redrawLore, boolean initialiseValueTags) {
@@ -82,21 +82,21 @@ public final class ItemEditor {
     }
 
     private final TagRegistry tags;
-    private final PropertyRegistry properties;
+    private final TraitRegistry traits;
     private final ItemChangeEvents events;
     private final Player holder;
     private final ItemChangeCause cause;
     private final Effects effects;
 
     /** An editor whose changes fire their events as {@link ItemChangeCause#COMMAND} with no holder. */
-    public ItemEditor(TagRegistry tags, PropertyRegistry properties) {
-        this(tags, properties, new ItemChangeEvents(tags), null, ItemChangeCause.COMMAND, Effects.ALL);
+    public ItemEditor(TagRegistry tags, TraitRegistry traits) {
+        this(tags, traits, new ItemChangeEvents(tags), null, ItemChangeCause.COMMAND, Effects.ALL);
     }
 
-    private ItemEditor(TagRegistry tags, PropertyRegistry properties, ItemChangeEvents events,
+    private ItemEditor(TagRegistry tags, TraitRegistry traits, ItemChangeEvents events,
                        Player holder, ItemChangeCause cause, Effects effects) {
         this.tags = Objects.requireNonNull(tags, "tags");
-        this.properties = Objects.requireNonNull(properties, "properties");
+        this.traits = Objects.requireNonNull(traits, "properties");
         this.events = events;
         this.holder = holder;
         this.cause = Objects.requireNonNull(cause, "cause");
@@ -109,15 +109,15 @@ public final class ItemEditor {
      * @param holder the player holding the edited items, or null when unknown
      */
     public ItemEditor editedBy(@Nullable Player holder, ItemChangeCause cause) {
-        return new ItemEditor(tags, properties, events, holder, cause, effects);
+        return new ItemEditor(tags, traits, events, holder, cause, effects);
     }
 
     /**
      * An editor for items nobody holds, which makes the same changes and nothing more:
-     * no change events, no lore redraw, and no value tags set for a printable property.
+     * no change events, no lore redraw, and no value tags set for a printable trait.
      */
     public ItemEditor silently() {
-        return new ItemEditor(tags, properties, events, holder, cause, Effects.NONE);
+        return new ItemEditor(tags, traits, events, holder, cause, Effects.NONE);
     }
 
     /** An editor for a {@code /si} command run by this player, holding the item they edit. */
@@ -127,7 +127,7 @@ public final class ItemEditor {
 
     /**
      * Sets the item's charges, capped at its max charges. An item without max
-     * charges gets this amount as its max and the charges property.
+     * charges gets this amount as its max and the charges trait.
      *
      * @return {@link Result#INVALID_AMOUNT} for a negative amount, otherwise {@link Result#DONE}
      */
@@ -143,7 +143,7 @@ public final class ItemEditor {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         if (!container.has(ItemKeys.MAX_CHARGES)) {
             container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, charges);
-            addChargesProperty(container);
+            addChargesTrait(container);
         }
         int maxCharges = container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
         container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, Math.min(charges, maxCharges));
@@ -154,7 +154,7 @@ public final class ItemEditor {
     /**
      * Sets the item's max charges. Charges the item already has are kept, even
      * above the new max. An item without charges gets this amount as its charges
-     * and the charges property.
+     * and the charges trait.
      *
      * @return {@link Result#INVALID_AMOUNT} for an amount under 1, otherwise {@link Result#DONE}
      */
@@ -170,7 +170,7 @@ public final class ItemEditor {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         if (!container.has(ItemKeys.CHARGES)) {
             container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, maxCharges);
-            addChargesProperty(container);
+            addChargesTrait(container);
         }
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, maxCharges);
         saveAndRedraw(item, meta);
@@ -219,7 +219,7 @@ public final class ItemEditor {
         });
     }
 
-    /** Takes the item's charges, max charges and charges property off it. */
+    /** Takes the item's charges, max charges and charges trait off it. */
     public void removeCharges(ItemStack item) {
         tracked(item, () -> applyRemoveCharges(item));
     }
@@ -229,11 +229,11 @@ public final class ItemEditor {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.remove(ItemKeys.CHARGES);
         container.remove(ItemKeys.MAX_CHARGES);
-        // The lore redraw skips items without properties, so clear the charges
-        // line here when charges was the last property.
+        // The lore redraw skips items without traits, so clear the charges
+        // line here when charges was the last trait.
         ItemData data = new ItemData(container);
-        if (data.removeProperty(CHARGES_PROPERTY) && !data.hasProperties()) {
-            clearPropertyLore(meta);
+        if (data.removeTrait(CHARGES_TRAIT) && !data.hasTraits()) {
+            clearTraitLore(meta);
         }
         saveAndRedraw(item, meta);
         return Result.DONE;
@@ -319,29 +319,29 @@ public final class ItemEditor {
     }
 
     /**
-     * Adds a registered property to the item. For a printable property, each of
+     * Adds a registered trait to the item. For a printable trait, each of
      * its value tags is set to its type's empty value (0, 0.0, false or an empty
      * text), replacing any value already there.
      *
-     * @return {@link Result#UNKNOWN_PROPERTY} for an unregistered property,
+     * @return {@link Result#UNKNOWN_TRAIT} for an unregistered trait,
      *         {@link Result#ALREADY_PRESENT} when the item has it, otherwise {@link Result#DONE}
      */
-    public Result addProperty(ItemStack item, String propertyId) {
-        return tracked(item, () -> applyAddProperty(item, propertyId));
+    public Result addTrait(ItemStack item, String traitId) {
+        return tracked(item, () -> applyAddTrait(item, traitId));
     }
 
-    private Result applyAddProperty(ItemStack item, String propertyId) {
-        if (!properties.contains(propertyId)) {
-            return Result.UNKNOWN_PROPERTY;
+    private Result applyAddTrait(ItemStack item, String traitId) {
+        if (!traits.contains(traitId)) {
+            return Result.UNKNOWN_TRAIT;
         }
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         ItemData data = new ItemData(container);
-        if (data.hasProperty(propertyId)) {
+        if (data.hasTrait(traitId)) {
             return Result.ALREADY_PRESENT;
         }
-        data.addProperty(propertyId);
-        if (effects.initialiseValueTags() && properties.get(propertyId) instanceof PrintableProperty printable) {
+        data.addTrait(traitId);
+        if (effects.initialiseValueTags() && traits.get(traitId) instanceof PrintableTrait printable) {
             for (String valueTag : printable.getValuetags()) {
                 NamespacedKey key = ItemKeys.named(valueTag);
                 TagValues.writeEmpty(container, key, tags.getType(key));
@@ -352,29 +352,29 @@ public final class ItemEditor {
     }
 
     /**
-     * Removes a property from the item, whether or not it is still registered.
-     * Removing the last one also takes the property lines and tags out of the
+     * Removes a trait from the item, whether or not it is still registered.
+     * Removing the last one also takes the trait lines and tags out of the
      * lore and name.
      *
-     * @return {@link Result#NO_PROPERTIES} for an item without properties,
+     * @return {@link Result#NO_TRAITS} for an item without traits,
      *         {@link Result#MISSING} when the item doesn't have this one,
      *         otherwise {@link Result#DONE}
      */
-    public Result removeProperty(ItemStack item, String propertyId) {
-        return tracked(item, () -> applyRemoveProperty(item, propertyId));
+    public Result removeTrait(ItemStack item, String traitId) {
+        return tracked(item, () -> applyRemoveTrait(item, traitId));
     }
 
-    private Result applyRemoveProperty(ItemStack item, String propertyId) {
+    private Result applyRemoveTrait(ItemStack item, String traitId) {
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);
-        if (!data.hasProperties()) {
-            return Result.NO_PROPERTIES;
+        if (!data.hasTraits()) {
+            return Result.NO_TRAITS;
         }
-        if (!data.removeProperty(propertyId)) {
+        if (!data.removeTrait(traitId)) {
             return Result.MISSING;
         }
-        if (!data.hasProperties()) {
-            clearPropertyLore(meta);
+        if (!data.hasTraits()) {
+            clearTraitLore(meta);
         }
         saveAndRedraw(item, meta);
         return Result.DONE;
@@ -403,10 +403,10 @@ public final class ItemEditor {
         return Boolean.FALSE.equals(container.get(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN));
     }
 
-    private static void addChargesProperty(PersistentDataContainer container) {
+    private static void addChargesTrait(PersistentDataContainer container) {
         ItemData data = new ItemData(container);
-        if (!data.hasProperty(CHARGES_PROPERTY)) {
-            data.addProperty(CHARGES_PROPERTY);
+        if (!data.hasTrait(CHARGES_TRAIT)) {
+            data.addTrait(CHARGES_TRAIT);
         }
     }
 
@@ -418,10 +418,10 @@ public final class ItemEditor {
         }
     }
 
-    /** Clears the lore lines a property drew, for an item that just lost its last property. */
-    private void clearPropertyLore(ItemMeta meta) {
+    /** Clears the lore lines a trait drew, for an item that just lost its last trait. */
+    private void clearTraitLore(ItemMeta meta) {
         if (effects.redrawLore()) {
-            ItemLoreRenderer.renderWithoutProperties(meta);
+            ItemLoreRenderer.renderWithoutTraits(meta);
         }
     }
 }

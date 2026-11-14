@@ -18,8 +18,8 @@ import java.util.Optional;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class BreweryPrintableProperty extends PrintableProperty{
-    public BreweryPrintableProperty(String id, String type, String item, String name, String description, String printable, ArrayList<String> valuetags, int weight) {
+public class BreweryPrintableTrait extends PrintableTrait{
+    public BreweryPrintableTrait(String id, String type, String item, String name, String description, String printable, ArrayList<String> valuetags, int weight) {
         super(id, type, item, name, description, printable, valuetags, weight);
     }
 

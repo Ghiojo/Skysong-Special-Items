@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -24,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Tests {@code /si details}. The bundled config.yml defines the base property
- * {@code test} ("Test") and the printable property {@code charges} ("Charges").
+ * Tests {@code /si details}. The bundled config.yml defines the base trait
+ * {@code test} ("Test") and the printable trait {@code charges} ("Charges").
  */
 class DetailsCommandTest extends MockBukkitTest {
     private final DetailsCommand detailsCommand = new DetailsCommand();
@@ -46,7 +46,7 @@ class DetailsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void itemWithoutPropertiesSaysSo() {
+    void itemWithoutTraitsSaysSo() {
         player.getInventory().setItemInMainHand(new ItemStack(Material.STONE));
 
         run();
@@ -56,8 +56,8 @@ class DetailsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void listsEachPropertyByNameSeparatedByCommas() {
-        player.getInventory().setItemInMainHand(itemWithProperties("test", "charges"));
+    void listsEachTraitByNameSeparatedByCommas() {
+        player.getInventory().setItemInMainHand(itemWithTraits("test", "charges"));
 
         run();
 
@@ -67,7 +67,7 @@ class DetailsCommandTest extends MockBukkitTest {
 
     @Test
     void hoverShowsTheTypeAndDescription() {
-        player.getInventory().setItemInMainHand(itemWithProperties("test"));
+        player.getInventory().setItemInMainHand(itemWithTraits("test"));
 
         run();
         player.nextComponentMessage();
@@ -76,8 +76,8 @@ class DetailsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void propertyNoLongerInTheConfigIsLeftOut() {
-        player.getInventory().setItemInMainHand(itemWithProperties("removed", "test"));
+    void traitNoLongerInTheConfigIsLeftOut() {
+        player.getInventory().setItemInMainHand(itemWithTraits("removed", "test"));
 
         run();
 
@@ -86,18 +86,18 @@ class DetailsCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void itemWithOnlyUnknownPropertiesSaysItHasNone() {
-        player.getInventory().setItemInMainHand(itemWithProperties("removed"));
+    void itemWithOnlyUnknownTraitsSaysItHasNone() {
+        player.getInventory().setItemInMainHand(itemWithTraits("removed"));
 
         run();
 
         assertEquals("This item has no properties.", player.nextMessage());
     }
 
-    private static ItemStack itemWithProperties(String... propertyIds) {
+    private static ItemStack itemWithTraits(String... traitIds) {
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
-        ItemData.from(meta).setProperties(List.of(propertyIds));
+        ItemData.from(meta).setTraits(List.of(traitIds));
         item.setItemMeta(meta);
         return item;
     }

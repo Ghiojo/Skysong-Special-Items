@@ -8,10 +8,10 @@ import org.skysongdev.skysongitems.api.PropertyDefinition;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
 import org.skysongdev.skysongitems.utils.ItemKeys;
-import org.skysongdev.skysongitems.utils.PrintableProperty;
-import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.PropertyRegistry;
-import org.skysongdev.skysongitems.utils.RenameProperty;
+import org.skysongdev.skysongitems.utils.PrintableTrait;
+import org.skysongdev.skysongitems.utils.Trait;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
+import org.skysongdev.skysongitems.utils.RenameTrait;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 import org.skysongdev.skysongitems.utils.TagTypes;
 
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
- * Checks and adds the tags and properties other plugins register during
+ * Checks and adds the tags and traits other plugins register during
  * {@link SkysongItemsRegisterEvent}, to registries that are not in use yet. A refused
  * registration logs a warning naming the plugins involved and never stops the others.
  */
@@ -30,12 +30,12 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     private static final Pattern VALID_ID = Pattern.compile("[a-z0-9_.-]+");
 
     private final TagRegistry tags;
-    private final PropertyRegistry properties;
+    private final TraitRegistry traits;
     private final Logger logger;
 
-    PluginRegistrar(TagRegistry tags, PropertyRegistry properties, Logger logger) {
+    PluginRegistrar(TagRegistry tags, TraitRegistry traits, Logger logger) {
         this.tags = tags;
-        this.properties = properties;
+        this.traits = traits;
         this.logger = logger;
     }
 
@@ -83,21 +83,21 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
         if (!isValidId(owner, "property", id)) {
             return false;
         }
-        if (properties.contains(id)) {
-            return handleExistingProperty(owner, id);
+        if (traits.contains(id)) {
+            return handleExistingTrait(owner, id);
         }
         for (String valueTag : definition.valueTags()) {
             if (!tags.contains(ItemKeys.named(valueTag))) {
                 return refuse(owner, "property", id, "its value tag " + valueTag + " is not registered");
             }
         }
-        properties.register(toProperty(definition), owner.getName());
+        traits.register(toTrait(definition), owner.getName());
         return true;
     }
 
-    /** A property config.yml already defines is kept as it is; one another plugin registered is refused. */
-    private boolean handleExistingProperty(Plugin owner, String id) {
-        String existingOwner = properties.ownerOf(id);
+    /** A trait config.yml already defines is kept as it is; one another plugin registered is refused. */
+    private boolean handleExistingTrait(Plugin owner, String id) {
+        String existingOwner = traits.ownerOf(id);
         if (existingOwner != null) {
             return refuse(owner, "property", id, "it is already registered by " + existingOwner);
         }
@@ -105,15 +105,15 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
         return true;
     }
 
-    private static Property toProperty(PropertyDefinition definition) {
+    private static Trait toTrait(PropertyDefinition definition) {
         String icon = definition.icon().name();
         return switch (definition.kind()) {
-            case BASE -> new Property(definition.id(), definition.category(), icon, definition.name(),
+            case BASE -> new Trait(definition.id(), definition.category(), icon, definition.name(),
                     definition.description());
-            case PRINTABLE -> new PrintableProperty(definition.id(), definition.category(), icon, definition.name(),
+            case PRINTABLE -> new PrintableTrait(definition.id(), definition.category(), icon, definition.name(),
                     definition.description(), definition.template(), new ArrayList<>(definition.valueTags()),
                     definition.weight());
-            case RENAME -> new RenameProperty(definition.id(), definition.category(), icon, definition.name(),
+            case RENAME -> new RenameTrait(definition.id(), definition.category(), icon, definition.name(),
                     definition.description(), definition.template());
         };
     }

@@ -21,19 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The charges and properties reads, with the properties in the bundled config.yml (test, charges, spell). */
-class ItemChargeAndPropertyReaderTest extends MockBukkitTest {
+/** The charges and traits reads, with the traits in the bundled config.yml (test, charges, spell). */
+class ItemChargeAndTraitReaderTest extends MockBukkitTest {
     private ItemCharges charges;
-    private ItemProperties properties;
+    private ItemProperties traits;
 
     @BeforeEach
     void enablePlugin() {
         MockBukkit.load(SkysongItems.class);
         charges = SkysongItemsApi.get().charges();
-        properties = SkysongItemsApi.get().properties();
+        traits = SkysongItemsApi.get().properties();
     }
 
-    private static ItemStack withProperties(String stored) {
+    private static ItemStack withTraits(String stored) {
         return TaggedItems.stones(1).with(ItemKeys.PROPERTIES, PersistentDataType.STRING, stored).build();
     }
 
@@ -59,27 +59,27 @@ class ItemChargeAndPropertyReaderTest extends MockBukkitTest {
     }
 
     @Test
-    void propertiesAreReadInOrderSkippingBlanks() {
-        ItemStack item = withProperties("charges;;spell");
+    void traitsAreReadInOrderSkippingBlanks() {
+        ItemStack item = withTraits("charges;;spell");
 
-        assertEquals(List.of("charges", "spell"), properties.get(item));
-        assertTrue(properties.has(item, "spell"));
-        assertFalse(properties.has(item, "spel"));
+        assertEquals(List.of("charges", "spell"), traits.get(item));
+        assertTrue(traits.has(item, "spell"));
+        assertFalse(traits.has(item, "spel"));
     }
 
     @Test
-    void propertiesOfAnItemWithoutAnyAreEmptyAndCannotBeChanged() {
-        List<String> none = properties.get(TaggedItems.stones(1).build());
+    void traitsOfAnItemWithoutAnyAreEmptyAndCannotBeChanged() {
+        List<String> none = traits.get(TaggedItems.stones(1).build());
 
         assertTrue(none.isEmpty());
-        assertTrue(properties.get(null).isEmpty());
+        assertTrue(traits.get(null).isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> none.add("spell"));
     }
 
     @Test
-    void configuredPropertiesExist() {
-        assertTrue(properties.exists("Spell"));
-        assertFalse(properties.exists("missing"));
-        assertEquals(List.of("test", "charges", "spell"), List.copyOf(properties.ids()));
+    void configuredTraitsExist() {
+        assertTrue(traits.exists("Spell"));
+        assertFalse(traits.exists("missing"));
+        assertEquals(List.of("test", "charges", "spell"), List.copyOf(traits.ids()));
     }
 }

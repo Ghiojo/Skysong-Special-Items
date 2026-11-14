@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,17 +21,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PropertiesCommandTest extends MockBukkitTest {
-    private final RecordingAddProperty addProperty = new RecordingAddProperty();
-    private final RecordingRemoveProperty removeProperty = new RecordingRemoveProperty();
-    private PropertiesCommand propertiesCommand;
+class TraitsCommandTest extends MockBukkitTest {
+    private final RecordingAddTrait addTrait = new RecordingAddTrait();
+    private final RecordingRemoveTrait removeTrait = new RecordingRemoveTrait();
+    private TraitsCommand traitsCommand;
     private PlayerMock player;
 
     @BeforeEach
     void setUp() {
-        propertiesCommand = new PropertiesCommand(addProperty, removeProperty, new ViewProperties());
+        traitsCommand = new TraitsCommand(addTrait, removeTrait, new ViewTraits());
         player = server.addPlayer();
-        player.addAttachment(MockBukkit.createMockPlugin(), PropertiesCommand.EDIT_PERMISSION, true);
+        player.addAttachment(MockBukkit.createMockPlugin(), TraitsCommand.EDIT_PERMISSION, true);
     }
 
     @Test
@@ -40,8 +40,8 @@ class PropertiesCommandTest extends MockBukkitTest {
             assertNotNull(stream, "plugin.yml should be on the classpath");
             try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                 YamlConfiguration pluginYml = YamlConfiguration.loadConfiguration(reader);
-                assertTrue(pluginYml.isConfigurationSection("permissions." + PropertiesCommand.EDIT_PERMISSION),
-                        PropertiesCommand.EDIT_PERMISSION + " should be declared under permissions in plugin.yml");
+                assertTrue(pluginYml.isConfigurationSection("permissions." + TraitsCommand.EDIT_PERMISSION),
+                        TraitsCommand.EDIT_PERMISSION + " should be declared under permissions in plugin.yml");
             }
         }
     }
@@ -50,22 +50,22 @@ class PropertiesCommandTest extends MockBukkitTest {
     void addRunsForPlayerWithTheDeclaredPermission() {
         run("add", "glowing");
 
-        assertEquals(List.of(List.of("glowing")), addProperty.calls);
+        assertEquals(List.of(List.of("glowing")), addTrait.calls);
     }
 
     @Test
     void removeRunsForPlayerWithTheDeclaredPermission() {
         run("remove", "glowing");
 
-        assertEquals(List.of(List.of("glowing")), removeProperty.calls);
+        assertEquals(List.of(List.of("glowing")), removeTrait.calls);
     }
 
     private void run(String... args) {
-        propertiesCommand.onCommand(player, new StubCommand(), "properties", args);
+        traitsCommand.onCommand(player, new StubCommand(), "properties", args);
     }
 
     /** Records the arguments of every call instead of editing the held item. */
-    private static final class RecordingAddProperty extends AddProperty {
+    private static final class RecordingAddTrait extends AddTrait {
         private final List<List<String>> calls = new ArrayList<>();
 
         @Override
@@ -76,7 +76,7 @@ class PropertiesCommandTest extends MockBukkitTest {
     }
 
     /** Records the arguments of every call instead of editing the held item. */
-    private static final class RecordingRemoveProperty extends RemoveProperty {
+    private static final class RecordingRemoveTrait extends RemoveTrait {
         private final List<List<String>> calls = new ArrayList<>();
 
         @Override

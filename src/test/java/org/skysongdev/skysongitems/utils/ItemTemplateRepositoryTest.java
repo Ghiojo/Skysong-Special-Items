@@ -92,7 +92,7 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
         assertEquals(List.of("physical", "functional", "skill"), loaded.getLore());
         assertEquals("STONE", loaded.getType());
         assertEquals("1,3", loaded.getDeleted());
-        assertEquals("charges", loaded.getProperties());
+        assertEquals("charges", loaded.getTraits());
     }
 
     @Test
@@ -119,7 +119,7 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
     }
 
     @Test
-    void missingDeletedLinesAndPropertiesLoadAsEmpty() throws IOException {
+    void missingDeletedLinesAndTraitsLoadAsEmpty() throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("name", NAME);
         yaml.set("type", "STONE");
@@ -128,7 +128,7 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
         SkysongItem loaded = ItemTemplateRepository.load(savedFile());
 
         assertEquals("", loaded.getDeleted());
-        assertEquals("", loaded.getProperties());
+        assertEquals("", loaded.getTraits());
     }
 
     @Test

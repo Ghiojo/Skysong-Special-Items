@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Tests {@code /si update}. The bundled config.yml defines a base property
+ * Tests {@code /si update}. The bundled config.yml defines a base trait
  * {@code test} named "Test", which the command used to add to any item whose
  * functional lore contained that word.
  */
@@ -60,21 +60,21 @@ class UpdateItemTest extends MockBukkitTest {
     }
 
     @Test
-    void doesNotAddAPropertyNamedInTheFunctionalLore() {
+    void doesNotAddATraitNamedInTheFunctionalLore() {
         player.getInventory().setItemInMainHand(itemWithFunctionalLore("Test"));
 
         run();
 
-        assertNull(heldItemData().getPropertiesText());
+        assertNull(heldItemData().getTraitsText());
     }
 
     @Test
-    void doesNotAddAPropertyWhoseNameIsPartOfAWord() {
+    void doesNotAddATraitWhoseNameIsPartOfAWord() {
         player.getInventory().setItemInMainHand(itemWithFunctionalLore("A testing ground"));
 
         run();
 
-        assertNull(heldItemData().getPropertiesText());
+        assertNull(heldItemData().getTraitsText());
     }
 
     @Test

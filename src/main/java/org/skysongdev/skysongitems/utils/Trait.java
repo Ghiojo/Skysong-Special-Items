@@ -2,14 +2,14 @@ package org.skysongdev.skysongitems.utils;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-public class Property {
+public class Trait {
     private String id;
     private String type;
     private ItemStack item;
     private String name;
     private String description;
 
-    public Property(String id, String type, String item, String name, String description) {
+    public Trait(String id, String type, String item, String name, String description) {
         this.id = id;
         this.type = type;
         Material mat = Material.getMaterial(item);

@@ -100,7 +100,7 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
     }
 
     @Test
-    void breweryPropertiesAreLeftOutOfTheLoreWithoutTheBrewingProject() {
+    void breweryTraitsAreLeftOutOfTheLoreWithoutTheBrewingProject() {
         FileConfiguration config = plugin.getConfig();
         config.set("properties.brew_quality.type", "breweryprintable");
         config.set("properties.brew_quality.proptype", "quality");
@@ -109,12 +109,12 @@ class WithoutSoftDependenciesTest extends MockBukkitTest {
         config.set("properties.brew_quality.description", "Brew quality");
         config.set("properties.brew_quality.printable", "Quality: ;!");
         config.set("properties.brew_quality.weight", 1);
-        plugin.getPropertyRegistry().load(config, plugin.getLogger());
+        plugin.getTraitRegistry().load(config, plugin.getLogger());
         ItemStack item = new ItemStack(Material.POTION);
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);
         data.setLoreSections(List.of("physical", "functional", "skill"));
-        data.setPropertiesText("brew_quality");
+        data.setTraitsText("brew_quality");
         item.setItemMeta(meta);
 
         ItemStack updated = assertDoesNotThrow(() -> ItemLoreRenderer.refresh(item));

@@ -7,8 +7,8 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.skysongdev.skysongitems.SkysongItems;
 
 /**
- * Asks other plugins for their tags and properties once every plugin has enabled, and
- * drops a plugin's tags and properties as soon as it is disabled.
+ * Asks other plugins for their tags and traits once every plugin has enabled, and
+ * drops a plugin's tags and traits as soon as it is disabled.
  */
 public final class RegistrationListener implements Listener {
     private final SkysongItems plugin;
@@ -33,6 +33,6 @@ public final class RegistrationListener implements Listener {
         }
         String owner = event.getPlugin().getName();
         plugin.getTagRegistry().removeOwnedBy(owner);
-        plugin.getPropertyRegistry().removeOwnedBy(owner);
+        plugin.getTraitRegistry().removeOwnedBy(owner);
     }
 }

@@ -27,14 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests {@code /si charges remove}. It used to leave the "[Charges: x/y]" lore
- * line behind when charges was the item's last property, because the lore
- * refresh after an edit leaves items without properties alone. Uses the
- * properties configured in the bundled config.yml: "test" (base) and
+ * line behind when charges was the item's last trait, because the lore
+ * refresh after an edit leaves items without traits alone. Uses the
+ * traits configured in the bundled config.yml: "test" (base) and
  * "charges" (printable, "[Charges: $1/$2]").
  */
 class RemoveChargesTest extends MockBukkitTest {
     private static final List<String> SECTIONS = List.of("physical", "functional", "skill");
-    private static final List<String> LORE_WITHOUT_PROPERTIES = List.of("physical", "", "functional", "", "skill");
+    private static final List<String> LORE_WITHOUT_TRAITS = List.of("physical", "", "functional", "", "skill");
 
     private PlayerMock player;
 
@@ -48,7 +48,7 @@ class RemoveChargesTest extends MockBukkitTest {
      * Puts in the player's hand an item at the current version, so the lore
      * updater leaves it alone, with 3 of 5 charges and its lore already rendered.
      */
-    private void holdChargedItemWithProperties(String properties) {
+    private void holdChargedItemWithTraits(String traits) {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
@@ -57,7 +57,7 @@ class RemoveChargesTest extends MockBukkitTest {
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 5);
         ItemData data = ItemData.from(meta);
         data.setLoreSections(SECTIONS);
-        data.setPropertiesText(properties);
+        data.setTraitsText(traits);
         item.setItemMeta(meta);
         player.getInventory().setItemInMainHand(ItemLoreRenderer.refresh(item));
     }
@@ -79,21 +79,21 @@ class RemoveChargesTest extends MockBukkitTest {
     }
 
     @Test
-    void removingChargesWhenItIsTheLastPropertyRemovesItsLoreLine() {
-        holdChargedItemWithProperties("charges");
+    void removingChargesWhenItIsTheLastTraitRemovesItsLoreLine() {
+        holdChargedItemWithTraits("charges");
 
         removeCharges();
 
-        assertEquals(LORE_WITHOUT_PROPERTIES, heldLore());
+        assertEquals(LORE_WITHOUT_TRAITS, heldLore());
     }
 
     @Test
-    void removingChargesKeepsTheOtherPropertiesAndDropsItsLoreLine() {
-        holdChargedItemWithProperties("charges;test");
+    void removingChargesKeepsTheOtherTraitsAndDropsItsLoreLine() {
+        holdChargedItemWithTraits("charges;test");
 
         removeCharges();
 
-        assertEquals(List.of("test"), ItemData.from(heldMeta()).getProperties());
+        assertEquals(List.of("test"), ItemData.from(heldMeta()).getTraits());
         assertEquals(List.of("physical", "", "functional", "", "skill", ""), heldLore());
     }
 

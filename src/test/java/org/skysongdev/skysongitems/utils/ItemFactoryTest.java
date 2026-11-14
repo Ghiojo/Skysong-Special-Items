@@ -40,9 +40,9 @@ class ItemFactoryTest extends MockBukkitTest {
         plugin.getTagRegistry().load(config, plugin.getLogger());
     }
 
-    private static SkysongItem template(String deleted, String properties, Map<NamespacedKey, String> tagValues) {
+    private static SkysongItem template(String deleted, String traits, Map<NamespacedKey, String> tagValues) {
         return new SkysongItem("Sword", new ArrayList<>(List.of("physical", "functional", "skill")),
-                "IRON_SWORD", null, deleted, properties, tagValues);
+                "IRON_SWORD", null, deleted, traits, tagValues);
     }
 
     private static ItemMeta applied(SkysongItem template) {
@@ -90,18 +90,18 @@ class ItemFactoryTest extends MockBukkitTest {
     }
 
     @Test
-    void emptyDeletedLinesAndPropertiesAreNotStored() {
+    void emptyDeletedLinesAndTraitsAreNotStored() {
         ItemMeta meta = applied(template("", "", Map.of()));
 
         assertFalse(ItemData.from(meta).hasDeletedLines());
-        assertFalse(ItemData.from(meta).hasProperties());
+        assertFalse(ItemData.from(meta).hasTraits());
     }
 
     @Test
-    void propertiesAreStored() {
+    void traitsAreStored() {
         ItemMeta meta = applied(template("", "charges;spell", Map.of()));
 
-        assertEquals(List.of("charges", "spell"), ItemData.from(meta).getProperties());
+        assertEquals(List.of("charges", "spell"), ItemData.from(meta).getTraits());
     }
 
     @Test

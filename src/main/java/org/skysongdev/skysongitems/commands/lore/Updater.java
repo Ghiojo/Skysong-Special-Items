@@ -78,7 +78,7 @@ public class Updater {
 
 
         if(bufferDataContainer.has(ItemKeys.CHARGES)){
-            data.setProperties(List.of("charges"));
+            data.setTraits(List.of("charges"));
         }
         newItem.setItemMeta(buffer);
 

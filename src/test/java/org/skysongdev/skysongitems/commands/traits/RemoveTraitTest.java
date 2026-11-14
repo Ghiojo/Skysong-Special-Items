@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -26,15 +26,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Tests {@code /properties remove}. Uses the properties configured in the
+ * Tests {@code /properties remove}. Uses the traits configured in the
  * bundled config.yml: "test" (base), "charges" (printable, "[Charges: $1/$2]")
  * and "spell" (rename, "[Spell]").
  */
-class RemovePropertyTest extends MockBukkitTest {
+class RemoveTraitTest extends MockBukkitTest {
     private static final List<String> SECTIONS = List.of("physical", "functional", "skill");
-    private static final List<String> LORE_WITHOUT_PROPERTIES = List.of("physical", "", "functional", "", "skill");
+    private static final List<String> LORE_WITHOUT_TRAITS = List.of("physical", "", "functional", "", "skill");
 
-    private final RemoveProperty removeProperty = new RemoveProperty();
+    private final RemoveTrait removeTrait = new RemoveTrait();
     private PlayerMock player;
 
     @BeforeEach
@@ -47,7 +47,7 @@ class RemovePropertyTest extends MockBukkitTest {
      * Puts in the player's hand an item at the current version, so the lore
      * updater leaves it alone, with its lore and name already rendered.
      */
-    private void holdItemWithProperties(String properties) {
+    private void holdItemWithTraits(String traits) {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
@@ -57,7 +57,7 @@ class RemovePropertyTest extends MockBukkitTest {
         container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 5);
         ItemData data = ItemData.from(meta);
         data.setLoreSections(SECTIONS);
-        data.setPropertiesText(properties);
+        data.setTraitsText(traits);
         item.setItemMeta(meta);
         player.getInventory().setItemInMainHand(ItemLoreRenderer.refresh(item));
     }
@@ -67,29 +67,29 @@ class RemovePropertyTest extends MockBukkitTest {
     }
 
     private List<String> heldLore() {
-        return heldMeta().lore().stream().map(RemovePropertyTest::plain).toList();
+        return heldMeta().lore().stream().map(RemoveTraitTest::plain).toList();
     }
 
     private static String plain(Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component);
     }
 
-    private void remove(String propertyId) {
-        removeProperty.onCommand(player, new StubCommand(), "properties", new String[]{propertyId});
+    private void remove(String traitId) {
+        removeTrait.onCommand(player, new StubCommand(), "properties", new String[]{traitId});
     }
 
     @Test
-    void removingTheLastPropertyLeavesNoBlankLoreLine() {
-        holdItemWithProperties("test");
+    void removingTheLastTraitLeavesNoBlankLoreLine() {
+        holdItemWithTraits("test");
 
         remove("test");
 
-        assertEquals(LORE_WITHOUT_PROPERTIES, heldLore());
+        assertEquals(LORE_WITHOUT_TRAITS, heldLore());
     }
 
     @Test
-    void removingTheLastRenamePropertyRemovesItsTag() {
-        holdItemWithProperties("spell");
+    void removingTheLastRenameTraitRemovesItsTag() {
+        holdItemWithTraits("spell");
 
         remove("spell");
 
@@ -97,12 +97,12 @@ class RemovePropertyTest extends MockBukkitTest {
     }
 
     @Test
-    void removingOnePropertyKeepsTheOthersAndTheirLore() {
-        holdItemWithProperties("charges;test");
+    void removingOneTraitKeepsTheOthersAndTheirLore() {
+        holdItemWithTraits("charges;test");
 
         remove("test");
 
-        assertEquals(List.of("charges"), ItemData.from(heldMeta()).getProperties());
+        assertEquals(List.of("charges"), ItemData.from(heldMeta()).getTraits());
         assertEquals(List.of("physical", "", "functional", "", "skill", "", "[Charges: 3/5]"), heldLore());
     }
 

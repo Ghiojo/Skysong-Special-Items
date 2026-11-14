@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Tests for {@code /si reload} re-reading properties and tags from config.yml and permissions from materials.yml. */
+/** Tests for {@code /si reload} re-reading traits and tags from config.yml and permissions from materials.yml. */
 class ReloadCommandTest extends MockBukkitTest {
     private SkysongItems plugin;
     private PlayerMock player;
@@ -34,7 +34,7 @@ class ReloadCommandTest extends MockBukkitTest {
         new ReloadCommand().onCommand(player, command, "si", new String[0]);
     }
 
-    /** Writes a config.yml with one extra property and one extra tag next to the bundled ones. */
+    /** Writes a config.yml with one extra trait and one extra tag next to the bundled ones. */
     private void saveConfigWithAdditions() {
         FileConfiguration config = plugin.getConfig();
         config.set("properties.added.type", "base");
@@ -48,15 +48,15 @@ class ReloadCommandTest extends MockBukkitTest {
     }
 
     @Test
-    void reloadLoadsPropertiesAndTagsSavedToConfig() {
+    void reloadLoadsTraitsAndTagsSavedToConfig() {
         saveConfigWithAdditions();
         player.addAttachment(plugin, "skysongitems.reload", true);
 
         runReload();
 
-        assertTrue(plugin.getPropertyRegistry().contains("added"));
+        assertTrue(plugin.getTraitRegistry().contains("added"));
         assertTrue(plugin.getTagRegistry().contains("added_tag"));
-        assertTrue(plugin.getPropertyRegistry().contains("charges"));
+        assertTrue(plugin.getTraitRegistry().contains("charges"));
     }
 
     @Test
@@ -65,7 +65,7 @@ class ReloadCommandTest extends MockBukkitTest {
 
         runReload();
 
-        assertFalse(plugin.getPropertyRegistry().contains("added"));
+        assertFalse(plugin.getTraitRegistry().contains("added"));
         assertFalse(plugin.getTagRegistry().contains("added_tag"));
     }
 

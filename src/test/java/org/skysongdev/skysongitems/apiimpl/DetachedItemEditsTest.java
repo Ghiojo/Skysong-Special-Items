@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Writes through {@code detached()}, for items nobody holds: they store the value and
  * nothing else. Uses the bundled config.yml, where "arcrot" is an int tag and "charges"
- * a printable property over the charges and max_charges value tags.
+ * a printable trait over the charges and max_charges value tags.
  */
 class DetachedItemEditsTest extends MockBukkitTest {
     private SkysongItemsApi api;
@@ -92,7 +92,7 @@ class DetachedItemEditsTest extends MockBukkitTest {
     }
 
     @Test
-    void addingAPropertyLeavesItsValueTagsAlone() {
+    void addingATraitLeavesItsValueTagsAlone() {
         ItemStack item = skysongItem();
 
         assertTrue(detached.properties().add(item, "charges"));
@@ -103,7 +103,7 @@ class DetachedItemEditsTest extends MockBukkitTest {
     }
 
     @Test
-    void addingAPropertyHeldStillSetsItsValueTags() {
+    void addingATraitHeldStillSetsItsValueTags() {
         ItemStack item = skysongItem();
 
         assertTrue(api.properties().add(item, "charges"));

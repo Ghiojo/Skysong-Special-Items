@@ -14,7 +14,7 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 /**
  * {@code /si update}: brings the held item up to the current item version and
- * redraws its lore. Properties are not touched; they are added with {@code /si prop}.
+ * redraws its lore. Traits are not touched; they are added with {@code /si prop}.
  */
 public class UpdateItem implements CommandExecutor {
     @Override

@@ -1,4 +1,4 @@
-package org.skysongdev.skysongitems.commands.properties;
+package org.skysongdev.skysongitems.commands.traits;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -9,14 +9,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
-import org.skysongdev.skysongitems.utils.Property;
+import org.skysongdev.skysongitems.utils.Trait;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
-public class AddProperty implements TabExecutor {
+public class AddTrait implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(commandSender instanceof Player)) {
@@ -39,13 +39,13 @@ public class AddProperty implements TabExecutor {
             return true;
         }
 
-        if(!getPlugin().getPropertyRegistry().contains(args[0])){
+        if(!getPlugin().getTraitRegistry().contains(args[0])){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Invalid property!"));
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + getPlugin().getPropertyRegistry().getAll().stream().map(Property::getId).toList()));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Valid properties: " + getPlugin().getTraitRegistry().getAll().stream().map(Trait::getId).toList()));
             return true;
         }
 
-        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addProperty(itemInMainHand, args[0]))){
+        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addTrait(itemInMainHand, args[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this property!"));
             return true;
         }
@@ -57,10 +57,10 @@ public class AddProperty implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        ArrayList<String> properties = new ArrayList<>();
-        for(Property property : getPlugin().getPropertyRegistry().getAll()){
-            properties.add(property.getId());
+        ArrayList<String> traits = new ArrayList<>();
+        for(Trait trait : getPlugin().getTraitRegistry().getAll()){
+            traits.add(trait.getId());
         }
-        return properties.stream().filter(a -> a.startsWith(args[0])).toList();
+        return traits.stream().filter(a -> a.startsWith(args[0])).toList();
     }
 }

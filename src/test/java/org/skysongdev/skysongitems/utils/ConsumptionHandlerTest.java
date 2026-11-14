@@ -27,7 +27,7 @@ class ConsumptionHandlerTest extends MockBukkitTest {
     /** Long enough for any real run, short enough that a regression fails instead of hanging the build. */
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
-    private final ItemEditor editor = new ItemEditor(new TagRegistry(), new PropertyRegistry());
+    private final ItemEditor editor = new ItemEditor(new TagRegistry(), new TraitRegistry());
     private Logger logger;
     private final List<LogRecord> warnings = new ArrayList<>();
 

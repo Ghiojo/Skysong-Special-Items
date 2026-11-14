@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
- * Uses the properties configured in the bundled config.yml: "test" (base),
+ * Uses the traits configured in the bundled config.yml: "test" (base),
  * "charges" (printable, "[Charges: $1/$2]") and "spell" (rename, "[Spell]").
  */
 class ItemLoreRendererTest extends MockBukkitTest {
@@ -33,22 +33,22 @@ class ItemLoreRendererTest extends MockBukkitTest {
         plugin = MockBukkit.load(SkysongItems.class);
     }
 
-    private void addPrintableProperty(String id, int weight) {
+    private void addPrintableTrait(String id, int weight) {
         FileConfiguration config = plugin.getConfig();
         config.set("properties." + id + ".type", "printable");
         config.set("properties." + id + ".proptype", "Magic");
         config.set("properties." + id + ".item", "STONE");
         config.set("properties." + id + ".printable", id);
         config.set("properties." + id + ".weight", weight);
-        plugin.getPropertyRegistry().load(config, plugin.getLogger());
+        plugin.getTraitRegistry().load(config, plugin.getLogger());
     }
 
-    private static ItemStack itemWithProperties(String properties) {
+    private static ItemStack itemWithTraits(String traits) {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);
         data.setLoreSections(SECTIONS);
-        data.setPropertiesText(properties);
+        data.setTraitsText(traits);
         meta.getPersistentDataContainer().set(ItemKeys.NAME, PersistentDataType.STRING, "Sword");
         meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, 3);
         meta.getPersistentDataContainer().set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 5);
@@ -72,7 +72,7 @@ class ItemLoreRendererTest extends MockBukkitTest {
     }
 
     @Test
-    void itemWithoutPropertiesKeepsItsLoreAndName() {
+    void itemWithoutTraitsKeepsItsLoreAndName() {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         ItemData.from(meta).setLoreSections(SECTIONS);
@@ -87,18 +87,18 @@ class ItemLoreRendererTest extends MockBukkitTest {
     }
 
     @Test
-    void printablePropertiesFollowTheLoreAfterABlankLine() {
-        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithProperties("charges"));
+    void printableTraitsFollowTheLoreAfterABlankLine() {
+        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithTraits("charges"));
 
         assertEquals(List.of("physical", "", "functional", "", "skill", "", "[Charges: 3/5]"), plainLore(refreshed));
     }
 
     @Test
-    void renderingWithoutPropertiesDropsPropertyLinesAndTags() {
-        ItemStack item = ItemLoreRenderer.refresh(itemWithProperties("charges;spell"));
+    void renderingWithoutTraitsDropsTraitLinesAndTags() {
+        ItemStack item = ItemLoreRenderer.refresh(itemWithTraits("charges;spell"));
         ItemMeta meta = item.getItemMeta();
 
-        ItemLoreRenderer.renderWithoutProperties(meta);
+        ItemLoreRenderer.renderWithoutTraits(meta);
         item.setItemMeta(meta);
 
         assertEquals(List.of("physical", "", "functional", "", "skill"), plainLore(item));
@@ -107,21 +107,21 @@ class ItemLoreRendererTest extends MockBukkitTest {
 
     @Test
     void storedNameReplacesTheDisplayName() {
-        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithProperties("test"));
+        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithTraits("test"));
 
         assertEquals("Sword", plain(refreshed.getItemMeta().displayName()));
     }
 
     @Test
-    void renamePropertyPrefixesTheStoredName() {
-        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithProperties("spell"));
+    void renameTraitPrefixesTheStoredName() {
+        ItemStack refreshed = ItemLoreRenderer.refresh(itemWithTraits("spell"));
 
         assertEquals("[Spell] Sword", plain(refreshed.getItemMeta().displayName()));
     }
 
     @Test
     void refreshUpdatesTheGivenItem() {
-        ItemStack item = itemWithProperties("charges");
+        ItemStack item = itemWithTraits("charges");
 
         ItemStack refreshed = ItemLoreRenderer.refresh(item);
 
@@ -129,14 +129,14 @@ class ItemLoreRendererTest extends MockBukkitTest {
     }
 
     @Test
-    void printablePropertiesAreOrderedHeaviestFirstKeepingTiesInOrder() {
-        addPrintableProperty("light", 1);
-        addPrintableProperty("heavy", 5);
-        addPrintableProperty("also_heavy", 5);
+    void printableTraitsAreOrderedHeaviestFirstKeepingTiesInOrder() {
+        addPrintableTrait("light", 1);
+        addPrintableTrait("heavy", 5);
+        addPrintableTrait("also_heavy", 5);
 
-        List<PrintableProperty> ordered = ItemLoreRenderer.printablePropertiesByWeight(
+        List<PrintableTrait> ordered = ItemLoreRenderer.printableTraitsByWeight(
                 List.of("light", "heavy", "test", "spell", "also_heavy", "unknown"));
 
-        assertEquals(List.of("heavy", "also_heavy", "light"), ordered.stream().map(Property::getId).toList());
+        assertEquals(List.of("heavy", "also_heavy", "light"), ordered.stream().map(Trait::getId).toList());
     }
 }

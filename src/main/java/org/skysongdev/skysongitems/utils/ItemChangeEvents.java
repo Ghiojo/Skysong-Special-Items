@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * <p>Comparing values instead of reporting what each edit meant to do keeps one rule for
  * every edit: a change that writes the same value again fires nothing, and an edit that
- * also writes other tags, like adding a printable property, reports each of them.
+ * also writes other tags, like adding a printable trait, reports each of them.
  */
 final class ItemChangeEvents {
     private final TagRegistry tags;

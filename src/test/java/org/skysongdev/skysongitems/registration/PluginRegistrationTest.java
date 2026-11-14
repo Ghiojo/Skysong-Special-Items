@@ -23,9 +23,9 @@ import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
 import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.ItemKeys;
-import org.skysongdev.skysongitems.utils.PrintableProperty;
-import org.skysongdev.skysongitems.utils.Property;
-import org.skysongdev.skysongitems.utils.RenameProperty;
+import org.skysongdev.skysongitems.utils.PrintableTrait;
+import org.skysongdev.skysongitems.utils.Trait;
+import org.skysongdev.skysongitems.utils.RenameTrait;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for other plugins registering tags and properties through
+ * Tests for other plugins registering tags and traits through
  * {@link SkysongItemsRegisterEvent}. The bundled config.yml defines the int tags arcrot,
- * charged_arcrot and fictis, and the properties test, charges and spell.
+ * charged_arcrot and fictis, and the traits test, charges and spell.
  */
 class PluginRegistrationTest extends MockBukkitTest {
     private SkysongItems plugin;
@@ -75,7 +75,7 @@ class PluginRegistrationTest extends MockBukkitTest {
     }
 
     @Test
-    void serverLoadAddsAPluginsTagAndProperty() {
+    void serverLoadAddsAPluginsTagAndTrait() {
         registerTag(stats, "mana", TagType.INT);
         registerProperty(stats, PropertyDefinition.base("mana_bearer").name("Mana Bearer")
                 .category("Magic").icon(Material.AMETHYST_SHARD).description("Holds mana."));
@@ -85,17 +85,17 @@ class PluginRegistrationTest extends MockBukkitTest {
         assertEquals(List.of(true, true), results);
         assertEquals(PersistentDataType.INTEGER, plugin.getTagRegistry().getType(key("mana")));
         assertEquals("SkysongStats", plugin.getTagRegistry().ownerOf(key("mana")));
-        Property property = plugin.getPropertyRegistry().get("mana_bearer");
-        assertEquals("Mana Bearer", property.getName());
-        assertEquals("Magic", property.getPropType());
-        assertEquals(Material.AMETHYST_SHARD, property.getItem().getType());
-        assertEquals("Holds mana.", property.getDescription());
-        assertEquals("SkysongStats", plugin.getPropertyRegistry().ownerOf("mana_bearer"));
-        assertTrue(plugin.getPropertyRegistry().getPropertyTypes().contains("Magic"));
+        Trait trait = plugin.getTraitRegistry().get("mana_bearer");
+        assertEquals("Mana Bearer", trait.getName());
+        assertEquals("Magic", trait.getPropType());
+        assertEquals(Material.AMETHYST_SHARD, trait.getItem().getType());
+        assertEquals("Holds mana.", trait.getDescription());
+        assertEquals("SkysongStats", plugin.getTraitRegistry().ownerOf("mana_bearer"));
+        assertTrue(plugin.getTraitRegistry().getTraitTypes().contains("Magic"));
     }
 
     @Test
-    void theApiSeesRegisteredTagsAndProperties() {
+    void theApiSeesRegisteredTagsAndTraits() {
         registerTag(stats, "mana", TagType.INT);
         registerProperty(stats, PropertyDefinition.base("bearer"));
 
@@ -114,7 +114,7 @@ class PluginRegistrationTest extends MockBukkitTest {
 
         assertTrue(plugin.getTagRegistry().contains("arcrot"));
         assertTrue(plugin.getTagRegistry().contains(ItemKeys.CHARGES));
-        assertTrue(plugin.getPropertyRegistry().contains("charges"));
+        assertTrue(plugin.getTraitRegistry().contains("charges"));
         assertEquals(PersistentDataType.FLOAT, plugin.getTagRegistry().getType(key("mana")));
     }
 
@@ -206,7 +206,7 @@ class PluginRegistrationTest extends MockBukkitTest {
     }
 
     @Test
-    void printablePropertiesPrintTheirValueTags() {
+    void printableTraitsPrintTheirValueTags() {
         onRegister(stats, event -> {
             results.add(event.registerTag(stats, "mana", TagType.INT));
             results.add(event.registerProperty(stats,
@@ -216,43 +216,43 @@ class PluginRegistrationTest extends MockBukkitTest {
         fireServerLoad();
 
         assertEquals(List.of(true, true), results);
-        assertInstanceOf(PrintableProperty.class, plugin.getPropertyRegistry().get("mana_bar"));
+        assertInstanceOf(PrintableTrait.class, plugin.getTraitRegistry().get("mana_bar"));
     }
 
     @Test
-    void printablePropertiesWithAnUnknownValueTagAreRefused() {
+    void printableTraitsWithAnUnknownValueTagAreRefused() {
         registerProperty(stats, PropertyDefinition.printable("mana_bar", "Mana: $1", List.of("mana")));
 
         fireServerLoad();
 
         assertEquals(List.of(false), results);
-        assertFalse(plugin.getPropertyRegistry().contains("mana_bar"));
+        assertFalse(plugin.getTraitRegistry().contains("mana_bar"));
     }
 
     @Test
-    void renamePropertiesKeepTheirPrefix() {
+    void renameTraitsKeepTheirPrefix() {
         registerProperty(stats, PropertyDefinition.rename("cantrip", "<gray>[Cantrip]"));
 
         fireServerLoad();
 
-        RenameProperty property = assertInstanceOf(RenameProperty.class,
-                plugin.getPropertyRegistry().get("cantrip"));
-        assertEquals("<gray>[Cantrip]", property.getTag());
+        RenameTrait trait = assertInstanceOf(RenameTrait.class,
+                plugin.getTraitRegistry().get("cantrip"));
+        assertEquals("<gray>[Cantrip]", trait.getTag());
     }
 
     @Test
-    void aConfiguredPropertyIsKept() {
+    void aConfiguredTraitIsKept() {
         registerProperty(stats, PropertyDefinition.base("charges"));
 
         fireServerLoad();
 
         assertEquals(List.of(true), results);
-        assertInstanceOf(PrintableProperty.class, plugin.getPropertyRegistry().get("charges"));
-        assertNull(plugin.getPropertyRegistry().ownerOf("charges"));
+        assertInstanceOf(PrintableTrait.class, plugin.getTraitRegistry().get("charges"));
+        assertNull(plugin.getTraitRegistry().ownerOf("charges"));
     }
 
     @Test
-    void aPropertyAnotherPluginRegisteredIsRefused() {
+    void aTraitAnotherPluginRegisteredIsRefused() {
         Plugin other = MockBukkit.createMockPlugin("OtherPlugin");
         registerProperty(stats, PropertyDefinition.base("bearer"));
         registerProperty(other, PropertyDefinition.base("bearer"));
@@ -260,7 +260,7 @@ class PluginRegistrationTest extends MockBukkitTest {
         fireServerLoad();
 
         assertEquals(List.of(true, false), results);
-        assertEquals("SkysongStats", plugin.getPropertyRegistry().ownerOf("bearer"));
+        assertEquals("SkysongStats", plugin.getTraitRegistry().ownerOf("bearer"));
     }
 
     @Test
@@ -272,10 +272,10 @@ class PluginRegistrationTest extends MockBukkitTest {
         server.getPluginManager().callEvent(new PluginDisableEvent(stats));
 
         assertFalse(plugin.getTagRegistry().contains("mana"));
-        assertFalse(plugin.getPropertyRegistry().contains("bearer"));
-        assertFalse(plugin.getPropertyRegistry().getPropertyTypes().contains("Stats"));
+        assertFalse(plugin.getTraitRegistry().contains("bearer"));
+        assertFalse(plugin.getTraitRegistry().getTraitTypes().contains("Stats"));
         assertTrue(plugin.getTagRegistry().contains("arcrot"));
-        assertTrue(plugin.getPropertyRegistry().contains("charges"));
+        assertTrue(plugin.getTraitRegistry().contains("charges"));
     }
 
     @Test

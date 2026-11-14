@@ -90,94 +90,94 @@ class ItemDataTest extends MockBukkitTest {
     }
 
     @Test
-    void anItemWithoutPropertiesHasAnEmptyList() {
-        assertFalse(data.hasProperties());
-        assertEquals(List.of(), data.getProperties());
-        assertNull(data.getPropertiesText());
+    void anItemWithoutTraitsHasAnEmptyList() {
+        assertFalse(data.hasTraits());
+        assertEquals(List.of(), data.getTraits());
+        assertNull(data.getTraitsText());
     }
 
     @Test
-    void addingPropertiesAppendsThemSeparatedBySemicolons() {
-        data.addProperty("charges");
+    void addingTraitsAppendsThemSeparatedBySemicolons() {
+        data.addTrait("charges");
         assertEquals("charges", storedString(ItemKeys.PROPERTIES));
 
-        data.addProperty("spell");
+        data.addTrait("spell");
         assertEquals("charges;spell", storedString(ItemKeys.PROPERTIES));
-        assertEquals(List.of("charges", "spell"), data.getProperties());
+        assertEquals(List.of("charges", "spell"), data.getTraits());
     }
 
     @Test
-    void hasPropertyMatchesWholeIdsOnly() {
-        data.setPropertiesText("charges;spell");
+    void hasTraitMatchesWholeIdsOnly() {
+        data.setTraitsText("charges;spell");
 
-        assertTrue(data.hasProperty("spell"));
-        assertFalse(data.hasProperty("charge"));
+        assertTrue(data.hasTrait("spell"));
+        assertFalse(data.hasTrait("charge"));
     }
 
     @Test
-    void setPropertiesReplacesTheStoredList() {
-        data.setPropertiesText("charges;spell");
+    void setTraitsReplacesTheStoredList() {
+        data.setTraitsText("charges;spell");
 
-        data.setProperties(List.of("test"));
+        data.setTraits(List.of("test"));
 
         assertEquals("test", storedString(ItemKeys.PROPERTIES));
     }
 
     @Test
     void settingAnEmptyListKeepsAnEmptyEntry() {
-        data.setProperties(List.of());
+        data.setTraits(List.of());
 
-        assertTrue(data.hasProperties());
-        assertEquals("", data.getPropertiesText());
+        assertTrue(data.hasTraits());
+        assertEquals("", data.getTraitsText());
     }
 
     @Test
     void blankIdsLeftByOlderVersionsAreSkipped() {
-        data.setPropertiesText(";charges;;spell");
+        data.setTraitsText(";charges;;spell");
 
-        assertEquals(List.of("charges", "spell"), data.getProperties());
+        assertEquals(List.of("charges", "spell"), data.getTraits());
     }
 
     @Test
-    void anEmptyEntryCountsAsNoPropertyIds() {
-        data.setPropertiesText("");
+    void anEmptyEntryCountsAsNoTraitIds() {
+        data.setTraitsText("");
 
-        assertEquals(List.of(), data.getProperties());
+        assertEquals(List.of(), data.getTraits());
     }
 
     @Test
-    void removePropertyKeepsTheOtherIds() {
-        data.setPropertiesText("charges;spell;test");
+    void removeTraitKeepsTheOtherIds() {
+        data.setTraitsText("charges;spell;test");
 
-        assertTrue(data.removeProperty("spell"));
+        assertTrue(data.removeTrait("spell"));
 
         assertEquals("charges;test", storedString(ItemKeys.PROPERTIES));
     }
 
     @Test
-    void removingTheLastPropertyRemovesTheEntry() {
-        data.setPropertiesText("charges");
+    void removingTheLastTraitRemovesTheEntry() {
+        data.setTraitsText("charges");
 
-        assertTrue(data.removeProperty("charges"));
+        assertTrue(data.removeTrait("charges"));
 
-        assertFalse(data.hasProperties());
+        assertFalse(data.hasTraits());
         assertFalse(container.has(ItemKeys.PROPERTIES));
     }
 
     @Test
-    void removingAMissingPropertyChangesNothing() {
-        data.setPropertiesText("charges");
+    void removingAMissingTraitChangesNothing() {
+        data.setTraitsText("charges");
 
-        assertFalse(data.removeProperty("spell"));
+        assertFalse(data.removeTrait("spell"));
 
         assertEquals("charges", storedString(ItemKeys.PROPERTIES));
     }
 
     @Test
-    void clearPropertiesRemovesTheEntry() {
-        data.setPropertiesText("charges");
+    void clearTraitsRemovesTheEntry() {
+        data.setTraitsText("charges");
 
-        data.clearProperties();
+        data.clearTraits();
 
         assertFalse(container.has(ItemKeys.PROPERTIES));
     }
@@ -187,17 +187,17 @@ class ItemDataTest extends MockBukkitTest {
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta itemMeta = item.getItemMeta();
         ItemData.from(itemMeta).setLoreSections(List.of("physical", "functional", "skill"));
-        ItemData.from(itemMeta).addProperty("charges");
+        ItemData.from(itemMeta).addTrait("charges");
         item.setItemMeta(itemMeta);
 
         ItemData stored = ItemData.from(item.getItemMeta());
         assertEquals(List.of("physical", "functional", "skill"), stored.getLoreSections());
-        assertEquals(List.of("charges"), stored.getProperties());
+        assertEquals(List.of("charges"), stored.getTraits());
     }
 
     @Test
-    void parsePropertiesSplitsStoredTextSkippingBlanks() {
-        assertEquals(List.of("charges", "spell"), ItemData.parseProperties("charges;;spell;"));
-        assertTrue(ItemData.parseProperties(null).isEmpty());
+    void parseTraitsSplitsStoredTextSkippingBlanks() {
+        assertEquals(List.of("charges", "spell"), ItemData.parseTraits("charges;;spell;"));
+        assertTrue(ItemData.parseTraits(null).isEmpty());
     }
 }
