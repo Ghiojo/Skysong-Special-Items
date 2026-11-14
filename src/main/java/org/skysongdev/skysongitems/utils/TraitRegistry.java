@@ -11,13 +11,23 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * The item traits configured in the {@code properties} section of config.yml, and
+ * The item traits configured in the {@code traits} section of config.yml, and
  * the ones other plugins register through the API.
+ *
+ * <p>Configs written before traits were renamed still load: a {@code properties}
+ * section is read when there is no {@code traits} one, and a trait's
+ * {@code proptype} key is read when it has no {@code traittype}. Either logs a
+ * warning naming the key to rename.
  *
  * <p>Each load builds new lists and swaps them in at once, so lookups from any thread
  * see either the old traits or the new ones, never a half-loaded registry.
  */
 public class TraitRegistry {
+    private static final String SECTION = "traits";
+    private static final String LEGACY_SECTION = "properties";
+    private static final String TRAIT_TYPE_KEY = "traittype";
+    private static final String LEGACY_TRAIT_TYPE_KEY = "proptype";
+
     private volatile Snapshot snapshot = new Snapshot(List.of(), List.of(), Map.of());
 
     /**
@@ -30,20 +40,63 @@ public class TraitRegistry {
     /** Replaces the loaded traits, and the trait types they use, with the ones in the config. */
     public void load(ConfigurationSection config, Logger logger) {
         List<Trait> loaded = new ArrayList<>();
-        ConfigurationSection section = config.getConfigurationSection("properties");
+        String sectionName = sectionName(config, logger);
+        ConfigurationSection section = config.getConfigurationSection(sectionName);
         if (section == null) {
-            logger.warning("No properties section found in the configuration.");
+            logger.warning("No traits section found in the configuration.");
             publish(loaded, new HashMap<>());
             return;
         }
+        List<String> legacyTypeKeys = new ArrayList<>();
         for (String id : section.getKeys(false)) {
-            logger.warning("Adding property: " + id);
-            Trait trait = createTrait(config, id);
+            logger.warning("Adding trait: " + id);
+            ConfigurationSection traitConfig = section.getConfigurationSection(id);
+            if (usesLegacyTypeKey(traitConfig)) {
+                legacyTypeKeys.add(id);
+            }
+            Trait trait = createTrait(traitConfig, id);
             loaded.add(trait);
             logger.info("Added " + trait.getClass().getSimpleName() + ": " + id);
         }
         publish(loaded, new HashMap<>());
-        logger.info("Total properties added: " + loaded.size());
+        if (!legacyTypeKeys.isEmpty()) {
+            logger.warning("These traits set their type with the old '" + LEGACY_TRAIT_TYPE_KEY
+                    + "' key; rename it to '" + TRAIT_TYPE_KEY + "': " + String.join(", ", legacyTypeKeys));
+        }
+        logger.info("Total traits added: " + loaded.size());
+    }
+
+    /**
+     * The section the traits are read from: {@code traits}, or the old {@code properties}
+     * when only that one is in the file. Only the file itself counts, not the bundled
+     * defaults, since those always have a {@code traits} section.
+     */
+    private static String sectionName(ConfigurationSection config, Logger logger) {
+        boolean hasTraits = config.contains(SECTION, true);
+        boolean hasLegacy = config.contains(LEGACY_SECTION, true);
+        if (hasTraits && hasLegacy) {
+            logger.warning("config.yml has both a '" + SECTION + "' and an old '" + LEGACY_SECTION
+                    + "' section; only '" + SECTION + "' is loaded.");
+        } else if (hasLegacy) {
+            logger.warning("config.yml uses the old '" + LEGACY_SECTION + "' section for traits; rename it to '"
+                    + SECTION + "'. It still loads for now.");
+            return LEGACY_SECTION;
+        }
+        return SECTION;
+    }
+
+    /**
+     * Whether the trait sets its type only with the old {@code proptype} key. Like the
+     * section, only the file counts: the bundled defaults set {@code traittype}.
+     */
+    private static boolean usesLegacyTypeKey(ConfigurationSection traitConfig) {
+        return traitConfig != null && !traitConfig.contains(TRAIT_TYPE_KEY, true)
+                && traitConfig.contains(LEGACY_TRAIT_TYPE_KEY, true);
+    }
+
+    private static String traitType(ConfigurationSection traitConfig) {
+        String key = usesLegacyTypeKey(traitConfig) ? LEGACY_TRAIT_TYPE_KEY : TRAIT_TYPE_KEY;
+        return traitConfig.getString(key);
     }
 
     /** Swaps in these traits, with the trait types they use in order, in one step. */
@@ -103,21 +156,20 @@ public class TraitRegistry {
 
     /** Builds the trait of the class named by its {@code type}; unknown types give a plain trait. */
     private static Trait createTrait(ConfigurationSection config, String id) {
-        String path = "properties." + id + ".";
-        String type = config.getString(path + "type");
-        String propType = config.getString(path + "proptype");
-        String item = config.getString(path + "item");
-        String name = config.getString(path + "name");
-        String description = config.getString(path + "description");
-        String printable = config.getString(path + "printable");
-        ArrayList<String> valueTags = new ArrayList<>(config.getStringList(path + "valuetags"));
-        int weight = config.getInt(path + "weight");
+        String type = config.getString("type");
+        String traitType = traitType(config);
+        String item = config.getString("item");
+        String name = config.getString("name");
+        String description = config.getString("description");
+        String printable = config.getString("printable");
+        ArrayList<String> valueTags = new ArrayList<>(config.getStringList("valuetags"));
+        int weight = config.getInt("weight");
 
         return switch (type.toLowerCase()) {
-            case "rename" -> new RenameTrait(id, propType, item, name, description, config.getString(path + "tag"));
-            case "printable" -> new PrintableTrait(id, propType, item, name, description, printable, valueTags, weight);
-            case "breweryprintable" -> new BreweryPrintableTrait(id, propType, item, name, description, printable, valueTags, weight);
-            default -> new Trait(id, propType, item, name, description);
+            case "rename" -> new RenameTrait(id, traitType, item, name, description, config.getString("tag"));
+            case "printable" -> new PrintableTrait(id, traitType, item, name, description, printable, valueTags, weight);
+            case "breweryprintable" -> new BreweryPrintableTrait(id, traitType, item, name, description, printable, valueTags, weight);
+            default -> new Trait(id, traitType, item, name, description);
         };
     }
 
