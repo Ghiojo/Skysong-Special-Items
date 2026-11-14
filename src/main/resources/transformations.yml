@@ -1,0 +1,13 @@
+# Transformations: an item whose material_id tag matches a key below can be turned into
+# the saved item named by "to" (an id as /si loaditem takes it, such as weapons/sword).
+# The saved item must have a material_id tag of its own, different from the key, as the
+# material_id says which form the item is in. Reloaded by /si reload.
+#
+# transformations:
+#   moon_blade_day:
+#     to: weapons/moon_blade_night
+#     permission: skysong.transform.moon_blade   # optional: needed to use this rule
+#     message: "<gray>The blade darkens."        # optional: replaces the default line
+#   moon_blade_night:
+#     to: weapons/moon_blade_day
+transformations: {}

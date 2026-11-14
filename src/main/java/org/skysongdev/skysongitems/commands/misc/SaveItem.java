@@ -52,6 +52,8 @@ public class SaveItem implements TabExecutor {
 
         send(player, "<green>Item saved successfully as " + id + "!");
         SkysongItems.getPlugin().fixFilePaths();
+        // A transformation may point to the item just saved, as its new or updated form.
+        SkysongItems.getPlugin().reloadTransformations();
         return true;
     }
 
