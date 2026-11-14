@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -24,13 +25,15 @@ import java.util.logging.Logger;
  *     to: weapons/moon_blade_night  # the saved item it becomes
  *     permission: skysong.moon      # optional
  *     message: "The blade darkens." # optional
+ *     parts: [functional, model]    # optional, see ItemPart; none swaps the whole item
  * messages:                         # optional, the lines /transform sends
  *   no-transformation: "This item doesn't transform."
  * </pre>
  *
  * A rule is skipped, with a warning, when it has no {@code to}, when {@code to} is not a
  * saved item, or when that item has no {@code material_id} or the same one as the rule,
- * since the {@code material_id} is what tells the item's forms apart.
+ * since the {@code material_id} is what tells the item's forms apart. It is also skipped
+ * when a part is unknown, or names a tag that is not registered.
  */
 public final class TransformationLoader {
     public static final String FILE_NAME = "transformations.yml";
@@ -42,15 +45,21 @@ public final class TransformationLoader {
     private static final String MESSAGE = "message";
     private static final String MESSAGES = "messages";
 
+    private static final String PART_NAMES = "name, physical, functional, skill, lore, traits, tags, "
+            + "charges, permission, model, cmd, material";
+
     private final Function<String, Optional<SkysongItem>> savedItems;
+    private final Predicate<String> isTag;
     private final Logger logger;
 
     /**
      * @param savedItems finds a saved item by id, empty when there is none
+     * @param isTag      whether a {@code tag:<id>} part names a registered tag
      * @param logger     where the skipped rules are reported
      */
-    public TransformationLoader(Function<String, Optional<SkysongItem>> savedItems, Logger logger) {
+    public TransformationLoader(Function<String, Optional<SkysongItem>> savedItems, Predicate<String> isTag, Logger logger) {
         this.savedItems = savedItems;
+        this.isTag = isTag;
         this.logger = logger;
     }
 
@@ -81,9 +90,9 @@ public final class TransformationLoader {
         if (rule == null || !rule.isString(TO)) {
             return skip(problems, fromId, "it has no '" + TO + "' saved item");
         }
-        // The command only swaps whole items so far; copying single parts comes later.
-        if (rule.contains(PARTS)) {
-            return skip(problems, fromId, "'" + PARTS + "' is not supported yet");
+        Optional<List<ItemPart>> parts = readParts(rule.getStringList(PARTS));
+        if (parts.isEmpty()) {
+            return skip(problems, fromId, "its parts must be among " + PART_NAMES + ", or tag:<id> with a registered tag");
         }
         String targetId = rule.getString(TO);
         Optional<SkysongItem> target = savedItems.apply(targetId);
@@ -99,7 +108,24 @@ public final class TransformationLoader {
                     + " has the same material_id, so the item would never change form");
         }
         return Optional.of(new Transformation(fromId, targetId, target.get(), targetMaterialId,
-                rule.getString(PERMISSION), rule.getString(MESSAGE)));
+                rule.getString(PERMISSION), rule.getString(MESSAGE), parts.get()));
+    }
+
+    /** The parts named, or empty when one of them is unknown. */
+    private Optional<List<ItemPart>> readParts(List<String> names) {
+        List<ItemPart> parts = new ArrayList<>();
+        for (String name : names) {
+            Optional<ItemPart> part = ItemPart.parse(name).filter(this::isKnown);
+            if (part.isEmpty()) {
+                return Optional.empty();
+            }
+            parts.add(part.get());
+        }
+        return Optional.of(parts);
+    }
+
+    private boolean isKnown(ItemPart part) {
+        return part.tagId() == null || isTag.test(part.tagId());
     }
 
     private static Optional<Transformation> skip(List<String> problems, String fromId, String reason) {
