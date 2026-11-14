@@ -36,7 +36,7 @@ public interface ItemCharges {
 
     /**
      * Sets the item's charges, like {@code /si charges set}: capped at the item's max
-     * charges, and an item without charges gets this amount as its max and the charges property.
+     * charges, and an item without charges gets this amount as its max and the charges trait.
      *
      * @param holder the player holding the item, named in the change event; may be null
      * @return the charges the item has now

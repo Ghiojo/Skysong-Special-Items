@@ -4,8 +4,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
-import org.skysongdev.skysongitems.api.PropertyDefinition;
 import org.skysongdev.skysongitems.api.TagType;
+import org.skysongdev.skysongitems.api.TraitDefinition;
 import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.PrintableTrait;
@@ -77,10 +77,10 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     }
 
     @Override
-    public boolean registerProperty(@NotNull Plugin owner, @NotNull PropertyDefinition definition) {
+    public boolean registerTrait(@NotNull Plugin owner, @NotNull TraitDefinition definition) {
         Objects.requireNonNull(owner, "owner");
         String id = definition.id();
-        if (!isValidId(owner, "property", id)) {
+        if (!isValidId(owner, "trait", id)) {
             return false;
         }
         if (traits.contains(id)) {
@@ -88,7 +88,7 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
         }
         for (String valueTag : definition.valueTags()) {
             if (!tags.contains(ItemKeys.named(valueTag))) {
-                return refuse(owner, "property", id, "its value tag " + valueTag + " is not registered");
+                return refuse(owner, "trait", id, "its value tag " + valueTag + " is not registered");
             }
         }
         traits.register(toTrait(definition), owner.getName());
@@ -99,13 +99,13 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     private boolean handleExistingTrait(Plugin owner, String id) {
         String existingOwner = traits.ownerOf(id);
         if (existingOwner != null) {
-            return refuse(owner, "property", id, "it is already registered by " + existingOwner);
+            return refuse(owner, "trait", id, "it is already registered by " + existingOwner);
         }
-        logger.info(owner.getName() + " registered property " + id + ", which config.yml already defines; using the config.yml one.");
+        logger.info(owner.getName() + " registered trait " + id + ", which config.yml already defines; using the config.yml one.");
         return true;
     }
 
-    private static Trait toTrait(PropertyDefinition definition) {
+    private static Trait toTrait(TraitDefinition definition) {
         String icon = definition.icon().name();
         return switch (definition.kind()) {
             case BASE -> new Trait(definition.id(), definition.category(), icon, definition.name(),

@@ -10,7 +10,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemCharges;
-import org.skysongdev.skysongitems.api.ItemProperties;
+import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.api.event.ItemChargesChangeEvent;
@@ -29,20 +29,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Charge and trait writes through {@code charges()} and {@code properties()}, which
+ * Charge and trait writes through {@code charges()} and {@code traits()}, which
  * follow the same rules as {@code /si charges} and {@code /si prop}. Uses the "test" and
  * "charges" traits from the bundled config.yml.
  */
 class ItemChargeAndTraitWritesTest extends MockBukkitTest {
     private ItemCharges charges;
-    private ItemProperties traits;
+    private ItemTraits traits;
     private RecordedItemEvents events;
 
     @BeforeEach
     void enablePlugin() {
         MockBukkit.load(SkysongItems.class);
         charges = SkysongItemsApi.get().charges();
-        traits = SkysongItemsApi.get().properties();
+        traits = SkysongItemsApi.get().traits();
         events = RecordedItemEvents.listenOn(server);
     }
 

@@ -95,9 +95,9 @@ class DetachedItemEditsTest extends MockBukkitTest {
     void addingATraitLeavesItsValueTagsAlone() {
         ItemStack item = skysongItem();
 
-        assertTrue(detached.properties().add(item, "charges"));
+        assertTrue(detached.traits().add(item, "charges"));
 
-        assertEquals(List.of("charges"), detached.properties().get(item));
+        assertEquals(List.of("charges"), detached.traits().get(item));
         assertNull(storedInt(item, ItemKeys.CHARGES));
         assertNull(storedInt(item, ItemKeys.MAX_CHARGES));
     }
@@ -106,7 +106,7 @@ class DetachedItemEditsTest extends MockBukkitTest {
     void addingATraitHeldStillSetsItsValueTags() {
         ItemStack item = skysongItem();
 
-        assertTrue(api.properties().add(item, "charges"));
+        assertTrue(api.traits().add(item, "charges"));
 
         assertEquals(Integer.valueOf(0), storedInt(item, ItemKeys.CHARGES));
     }
@@ -129,7 +129,7 @@ class DetachedItemEditsTest extends MockBukkitTest {
 
         assertThrows(IllegalArgumentException.class, () -> detached.tags().set(item, "not_a_tag", 7));
         assertThrows(IllegalArgumentException.class, () -> detached.tags().remove(item, "not_a_tag"));
-        assertThrows(IllegalArgumentException.class, () -> detached.properties().add(item, "not_a_property"));
+        assertThrows(IllegalArgumentException.class, () -> detached.traits().add(item, "not_a_trait"));
     }
 
     @Test
@@ -137,6 +137,6 @@ class DetachedItemEditsTest extends MockBukkitTest {
         assertThrows(IllegalArgumentException.class, () -> detached.tags().set(null, "arcrot", 7));
         assertThrows(IllegalArgumentException.class, () -> detached.tags().set(new ItemStack(Material.AIR), "arcrot", 7));
         assertThrows(IllegalArgumentException.class, () -> detached.charges().set(null, 3));
-        assertThrows(IllegalArgumentException.class, () -> detached.properties().add(null, "charges"));
+        assertThrows(IllegalArgumentException.class, () -> detached.traits().add(null, "charges"));
     }
 }

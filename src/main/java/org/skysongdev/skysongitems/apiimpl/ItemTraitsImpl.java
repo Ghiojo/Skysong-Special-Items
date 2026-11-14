@@ -16,8 +16,11 @@ import java.util.Set;
 
 /**
  * Reads the traits stored on items and the ones configured in the plugin, and adds
- * or removes them through the {@link ItemEditor}.
+ * or removes them through the {@link ItemEditor}. It implements the deprecated
+ * {@link ItemProperties}, which extends {@link org.skysongdev.skysongitems.api.ItemTraits},
+ * so plugins still built against the old name get the same object.
  */
+@SuppressWarnings("removal")
 final class ItemTraitsImpl implements ItemProperties {
     private final TraitRegistry registry;
     private final ItemEditor editor;
@@ -36,7 +39,7 @@ final class ItemTraitsImpl implements ItemProperties {
         if (ItemEditor.Result.ALREADY_PRESENT.equals(result)) {
             return false;
         }
-        ItemWrites.requireDone(result, "property " + traitId);
+        ItemWrites.requireDone(result, "trait " + traitId);
         return true;
     }
 

@@ -7,13 +7,14 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.PropertyDefinition;
 import org.skysongdev.skysongitems.api.TagType;
+import org.skysongdev.skysongitems.api.TraitDefinition;
 
 import java.util.Objects;
 
 /**
- * Fired while SkysongItems loads its tags and properties, once all plugins have enabled
+ * Fired while SkysongItems loads its tags and traits, once all plugins have enabled
  * and again after every {@code /si reload}. Listen to it to add your plugin's own tags
- * and properties, so they don't have to be set up in SkysongItems' config.yml.
+ * and traits, so they don't have to be set up in SkysongItems' config.yml.
  * <p>
  * Every load starts from SkysongItems' own tags and config.yml, so register everything
  * you need each time the event fires. Nothing you register is written to disk, and it
@@ -46,14 +47,27 @@ public final class SkysongItemsRegisterEvent extends Event {
     }
 
     /**
-     * Registers an item property, the same as one in the {@code properties} section of
-     * config.yml. A printable property's value tags must already be registered, so
+     * Registers an item trait, the same as one in the {@code traits} section of
+     * config.yml. A printable trait's value tags must already be registered, so
      * register your tags first.
      *
-     * @return whether the property was registered
+     * @return whether the trait was registered
      */
+    public boolean registerTrait(@NotNull Plugin owner, @NotNull TraitDefinition trait) {
+        return registrar.registerTrait(owner, trait);
+    }
+
+    /**
+     * Same as {@link #registerTrait(Plugin, TraitDefinition)}, under its name from before
+     * properties were renamed to traits.
+     *
+     * @return whether the trait was registered
+     * @deprecated use {@link #registerTrait(Plugin, TraitDefinition)}. This method is
+     *             removed in the next major version of the API.
+     */
+    @Deprecated(since = "1.4.0", forRemoval = true)
     public boolean registerProperty(@NotNull Plugin owner, @NotNull PropertyDefinition property) {
-        return registrar.registerProperty(owner, property);
+        return registerTrait(owner, property.toTrait());
     }
 
     @Override
@@ -70,6 +84,6 @@ public final class SkysongItemsRegisterEvent extends Event {
     public interface Registrar {
         boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type);
 
-        boolean registerProperty(@NotNull Plugin owner, @NotNull PropertyDefinition property);
+        boolean registerTrait(@NotNull Plugin owner, @NotNull TraitDefinition trait);
     }
 }

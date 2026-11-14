@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * generate at use time.
  *
  * <p>A template holds only what SkysongItems stores: the material, the stored name and
- * physical description, the deleted lines, the properties text, the item model, the
+ * physical description, the deleted lines, the traits text, the item model, the
  * registered tags with their values, and the custom model data. Anything else an item
  * carried, such as enchantments or durability, is not part of it.
  *

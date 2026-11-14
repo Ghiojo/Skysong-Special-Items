@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.ItemAccess;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemProperties;
+import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.apiimpl.ItemWrites.ItemCheck;
 import org.skysongdev.skysongitems.utils.ItemEditor;
@@ -19,6 +20,8 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
 final class ItemAccessImpl implements ItemAccess {
     private final ItemTags tags;
     private final ItemCharges charges;
+    // ItemProperties extends ItemTraits, so the one object serves traits() and the deprecated properties().
+    @SuppressWarnings("removal")
     private final ItemProperties traits;
 
     /** Edits as the {@code /si} commands do: events, lore redraw, SkysongItems items only. */
@@ -48,6 +51,12 @@ final class ItemAccessImpl implements ItemAccess {
     }
 
     @Override
+    public @NotNull ItemTraits traits() {
+        return traits;
+    }
+
+    @Override
+    @SuppressWarnings("removal")
     public @NotNull ItemProperties properties() {
         return traits;
     }

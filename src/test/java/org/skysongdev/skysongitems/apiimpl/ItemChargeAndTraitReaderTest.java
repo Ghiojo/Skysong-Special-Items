@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemCharges;
-import org.skysongdev.skysongitems.api.ItemProperties;
+import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.TaggedItems;
@@ -24,13 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** The charges and traits reads, with the traits in the bundled config.yml (test, charges, spell). */
 class ItemChargeAndTraitReaderTest extends MockBukkitTest {
     private ItemCharges charges;
-    private ItemProperties traits;
+    private ItemTraits traits;
 
     @BeforeEach
     void enablePlugin() {
         MockBukkit.load(SkysongItems.class);
         charges = SkysongItemsApi.get().charges();
-        traits = SkysongItemsApi.get().properties();
+        traits = SkysongItemsApi.get().traits();
     }
 
     private static ItemStack withTraits(String stored) {
