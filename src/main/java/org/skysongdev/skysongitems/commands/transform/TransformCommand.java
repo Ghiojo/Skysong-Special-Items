@@ -43,9 +43,13 @@ public class TransformCommand implements CommandExecutor {
             case TRANSFORMED -> ruleMessage != null ? ruleMessage : messages.transformed();
             case NOT_HOLDING -> messages.notHolding();
             case NO_PERMISSION -> messages.noPermission();
+            // The listener that cancelled the transformation says why, if it should.
+            case CANCELLED -> null;
             default -> messages.noTransformation();
         };
-        send(player, message);
+        if (message != null) {
+            send(player, message);
+        }
         return true;
     }
 

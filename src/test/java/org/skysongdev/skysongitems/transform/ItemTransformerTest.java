@@ -14,6 +14,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.TagType;
+import org.skysongdev.skysongitems.api.TransformResult;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
@@ -110,14 +111,14 @@ class ItemTransformerTest extends MockBukkitTest {
     void anItemCyclesThroughItsFormsAndTheNewFormsTagsReplaceTheOldOnes() {
         player.getInventory().setItemInMainHand(dayBlade());
 
-        assertEquals(ItemTransformer.Result.TRANSFORMED, transformer.transform(player));
+        assertEquals(TransformResult.TRANSFORMED, transformer.transform(player));
         assertEquals("night_blade", read(held(), ItemKeys.MATERIAL_ID, PersistentDataType.STRING));
         assertEquals("Night Blade", read(held(), ItemKeys.NAME, PersistentDataType.STRING));
         assertEquals(3, read(held(), ARCROT, PersistentDataType.INTEGER));
         assertFalse(held().getPersistentDataContainer().has(FICTIS), "the night form has no fictis");
         assertEquals(List.of(player), synced, "permission items are resynced after the change");
 
-        assertEquals(ItemTransformer.Result.TRANSFORMED, transformer.transform(player));
+        assertEquals(TransformResult.TRANSFORMED, transformer.transform(player));
         assertEquals("day_blade", read(held(), ItemKeys.MATERIAL_ID, PersistentDataType.STRING));
         assertFalse(held().getPersistentDataContainer().has(ARCROT));
     }
@@ -178,14 +179,14 @@ class ItemTransformerTest extends MockBukkitTest {
         ItemStack plain = new ItemStack(Material.STONE);
         player.getInventory().setItemInMainHand(plain);
 
-        assertEquals(ItemTransformer.Result.NO_TRANSFORMATION, transformer.transform(player));
+        assertEquals(TransformResult.NO_TRANSFORMATION, transformer.transform(player));
         assertEquals(plain, held());
         assertTrue(synced.isEmpty());
     }
 
     @Test
     void anEmptyHandHasNothingToTransform() {
-        assertEquals(ItemTransformer.Result.NOT_HOLDING, transformer.transform(player));
+        assertEquals(TransformResult.NOT_HOLDING, transformer.transform(player));
     }
 
     @Test
@@ -196,11 +197,11 @@ class ItemTransformerTest extends MockBukkitTest {
         ItemStack day = dayBlade();
         player.getInventory().setItemInMainHand(day);
 
-        assertEquals(ItemTransformer.Result.NO_PERMISSION, transformer.transform(player));
+        assertEquals(TransformResult.NO_PERMISSION, transformer.transform(player));
         assertEquals(day, held());
 
         player.addAttachment(plugin, "skysong.transform.blade", true);
-        assertEquals(ItemTransformer.Result.TRANSFORMED, transformer.transform(player));
+        assertEquals(TransformResult.TRANSFORMED, transformer.transform(player));
         assertSame(player, synced.get(0));
     }
 }

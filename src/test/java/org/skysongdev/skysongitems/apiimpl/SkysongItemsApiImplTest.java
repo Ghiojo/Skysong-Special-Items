@@ -7,6 +7,8 @@ import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.transform.ItemTransformer;
+import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
@@ -62,7 +64,9 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
     private static SkysongItemsApiImpl newApi() {
         TagRegistry tags = new TagRegistry();
         TraitRegistry traits = new TraitRegistry();
-        return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), new Updater());
+        Updater updater = new Updater();
+        ItemTransformer transformer = new ItemTransformer(TransformationRules::empty, tags, ignored -> { }, updater::upgrade);
+        return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), updater, transformer);
     }
 
     @Test

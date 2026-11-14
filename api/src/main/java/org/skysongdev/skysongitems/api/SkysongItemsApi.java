@@ -59,6 +59,13 @@ public interface SkysongItemsApi extends ItemAccess {
     @NotNull ItemTemplates templates();
 
     /**
+     * The transformations {@code /transform} uses to turn a held item into its next form.
+     *
+     * @since 1.5.0
+     */
+    @NotNull ItemTransformations transformations();
+
+    /**
      * The same {@link #tags()}, {@link #charges()} and {@link #traits()} for items
      * nobody holds, such as a copy a plugin is building before it gives it to anyone.
      *

@@ -9,12 +9,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.api.TransformResult;
+import org.skysongdev.skysongitems.api.event.ItemTransformEvent;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -37,17 +40,6 @@ import java.util.function.UnaryOperator;
  * Everything else comes from the new form, so tags the new form lacks are dropped.
  */
 public final class ItemTransformer {
-    /** How a transformation attempt ended. */
-    public enum Result {
-        TRANSFORMED,
-        /** The player's main hand is empty. */
-        NOT_HOLDING,
-        /** The held item has no material_id, or no rule starts from it. */
-        NO_TRANSFORMATION,
-        /** The rule needs a permission the player lacks. */
-        NO_PERMISSION
-    }
-
     private final Supplier<TransformationRules> rules;
     private final TagRegistry tags;
     private final Consumer<Player> permissionItemSync;
@@ -67,23 +59,34 @@ public final class ItemTransformer {
         this.upgrader = upgrader;
     }
 
-    /** Transforms the item in the player's main hand, if its form has a transformation they may use. */
-    public Result transform(Player player) {
+    /**
+     * Transforms the item in the player's main hand, if its form has a transformation they
+     * may use and no listener cancels the {@link ItemTransformEvent}.
+     */
+    public TransformResult transform(Player player) {
         ItemStack held = player.getInventory().getItemInMainHand();
         if (held.getType().isAir()) {
-            return Result.NOT_HOLDING;
+            return TransformResult.NOT_HOLDING;
         }
         Transformation rule = rules.get().find(materialIdOf(held)).orElse(null);
         if (rule == null) {
-            return Result.NO_TRANSFORMATION;
+            return TransformResult.NO_TRANSFORMATION;
         }
         if (rule.permission() != null && !player.hasPermission(rule.permission())) {
-            return Result.NO_PERMISSION;
+            return TransformResult.NO_PERMISSION;
+        }
+        if (!new ItemTransformEvent(player, held, rule.fromId(), rule.targetMaterialId(), rule.targetId()).callEvent()) {
+            return TransformResult.CANCELLED;
         }
         player.getInventory().setItemInMainHand(transformed(held, rule));
         // Setting the hand slot fires none of the inventory events permission items follow.
         permissionItemSync.accept(player);
-        return Result.TRANSFORMED;
+        return TransformResult.TRANSFORMED;
+    }
+
+    /** The rule the item's form starts, empty when it has none. */
+    public Optional<Transformation> ruleFor(@Nullable ItemStack item) {
+        return item == null ? Optional.empty() : rules.get().find(materialIdOf(item));
     }
 
     /** The form the item is in: its material_id, or null for air and items without one. */
