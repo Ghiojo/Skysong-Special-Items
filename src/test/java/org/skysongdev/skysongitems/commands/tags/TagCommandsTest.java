@@ -29,6 +29,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
@@ -76,7 +77,7 @@ class TagCommandsTest extends MockBukkitTest {
     void removeTagWithoutTagIdShowsTheRemoveUsage() {
         run(new RemoveTag());
 
-        assertEquals("[SkysongItems] Usage: /si tag remove <tag>", nextMessage());
+        assertEquals("[SkysongItems] Usage: /si tag remove <tag> [after <time> | every <time>]", nextMessage());
     }
 
     @Test
@@ -101,6 +102,36 @@ class TagCommandsTest extends MockBukkitTest {
     }
 
     @Test
+    void setTagAfterATimeOnlyStoresATimer() {
+        run(new SetTag(), "arcrot", "4", "after", "1d");
+
+        assertNull(heldArcrot());
+        assertEquals("[SkysongItems] Timer set: tag set arcrot 4 after 1d.", nextMessage());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals("set_tag", timers.get(0).action());
+        assertNull(timers.get(0).every());
+    }
+
+    @Test
+    void reduceEveryStoresARepeatingNegativeAddAndAValueOfTheWrongKindIsRefused() {
+        run(new AdjustTag(true), "arcrot", "1", "every", "1d");
+        assertEquals("[SkysongItems] Timer set: tag add arcrot -1 every 1d.", nextMessage());
+
+        run(new AdjustTag(false), "arcrot", "0.5", "every", "1d");
+        assertEquals("[SkysongItems] Invalid amount for this tag! (Requires a number of the tag's kind)", nextMessage());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals(1, timers.size());
+        assertEquals("1d", timers.get(0).every());
+    }
+
+    @Test
+    void aBareTimeOnRemoveIsRefused() {
+        run(new RemoveTag(), "arcrot", "1d");
+
+        assertEquals("[SkysongItems] Use after <time> or every <time> with this command, such as after 1d.", nextMessage());
+    }
+
+    @Test
     void addAndReduceCountTheTagUpAndDownAndConfirm() {
         run(new TagCommand(), "add", "arcrot", "5");
         assertEquals(5, heldArcrot());
@@ -115,7 +146,7 @@ class TagCommandsTest extends MockBukkitTest {
     void addRefusesAnAmountThatIsNotANumberOfTheTagsKind() {
         run(new AdjustTag(false), "arcrot", "1.5");
 
-        assertFalse(heldArcrot() != null);
+        assertNull(heldArcrot());
         assertEquals("[SkysongItems] Invalid amount for this tag! (Requires a number of the tag's kind)", nextMessage());
     }
 

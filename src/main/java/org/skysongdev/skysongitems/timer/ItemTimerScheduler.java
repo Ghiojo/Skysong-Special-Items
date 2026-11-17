@@ -22,8 +22,25 @@ public final class ItemTimerScheduler {
      * @return the timer added
      */
     public static ItemTimer replaceOnce(ItemStack item, Timing timing, String action, String target, @Nullable String value) {
-        ItemTimer timer = new ItemTimer(timing.clock().id(), timing.dueFromNow(), action, target, value, timing.text(), null);
-        List<ItemTimer> timers = without(item, action, target);
+        return replace(item, timer(timing, false, action, target, value));
+    }
+
+    /**
+     * The timer a time makes: due once the time has passed from now and, when it repeats,
+     * again every time it passes after that.
+     */
+    public static ItemTimer timer(Timing timing, boolean repeats, String action, @Nullable String target, @Nullable String value) {
+        return new ItemTimer(timing.clock().id(), timing.dueFromNow(), action, target, value, timing.text(),
+                repeats ? timing.text() : null);
+    }
+
+    /**
+     * Adds the timer in place of any timer with the same action and target.
+     *
+     * @return the timer added
+     */
+    public static ItemTimer replace(ItemStack item, ItemTimer timer) {
+        List<ItemTimer> timers = without(item, timer.action(), timer.target());
         timers.add(timer);
         ItemTimerStore.write(item, timers);
         return timer;
@@ -50,7 +67,7 @@ public final class ItemTimerScheduler {
      *
      * @return whether it had any
      */
-    public static boolean cancel(ItemStack item, String action, String target) {
+    public static boolean cancel(ItemStack item, String action, @Nullable String target) {
         if (!ItemTimerStore.hasTimers(item.getPersistentDataContainer())) {
             return false;
         }
@@ -63,9 +80,13 @@ public final class ItemTimerScheduler {
     }
 
     /** The item's timers, leaving out those with this action and target. */
-    private static List<ItemTimer> without(ItemStack item, String action, String target) {
+    private static List<ItemTimer> without(ItemStack item, String action, @Nullable String target) {
         List<ItemTimer> timers = new ArrayList<>(ItemTimerStore.read(item.getPersistentDataContainer()));
-        timers.removeIf(timer -> action.equals(timer.action()) && target.equalsIgnoreCase(timer.target()));
+        timers.removeIf(timer -> action.equals(timer.action()) && sameTarget(target, timer.target()));
         return timers;
+    }
+
+    private static boolean sameTarget(@Nullable String target, @Nullable String other) {
+        return target == null ? other == null : target.equalsIgnoreCase(other);
     }
 }

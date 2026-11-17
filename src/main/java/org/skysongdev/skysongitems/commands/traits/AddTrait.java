@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
 import org.skysongdev.skysongitems.commands.timer.TimingArgs;
 import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
 import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
@@ -31,18 +32,17 @@ public class AddTrait implements TabExecutor {
 
 
         if(args.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait add <trait> [time]"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait add <trait> [time | after <time> | every <time>]"));
             return true;
         }
-        TimingArgs timing = TimingArgs.read(args, 1, getPlugin().getTimerClocks());
-        if (timing.isBad()) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + TimingArgs.BAD_TIME));
+        TimingArgs timing = TimingArgs.readOrRefuse(player, args, 1, false);
+        if (timing == null) {
             return true;
         }
 
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
-        if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
+        if (itemInMainHand.getType().isAir()) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
@@ -53,8 +53,12 @@ public class AddTrait implements TabExecutor {
             return true;
         }
 
+        if (timing.isLater()) {
+            LaterEdits.schedule(player, itemInMainHand, timing, BuiltInTimerActions.ADD_TRAIT, args[0], null);
+            return true;
+        }
         boolean added = !ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addTrait(itemInMainHand, args[0]));
-        boolean timerChanged = ItemTimerScheduler.replaceOrCancel(itemInMainHand, timing.timing(),
+        boolean timerChanged = ItemTimerScheduler.replaceOrCancel(itemInMainHand, timing.forTiming(),
                 BuiltInTimerActions.REMOVE_TRAIT.id(), args[0]);
         player.updateInventory();
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + confirmation(added, timerChanged, timing)));
@@ -74,7 +78,7 @@ public class AddTrait implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 2) {
-            return TimingArgs.suggestions(args[1]);
+            return TimingArgs.suggestions(args, 1);
         }
         if (args.length > 2) {
             return List.of();

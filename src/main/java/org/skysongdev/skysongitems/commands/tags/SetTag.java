@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
 import org.skysongdev.skysongitems.commands.timer.TimingArgs;
 import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
 import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
@@ -29,28 +30,32 @@ public class SetTag implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 2){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si tag set <tag> <value> [time]"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si tag set <tag> <value> [time | after <time> | every <time>]"));
             return true;
         }
-        TimingArgs timing = TimingArgs.read(strings, 2, getPlugin().getTimerClocks());
-        if (timing.isBad()) {
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + TimingArgs.BAD_TIME));
+        TimingArgs timing = TimingArgs.readOrRefuse(player, strings, 2, false);
+        if (timing == null) {
             return true;
         }
 
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
-        if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
+        if (itemInMainHand.getType().isAir()) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
 
-        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).setTag(itemInMainHand, strings[0], strings[1]);
+        ItemEditor.Result result = timing.isLater()
+                ? LaterEdits.schedule(player, itemInMainHand, timing, BuiltInTimerActions.SET_TAG, strings[0], strings[1])
+                : getPlugin().getItemEditor().forCommand(player).setTag(itemInMainHand, strings[0], strings[1]);
         if(!ItemEditor.Result.DONE.equals(result)){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + failureMessage(result)));
             return true;
         }
-        ItemTimerScheduler.replaceOrCancel(itemInMainHand, timing.timing(), BuiltInTimerActions.REMOVE_TAG.id(), strings[0]);
+        if (timing.isLater()) {
+            return true;
+        }
+        ItemTimerScheduler.replaceOrCancel(itemInMainHand, timing.forTiming(), BuiltInTimerActions.REMOVE_TAG.id(), strings[0]);
         getPlugin().syncPermissionItems(player);
 
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>The tag "+ strings[0] +" set to " + strings[1] + timing.forText() + " successfully!"));
@@ -82,7 +87,7 @@ public class SetTag implements TabExecutor {
         }
 
         if(strings.length == 3){
-            return TimingArgs.suggestions(strings[2]);
+            return TimingArgs.suggestions(strings, 2);
         }
         if(strings.length >= 2){
             return List.of();

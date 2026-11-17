@@ -7,6 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.TagType;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TagRegistry;
@@ -33,7 +36,11 @@ public class AdjustTag implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player player = (Player) sender;
         if (args.length < 2) {
-            send(player, "Usage: /si tag " + name() + " <tag> <amount>");
+            send(player, "Usage: /si tag " + name() + " <tag> <amount> [after <time> | every <time>]");
+            return true;
+        }
+        TimingArgs timing = TimingArgs.readOrRefuse(player, args, 2, true);
+        if (timing == null) {
             return true;
         }
         getPlugin().getUpdater().UpdateItem(player);
@@ -43,9 +50,14 @@ public class AdjustTag implements TabExecutor {
             return true;
         }
         String amount = reduce ? negated(args[1]) : args[1];
-        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).addTag(item, args[0], amount);
+        ItemEditor.Result result = timing.isLater()
+                ? LaterEdits.schedule(player, item, timing, BuiltInTimerActions.ADD_TAG, args[0], amount)
+                : getPlugin().getItemEditor().forCommand(player).addTag(item, args[0], amount);
         if (!ItemEditor.Result.DONE.equals(result)) {
             send(player, "<red>" + failureMessage(result));
+            return true;
+        }
+        if (timing.isLater()) {
             return true;
         }
         getPlugin().syncPermissionItems(player);
@@ -83,6 +95,9 @@ public class AdjustTag implements TabExecutor {
     /** Offers the registered number tags. */
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length > 2) {
+            return TimingArgs.suggestions(args, 2);
+        }
         if (args.length != 1) {
             return List.of();
         }

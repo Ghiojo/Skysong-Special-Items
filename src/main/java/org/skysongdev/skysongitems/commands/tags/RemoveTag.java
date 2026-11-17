@@ -9,6 +9,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 
@@ -27,12 +30,16 @@ public class RemoveTag implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si tag remove <tag>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si tag remove <tag> [after <time> | every <time>]"));
+            return true;
+        }
+        TimingArgs timing = TimingArgs.readOrRefuse(player, strings, 1, true);
+        if (timing == null) {
             return true;
         }
 
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
-        if (itemInMainHand == null || itemInMainHand.getType().isAir()) {
+        if (itemInMainHand.getType().isAir()) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "You must hold an item in your main hand to use this command."));
             return true;
         }
@@ -46,6 +53,10 @@ public class RemoveTag implements TabExecutor {
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack updatedItem = player.getInventory().getItemInMainHand();
 
+        if (timing.isLater()) {
+            LaterEdits.schedule(player, updatedItem, timing, BuiltInTimerActions.REMOVE_TAG, strings[0], null);
+            return true;
+        }
         if(ItemEditor.Result.MISSING.equals(getPlugin().getItemEditor().forCommand(player).removeTag(updatedItem, strings[0]))){
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item does not have this tag."));
             return true;
@@ -59,6 +70,9 @@ public class RemoveTag implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        if (strings.length > 1) {
+            return TimingArgs.suggestions(strings, 1);
+        }
         ArrayList<String> tags = new ArrayList<>();
         Player player = (Player) commandSender;
         if(player.getInventory().getItemInMainHand().getType().isAir())

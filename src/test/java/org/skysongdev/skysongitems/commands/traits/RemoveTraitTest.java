@@ -24,6 +24,7 @@ import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Tests {@code /si trait remove}. Uses the traits configured in the
@@ -93,7 +94,7 @@ class RemoveTraitTest extends MockBukkitTest {
     void noTraitIdShowsTheRemoveUsage() {
         run();
 
-        assertEquals("[SkysongItems] Usage: /si trait remove <trait>", nextMessage());
+        assertEquals("[SkysongItems] Usage: /si trait remove <trait> [after <time> | every <time>]", nextMessage());
     }
 
     @Test
@@ -112,6 +113,26 @@ class RemoveTraitTest extends MockBukkitTest {
         remove("test");
 
         assertEquals("[SkysongItems] This item has no traits.", nextMessage());
+    }
+
+    @Test
+    void anUnknownTraitIsRefusedWithoutClaimingItWasRemoved() {
+        holdItemWithTraits("test");
+
+        run("not_a_trait");
+
+        assertEquals("[SkysongItems] Invalid trait!", nextMessage());
+        assertNull(player.nextComponentMessage());
+    }
+
+    @Test
+    void removingATraitAfterADayOnlyStoresATimer() {
+        holdItemWithTraits("test");
+
+        run("test", "after", "1d");
+
+        assertEquals("[SkysongItems] Timer set: trait remove test after 1d.", nextMessage());
+        assertEquals(List.of("test"), ItemData.from(player.getInventory().getItemInMainHand().getItemMeta()).getTraits());
     }
 
     @Test

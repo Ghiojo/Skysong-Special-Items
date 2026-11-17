@@ -1,6 +1,7 @@
 package org.skysongdev.skysongitems.timer;
 
 import org.bukkit.inventory.ItemStack;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 
 /**
  * What a timer does to its item once it is due, such as removing a trait. Each kind is one
@@ -20,6 +21,18 @@ public interface TimerAction {
      * @return the item afterwards: the same one changed in place, or the one replacing it
      */
     ItemStack apply(TimerContext context, ItemStack item, ItemTimer timer, long times);
+
+    /**
+     * Whether the timer's change could apply to the item, checked before the timer is
+     * stored: refusals such as an unknown tag or a value of the wrong type. A change the item
+     * just doesn't need right now, such as removing a trait it doesn't have yet, passes.
+     * The item itself is never changed.
+     *
+     * @return {@link ItemEditor.Result#DONE} when it could apply, otherwise why not
+     */
+    default ItemEditor.Result check(ItemEditor editor, ItemStack item, ItemTimer timer) {
+        return ItemEditor.Result.DONE;
+    }
 
     /** How the timer reads to staff and players, such as {@code trait remove honed}. */
     String describe(ItemTimer timer);
