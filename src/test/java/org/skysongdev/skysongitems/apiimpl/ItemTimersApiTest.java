@@ -105,6 +105,24 @@ class ItemTimersApiTest extends MockBukkitTest {
     }
 
     @Test
+    void changesForATimeAreMadeNowAndEachStoresItsOwnUndo() {
+        ItemStack item = skysongItemWithTimers();
+        api.itemHp().set(item, 10);
+        api.traits().add(item, "test");
+
+        api.tags().addFor(item, "arcrot", 3, "24h");
+        api.tags().addFor(item, "arcrot", 3, "1d");
+        assertEquals(4, api.itemHp().addFor(item, -6, "1h"));
+        assertTrue(api.traits().removeFor(item, "test", "1w"));
+        assertFalse(api.traits().removeFor(item, "test", "1w"));
+        assertThrows(IllegalArgumentException.class, () -> api.charges().addFor(item, 1, "soon"));
+
+        assertEquals(6, api.tags().getInt(item, "arcrot").orElseThrow());
+        assertEquals(List.of("add_tag -3", "add_tag -3", "add_hp 6", "add_trait null"), api.timers().list(item).stream()
+                .skip(2).map(timer -> timer.action() + " " + timer.value()).toList());
+    }
+
+    @Test
     void cancelRemovesOneTimerAndClearRemovesAll() {
         ItemStack item = skysongItemWithTimers();
 

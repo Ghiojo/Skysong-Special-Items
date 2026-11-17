@@ -169,6 +169,18 @@ class ItemHpCommandTest extends MockBukkitTest {
     }
 
     @Test
+    void staffCanReduceTheHpForATimeAndItComesBackLater() {
+        holdDamagedItem();
+        makeStaff();
+
+        run("reduce", "2", "24h");
+
+        assertEquals(4, heldHp());
+        assertEquals("[SkysongItems] Undone after 24h: hp add 2.", nextMessage());
+        assertEquals("add_hp", heldTimers().get(0).action());
+    }
+
+    @Test
     void settingTheHpForATimeIsRefused() {
         holdDamagedItem();
         makeStaff();

@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.ItemHp;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.timer.Timing;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
@@ -15,10 +17,12 @@ import java.util.OptionalInt;
 final class ItemHpImpl implements ItemHp {
     private final ItemEditor editor;
     private final ItemWrites.ItemCheck check;
+    private final TimedWrites timed;
 
-    ItemHpImpl(ItemEditor editor, ItemWrites.ItemCheck check) {
+    ItemHpImpl(ItemEditor editor, ItemWrites.ItemCheck check, TimedWrites timed) {
         this.editor = editor;
         this.check = check;
+        this.timed = timed;
     }
 
     @Override
@@ -41,6 +45,14 @@ final class ItemHpImpl implements ItemHp {
         check.require(item);
         ItemWrites.requireDone(editorFor(holder).setItemHp(item, hp), "item HP " + hp);
         return get(item).orElse(0);
+    }
+
+    @Override
+    public int addFor(Player holder, ItemStack item, int amount, String time) {
+        Timing timing = timed.timing(time);
+        int now = add(holder, item, amount);
+        timed.undoLater(item, timing, BuiltInTimerActions.ADD_HP.id(), null, String.valueOf(-amount));
+        return now;
     }
 
     @Override

@@ -68,6 +68,25 @@ public interface ItemCharges {
     }
 
     /**
+     * Adds charges for a while, like {@code /si charges add <amount> <time>}: the same amount is
+     * taken back off once the time has passed (a negative amount is given back), still between
+     * 0 and the max. These stack: each call undoes only its own amount.
+     *
+     * @param time how long, as staff type it, such as {@code 24h} or {@code 1d12h}
+     * @return the charges the item has now
+     * @throws IllegalArgumentException as {@link #add(Player, ItemStack, int)} does, or when the
+     *                                  time isn't one
+     * @see ItemTimers
+     * @since 1.15.0
+     */
+    int addFor(@Nullable Player holder, ItemStack item, int amount, String time);
+
+    /** Same as {@link #addFor(Player, ItemStack, int, String)} with no holder. */
+    default int addFor(ItemStack item, int amount, String time) {
+        return addFor(null, item, amount, time);
+    }
+
+    /**
      * Sets the item's max charges, like {@code /si charges max}. Charges the item already
      * has are kept, and an item without charges gets this amount as its charges.
      *

@@ -30,10 +30,10 @@ public class RemoveTrait implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait remove <trait> [after <time> | every <time>]"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait remove <trait> [time | after <time> | every <time>]"));
             return true;
         }
-        TimingArgs timing = TimingArgs.readOrRefuse(player, strings, 1, true);
+        TimingArgs timing = TimingArgs.readOrRefuse(player, strings, 1, false);
         if (timing == null) {
             return true;
         }
@@ -57,16 +57,23 @@ public class RemoveTrait implements TabExecutor {
             LaterEdits.schedule(player, updatedItem, timing, BuiltInTimerActions.REMOVE_TRAIT, strings[0], null);
             return true;
         }
-        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeTrait(updatedItem, strings[0]);
+        removeNow(player, updatedItem, strings[0], timing);
+        return true;
+    }
+
+    /** Removes the trait now and, for a time on its own, stores adding it back. */
+    private static void removeNow(Player player, ItemStack item, String traitId, TimingArgs timing) {
+        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).removeTrait(item, traitId);
         String failure = failureMessage(result);
         if (failure != null) {
             player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + failure));
-            return true;
+            return;
         }
-
         player.updateInventory();
         player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<green>Trait removed successfully!"));
-        return true;
+        if (timing.isTimed()) {
+            LaterEdits.undoLater(player, item, timing, BuiltInTimerActions.ADD_TRAIT, traitId, null);
+        }
     }
 
     /** What to tell the player when the trait couldn't be removed, or null when it was. */

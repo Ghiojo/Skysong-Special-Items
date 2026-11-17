@@ -85,6 +85,24 @@ public interface ItemTraits {
         return remove(null, item, traitId);
     }
 
+    /**
+     * Takes a trait off the item for a while, like {@code /si trait remove <trait> <time>}: it
+     * is added back once the time has passed.
+     *
+     * @param time how long, as staff type it, such as {@code 24h} or {@code 1d12h}
+     * @return true when removed, false when the item didn't have it, and then nothing is added back later
+     * @throws IllegalArgumentException as {@link #remove(Player, ItemStack, String)} does, or when
+     *                                  the time isn't one
+     * @see ItemTimers
+     * @since 1.15.0
+     */
+    boolean removeFor(@Nullable Player holder, ItemStack item, String traitId, String time);
+
+    /** Same as {@link #removeFor(Player, ItemStack, String, String)} with no holder. */
+    default boolean removeFor(ItemStack item, String traitId, String time) {
+        return removeFor(null, item, traitId, time);
+    }
+
     /** Whether SkysongItems has a trait with this id, ignoring case. */
     boolean exists(String traitId);
 

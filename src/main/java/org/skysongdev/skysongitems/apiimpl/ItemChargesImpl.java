@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.timer.Timing;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
@@ -15,10 +17,12 @@ import java.util.OptionalInt;
 final class ItemChargesImpl implements ItemCharges {
     private final ItemEditor editor;
     private final ItemWrites.ItemCheck check;
+    private final TimedWrites timed;
 
-    ItemChargesImpl(ItemEditor editor, ItemWrites.ItemCheck check) {
+    ItemChargesImpl(ItemEditor editor, ItemWrites.ItemCheck check, TimedWrites timed) {
         this.editor = editor;
         this.check = check;
+        this.timed = timed;
     }
 
     @Override
@@ -44,6 +48,14 @@ final class ItemChargesImpl implements ItemCharges {
     }
 
     /** Like {@code /si charges add} by a player without the permission to add to locked items. */
+    @Override
+    public int addFor(Player holder, ItemStack item, int amount, String time) {
+        Timing timing = timed.timing(time);
+        int now = add(holder, item, amount);
+        timed.undoLater(item, timing, BuiltInTimerActions.ADD_CHARGES.id(), null, String.valueOf(-amount));
+        return now;
+    }
+
     @Override
     public int add(Player holder, ItemStack item, int amount) {
         check.require(item);

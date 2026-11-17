@@ -34,4 +34,9 @@ final class TimedWrites {
     void then(ItemStack item, @Nullable Timing timing, String action, String target) {
         ItemTimerScheduler.replaceOrCancel(item, timing, action, target);
     }
+
+    /** Applies the undoing change once the time has passed, next to any earlier such timer, so these stack. */
+    void undoLater(ItemStack item, Timing timing, String action, @Nullable String target, @Nullable String value) {
+        ItemTimerScheduler.add(item, ItemTimerScheduler.timer(timing, false, action, target, value));
+    }
 }

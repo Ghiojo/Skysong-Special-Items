@@ -125,6 +125,19 @@ class TagCommandsTest extends MockBukkitTest {
     }
 
     @Test
+    void addingForATimeUndoesTheSameAmountLaterAndEachAddUndoesItsOwn() {
+        run(new AdjustTag(false), "arcrot", "2", "24h");
+        run(new AdjustTag(false), "arcrot", "2", "24h");
+
+        assertEquals(4, heldArcrot());
+        assertEquals("[SkysongItems] The tag arcrot is now 2.", nextMessage());
+        assertEquals("[SkysongItems] Undone after 24h: tag add arcrot -2.", nextMessage());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals(List.of("-2", "-2"), timers.stream().map(ItemTimer::value).toList());
+        assertNull(timers.get(0).every());
+    }
+
+    @Test
     void aBareTimeOnRemoveIsRefused() {
         run(new RemoveTag(), "arcrot", "1d");
 
