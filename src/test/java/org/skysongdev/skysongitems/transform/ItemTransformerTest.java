@@ -3,6 +3,8 @@ package org.skysongdev.skysongitems.transform;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,7 +17,13 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TransformResult;
+import org.skysongdev.skysongitems.api.event.ItemTransformEvent;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.timer.TimerContext;
+import org.skysongdev.skysongitems.timer.action.TransformTimerAction;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -105,6 +113,50 @@ class ItemTransformerTest extends MockBukkitTest {
         edit.accept(meta);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private static final ItemTimer EVERY_12H = new ItemTimer("real", 1000, "transform", null, null, "12h", "12h");
+    private static final ItemTimer HONED_ENDS = new ItemTimer("real", 2000, "remove_trait", "honed", null, "24h", null);
+
+    @Test
+    void onlyTransformTimersCarryOverToTheNewForm() {
+        ItemStack blade = dayBlade();
+        ItemTimerStore.write(blade, List.of(EVERY_12H, HONED_ENDS));
+        player.getInventory().setItemInMainHand(blade);
+
+        transformer.transform(player);
+
+        assertEquals(List.of(EVERY_12H), ItemTimerStore.read(held().getPersistentDataContainer()));
+    }
+
+    @Test
+    void aTransformTimerMovesTheItemOnAsManyFormsAsItCameDueRoundItsCycle() {
+        TransformTimerAction action = new TransformTimerAction(transformer);
+        TimerContext noHolder = new TimerContext(plugin.getItemEditor(), null);
+
+        ItemStack threeTimes = action.apply(noHolder, dayBlade(), EVERY_12H, 3);
+        ItemStack fourTimes = action.apply(noHolder, dayBlade(), EVERY_12H, 4);
+
+        assertEquals("night_blade", read(threeTimes, ItemKeys.MATERIAL_ID, PersistentDataType.STRING));
+        assertEquals("day_blade", read(fourTimes, ItemKeys.MATERIAL_ID, PersistentDataType.STRING));
+        assertEquals(ItemEditor.Result.DONE, action.check(plugin.getItemEditor(), dayBlade(), EVERY_12H));
+        assertEquals(ItemEditor.Result.NO_TRANSFORMATION,
+                action.check(plugin.getItemEditor(), new ItemStack(Material.STONE), EVERY_12H));
+    }
+
+    @Test
+    void aCancelledTransformEventStopsATimedTransformationOfAHeldItem() {
+        server.getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            void cancel(ItemTransformEvent event) {
+                event.setCancelled(true);
+            }
+        }, plugin);
+
+        ItemStack after = new TransformTimerAction(transformer)
+                .apply(new TimerContext(plugin.getItemEditor(), player), dayBlade(), EVERY_12H, 1);
+
+        assertEquals("day_blade", read(after, ItemKeys.MATERIAL_ID, PersistentDataType.STRING));
     }
 
     @Test

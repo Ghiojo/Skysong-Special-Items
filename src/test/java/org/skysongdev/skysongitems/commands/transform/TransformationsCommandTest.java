@@ -15,6 +15,7 @@ import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.TaggedItems;
 import org.skysongdev.skysongitems.transform.Transformation;
 import org.skysongdev.skysongitems.transform.TransformationRules;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
@@ -23,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests {@code /si transform list} and {@code /si transform check}. */
 class TransformationsCommandTest extends MockBukkitTest {
@@ -104,6 +107,18 @@ class TransformationsCommandTest extends MockBukkitTest {
     void anUnknownActionShowsTheUsage() {
         run("swap");
 
-        assertEquals("[SkysongItems] Usage: /si transform <list | check>", nextPlainMessage());
+        assertEquals("[SkysongItems] Usage: /si transform <list | check | after <time> | every <time>>", nextPlainMessage());
+    }
+
+    @Test
+    void timingAnItemWithoutATransformationIsRefusedAndABareTimeAsksForAfterOrEvery() {
+        hold("plain_rock");
+
+        run("every", "12h");
+        assertEquals("[SkysongItems] This item has no transformation to time.", nextPlainMessage());
+
+        run("after", "soon");
+        assertTrue(nextPlainMessage().startsWith("[SkysongItems] Invalid time!"));
+        assertFalse(ItemTimerStore.hasTimers(player.getInventory().getItemInMainHand().getPersistentDataContainer()));
     }
 }

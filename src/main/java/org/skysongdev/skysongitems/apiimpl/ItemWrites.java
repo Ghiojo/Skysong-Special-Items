@@ -25,6 +25,7 @@ final class ItemWrites {
         REFUSALS.put(Result.NOT_A_BOOLEAN, "the tag holds true or false");
         REFUSALS.put(Result.NOT_NUMERIC, "the tag doesn't hold numbers");
         REFUSALS.put(Result.UNKNOWN_TRAIT, "there is no trait with this id");
+        REFUSALS.put(Result.NO_TRANSFORMATION, "the item's form has no transformation");
     }
 
     /** Which items a write accepts. */

@@ -11,12 +11,15 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.api.TransformResult;
 import org.skysongdev.skysongitems.api.event.ItemTransformEvent;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -41,6 +44,9 @@ import java.util.function.UnaryOperator;
  * Everything else comes from the new form, so tags the new form lacks are dropped.
  */
 public final class ItemTransformer {
+    /** The id of the timer action that transforms an item, the timers that carry over to its new form. */
+    public static final String TIMER_ACTION = "transform";
+
     private final Supplier<TransformationRules> rules;
     private final TagRegistry tags;
     private final Consumer<Player> permissionItemSync;
@@ -90,6 +96,11 @@ public final class ItemTransformer {
         return item == null ? Optional.empty() : rules.get().find(materialIdOf(item));
     }
 
+    /** The rule the form with this material_id starts, empty when it has none. */
+    public Optional<Transformation> rule(@Nullable String materialId) {
+        return rules.get().find(materialId);
+    }
+
     /** The form the item is in: its material_id, or null for air and items without one. */
     public static @Nullable String materialIdOf(ItemStack item) {
         if (item.getType().isAir()) {
@@ -98,9 +109,20 @@ public final class ItemTransformer {
         return item.getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
     }
 
-    /** The item the held one becomes under this rule. The held item itself is not changed. */
+    /**
+     * The item the held one becomes under this rule. The held item itself is not changed.
+     * Of the held item's timers, only those that transform it carry over, so a repeating
+     * transformation keeps going; its other timers belonged to the old form and are dropped.
+     */
     public ItemStack transformed(ItemStack held, Transformation rule) {
-        return rule.isWholeItem() ? wholeItem(held, rule) : withParts(held, rule);
+        ItemStack result = rule.isWholeItem() ? wholeItem(held, rule) : withParts(held, rule);
+        List<ItemTimer> carried = ItemTimerStore.read(held.getPersistentDataContainer()).stream()
+                .filter(timer -> TIMER_ACTION.equals(timer.action()))
+                .toList();
+        if (!carried.isEmpty() || ItemTimerStore.hasTimers(result.getPersistentDataContainer())) {
+            ItemTimerStore.write(result, carried);
+        }
+        return result;
     }
 
     /**
