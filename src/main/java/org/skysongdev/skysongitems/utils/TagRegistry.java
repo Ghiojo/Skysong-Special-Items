@@ -137,6 +137,8 @@ public class TagRegistry {
         builtIn.put(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
         builtIn.put(ItemKeys.CHARGES, PersistentDataType.INTEGER);
         builtIn.put(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN);
+        builtIn.put(ItemKeys.MAX_ITEM_HP, PersistentDataType.INTEGER);
+        builtIn.put(ItemKeys.ITEM_HP, PersistentDataType.INTEGER);
         builtIn.put(ItemKeys.VERSION, PersistentDataType.STRING);
         builtIn.put(ItemKeys.LORE, PersistentDataType.STRING);
         builtIn.put(ItemKeys.NAME, PersistentDataType.STRING);

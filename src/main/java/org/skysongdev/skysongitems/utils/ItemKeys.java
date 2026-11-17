@@ -21,6 +21,8 @@ public final class ItemKeys {
     public static final NamespacedKey MAX_CHARGES = named("max_charges");
     public static final NamespacedKey CHARGES = named("charges");
     public static final NamespacedKey CAN_ADD_CHARGES = named("can_add_charges");
+    public static final NamespacedKey MAX_ITEM_HP = named("max_item_hp");
+    public static final NamespacedKey ITEM_HP = named("item_hp");
     public static final NamespacedKey VERSION = named("version");
     public static final NamespacedKey LORE = named("lore");
     public static final NamespacedKey NAME = named("name");
@@ -46,7 +48,8 @@ public final class ItemKeys {
     public static final NamespacedKey FURNITURE_MODEL = new NamespacedKey("furniturelib", "model");
 
     // Every key above in this plugin's namespace. Declared after them, as it reads them.
-    private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES, VERSION, LORE,
+    private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES,
+            MAX_ITEM_HP, ITEM_HP, VERSION, LORE,
             NAME, DELETED_LINES, TRAITS, LEGACY_TRAITS, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
             DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY);
 

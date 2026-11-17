@@ -33,6 +33,19 @@ traits:
     valuetags:
       - charges
       - max_charges
+  # Item HP is part of the base plugin too. When this trait is missing, the plugin uses
+  # this bundled one. Its weight of -1 draws the HP line right after the charges line.
+  item_hp:
+    type: "printable"
+    traittype: "Magic"
+    item: RED_DYE
+    name: "Item HP"
+    description: "This item has hit points. It loses them as it takes damage, and only staff can restore them"
+    printable: "<#9C2C2C>[<#E13232>HP: <#E13232>$1/$2<#9C2C2C>]"
+    weight: -1
+    valuetags:
+      - item_hp
+      - max_item_hp
   spell:
     type: "rename"
     traittype: "Magic"
