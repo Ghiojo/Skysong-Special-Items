@@ -6,6 +6,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 
@@ -19,6 +23,10 @@ public class AddCharges implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
+        TimingArgs timing = timingFor(player, strings);
+        if (timing == null) {
+            return true;
+        }
         getPlugin().getUpdater().UpdateItem(player);
         ItemStack item = player.getInventory().getItemInMainHand();
         int num;
@@ -33,14 +41,28 @@ public class AddCharges implements CommandExecutor {
             return true;
         }
         boolean ignoreLock = player.hasPermission("skysongspecialitems.cit");
-        ItemEditor.Result result = getPlugin().getItemEditor().forCommand(player).addCharges(item, num, ignoreLock);
+        ItemEditor.Result result = timing.isLater()
+                ? LaterEdits.schedule(player, item, timing, BuiltInTimerActions.ADD_CHARGES, null, String.valueOf(num))
+                : getPlugin().getItemEditor().forCommand(player).addCharges(item, num, ignoreLock);
+        report(player, result);
+        return true;
+    }
+
+    /** The time typed after the amount, or null when the player was told it can't be used. */
+    private static @Nullable TimingArgs timingFor(Player player, String[] args) {
+        if (TimingArgs.refusedForPlayer(player, args, 1)) {
+            return null;
+        }
+        return TimingArgs.readOrRefuse(player, args, 1, true);
+    }
+
+    private static void report(Player player, ItemEditor.Result result) {
         if(ItemEditor.Result.NOT_CHARGED.equals(result)){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>This item doesn't use charges!"));
         } else if(ItemEditor.Result.ADDING_LOCKED.equals(result)){
-            commandSender.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You cannot add charges to this item!"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>You cannot add charges to this item!"));
         } else {
             player.updateInventory();
         }
-        return true;
     }
 }

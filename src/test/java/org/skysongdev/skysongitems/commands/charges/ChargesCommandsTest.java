@@ -17,8 +17,11 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.api.event.ItemChargesChangeEvent;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -26,6 +29,7 @@ import org.skysongdev.skysongitems.utils.ItemKeys;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -124,6 +128,29 @@ class ChargesCommandsTest extends MockBukkitTest {
         run(new AddCharges(), "2");
 
         assertEquals(4, heldCharges());
+    }
+
+    @Test
+    void staffCanAddChargesLaterWhichOnlyStoresATimer() {
+        holdItem(true);
+        player.addAttachment(MockBukkit.createMockPlugin(), CIT_PERMISSION, true);
+
+        run(new AddCharges(), "2", "after", "1d");
+
+        assertEquals("[SkysongItems] Timer set: charges add 2 after 1d.", nextMessage());
+        assertEquals(2, heldCharges());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals("add_charges", timers.get(0).action());
+    }
+
+    @Test
+    void onlyStaffCanChangeChargesOverTime() {
+        holdItem(true);
+
+        run(new AddCharges(), "2", "every", "1d");
+
+        assertEquals("[SkysongItems] " + TimingArgs.STAFF_ONLY, nextMessage());
+        assertFalse(ItemTimerStore.hasTimers(player.getInventory().getItemInMainHand().getPersistentDataContainer()));
     }
 
     @Test

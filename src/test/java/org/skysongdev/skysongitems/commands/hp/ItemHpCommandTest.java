@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
-import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
@@ -23,6 +27,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests who may run each {@code /si hp} subcommand, and what it tells them. */
 class ItemHpCommandTest extends MockBukkitTest {
@@ -135,6 +140,45 @@ class ItemHpCommandTest extends MockBukkitTest {
         assertEquals("[SkysongItems] Please type in a valid number!", nextMessage());
     }
 
+    private List<ItemTimer> heldTimers() {
+        return ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+    }
+
+    @Test
+    void staffCanReduceTheHpOverTimeWhichOnlyStoresATimer() {
+        holdDamagedItem();
+        makeStaff();
+
+        run("reduce", "1", "every", "1d");
+
+        assertEquals("[SkysongItems] Timer set: hp add -1 every 1d.", nextMessage());
+        assertEquals(6, heldHp());
+        assertEquals("add_hp", heldTimers().get(0).action());
+        assertEquals("1d", heldTimers().get(0).every());
+    }
+
+    @Test
+    void onlyStaffCanChangeTheHpOverTime() {
+        holdDamagedItem();
+
+        run("reduce", "1", "after", "1d");
+
+        assertEquals("[SkysongItems] " + TimingArgs.STAFF_ONLY, nextMessage());
+        assertEquals(6, heldHp());
+        assertTrue(heldTimers().isEmpty());
+    }
+
+    @Test
+    void settingTheHpForATimeIsRefused() {
+        holdDamagedItem();
+        makeStaff();
+
+        run("set", "2", "24h");
+
+        assertEquals("[SkysongItems] " + LaterEdits.LATER_ONLY, nextMessage());
+        assertEquals(6, heldHp());
+    }
+
     @Test
     void tabCompletionOnlyOffersWhatThePlayerMayRun() {
         assertEquals(List.of("reduce"), command.onTabComplete(player, new StubCommand(), "si", new String[]{""}));
@@ -142,6 +186,7 @@ class ItemHpCommandTest extends MockBukkitTest {
         makeStaff();
 
         assertEquals(List.of("set", "setmax"), command.onTabComplete(player, new StubCommand(), "si", new String[]{"se"}));
+        assertEquals(List.of("after"), command.onTabComplete(player, new StubCommand(), "si", new String[]{"remove", "a"}));
     }
 
     /** The command never looks at the command object, so any instance will do. */
