@@ -82,6 +82,25 @@ public interface ItemTags {
     }
 
     /**
+     * Adds an amount to a number tag on the item, like {@code /si tag add}; a negative amount
+     * takes it off, like {@code /si tag reduce}. A tag the item doesn't have counts as 0, and
+     * the tag never goes below 0.
+     *
+     * @param holder the player holding the item, named in the change event; may be null
+     * @param amount an {@code Integer} for an int tag, any {@code Number} for a float tag
+     * @throws IllegalArgumentException when the item is null, air or not a SkysongItems item,
+     *                                  the tag doesn't exist, can't be written or doesn't hold
+     *                                  numbers, or the amount doesn't fit the tag's type
+     * @since 1.8.0
+     */
+    void add(@Nullable Player holder, ItemStack item, String tagId, Number amount);
+
+    /** Same as {@link #add(Player, ItemStack, String, Number)} with no holder. */
+    default void add(ItemStack item, String tagId, Number amount) {
+        add(null, item, tagId, amount);
+    }
+
+    /**
      * Takes a tag off the item, like {@code /si tag remove}.
      *
      * @param holder the player holding the item, named in the change event; may be null

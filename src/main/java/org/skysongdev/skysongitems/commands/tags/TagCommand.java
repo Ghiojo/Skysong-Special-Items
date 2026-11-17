@@ -15,6 +15,8 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 public class TagCommand implements TabExecutor {
     SetTag setTag = new SetTag();
     RemoveTag removeTag = new RemoveTag();
+    AdjustTag addTag = new AdjustTag(false);
+    AdjustTag reduceTag = new AdjustTag(true);
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -32,6 +34,12 @@ public class TagCommand implements TabExecutor {
             case "remove":
                 removeTag.onCommand(commandSender, command, s, subArgs);
                 break;
+            case "add":
+                addTag.onCommand(commandSender, command, s, subArgs);
+                break;
+            case "reduce":
+                reduceTag.onCommand(commandSender, command, s, subArgs);
+                break;
         }
         return true;
     }
@@ -39,7 +47,7 @@ public class TagCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if(strings.length == 1)
-            return List.of("set", "remove");
+            return List.of("set", "remove", "add", "reduce");
         if(strings.length > 1){
             String[] subArgs = Arrays.copyOfRange(strings, 1, strings.length);
             switch(strings[0].toLowerCase()){
@@ -47,6 +55,8 @@ public class TagCommand implements TabExecutor {
                     return setTag.onTabComplete(commandSender, command, s, subArgs);
                 case "remove":
                     return removeTag.onTabComplete(commandSender, command, s, subArgs);
+                case "add", "reduce":
+                    return addTag.onTabComplete(commandSender, command, s, subArgs);
                 default:
                     return null;
             }

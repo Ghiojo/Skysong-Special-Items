@@ -138,6 +138,22 @@ class ItemTimerRunnerTest extends MockBukkitTest {
     }
 
     @Test
+    void aRepeatingAddTakesOffItsAmountOncePerMissedRepeatAndStopsAtZero() {
+        long threeDaysAgo = NOW - 3 * 86_400_000L + 1;
+        ItemStack item = itemWith(new ItemTimer("real", threeDaysAgo, "add_tag", "arcrot", "-2", "1d", "1d"));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ARCROT, PersistentDataType.INTEGER, 10);
+        item.setItemMeta(meta);
+
+        runner.run(item, null);
+        assertEquals(4, arcrot(item));
+
+        ItemTimerStore.write(item, List.of(new ItemTimer("real", threeDaysAgo, "add_tag", "arcrot", "-2", "1d", "1d")));
+        runner.run(item, null);
+        assertEquals(0, arcrot(item));
+    }
+
+    @Test
     void aTimerWhoseTargetIsGoneClearsItselfWhenItRunsOnce() {
         ItemStack item = itemWith(once(NOW, "remove_trait", "deleted_trait", null));
 

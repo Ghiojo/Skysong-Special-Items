@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
- * Tests {@code /si tag set} and {@code /si tag remove} on the held item, using
+ * Tests {@code /si tag set}, {@code remove}, {@code add} and {@code reduce} on the held item, using
  * the "arcrot" int tag from the bundled config.yml.
  */
 class TagCommandsTest extends MockBukkitTest {
@@ -83,6 +83,25 @@ class TagCommandsTest extends MockBukkitTest {
 
         assertEquals(4, heldArcrot());
         assertEquals("[SkysongItems] The tag arcrot set to 4 successfully!", nextMessage());
+    }
+
+    @Test
+    void addAndReduceCountTheTagUpAndDownAndConfirm() {
+        run(new TagCommand(), "add", "arcrot", "5");
+        assertEquals(5, heldArcrot());
+        assertEquals("[SkysongItems] The tag arcrot is now 5.", nextMessage());
+
+        run(new TagCommand(), "reduce", "arcrot", "2");
+        assertEquals(3, heldArcrot());
+        assertEquals("[SkysongItems] The tag arcrot is now 3.", nextMessage());
+    }
+
+    @Test
+    void addRefusesAnAmountThatIsNotANumberOfTheTagsKind() {
+        run(new AdjustTag(false), "arcrot", "1.5");
+
+        assertFalse(heldArcrot() != null);
+        assertEquals("[SkysongItems] Invalid amount for this tag! (Requires a number of the tag's kind)", nextMessage());
     }
 
     @Test

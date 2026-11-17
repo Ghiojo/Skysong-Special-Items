@@ -23,6 +23,7 @@ final class ItemWrites {
         REFUSALS.put(Result.UNKNOWN_TAG, "there is no tag with this id");
         REFUSALS.put(Result.NOT_A_NUMBER, "the tag holds numbers");
         REFUSALS.put(Result.NOT_A_BOOLEAN, "the tag holds true or false");
+        REFUSALS.put(Result.NOT_NUMERIC, "the tag doesn't hold numbers");
         REFUSALS.put(Result.UNKNOWN_TRAIT, "there is no trait with this id");
     }
 

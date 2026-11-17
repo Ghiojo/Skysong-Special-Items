@@ -108,6 +108,31 @@ class ItemTagWritesTest extends MockBukkitTest {
     }
 
     @Test
+    void addCountsAMissingTagAsZeroAndNeverGoesBelowZero() {
+        ItemStack item = skysongItem();
+
+        tags.add(item, "arcrot", 2);
+        tags.add(item, "weight", 0.5);
+        assertEquals(2, tags.getInt(item, "arcrot").orElseThrow());
+        assertEquals(0.5f, tags.getFloat(item, "weight").orElseThrow());
+
+        tags.add(item, "arcrot", -5);
+        tags.add(item, "weight", -1);
+        assertEquals(0, tags.getInt(item, "arcrot").orElseThrow());
+        assertEquals(0f, tags.getFloat(item, "weight").orElseThrow());
+    }
+
+    @Test
+    void addRefusesTagsThatDoNotHoldNumbersAndAmountsOfTheWrongKind() {
+        ItemStack item = skysongItem();
+
+        assertThrows(IllegalArgumentException.class, () -> tags.add(item, "cursed", 1));
+        assertThrows(IllegalArgumentException.class, () -> tags.add(item, "origin", 1));
+        assertThrows(IllegalArgumentException.class, () -> tags.add(item, "arcrot", 1.5));
+        assertFalse(tags.getInt(item, "arcrot").isPresent());
+    }
+
+    @Test
     void setRefusesAnUnknownTag() {
         assertThrows(IllegalArgumentException.class, () -> tags.set(skysongItem(), "nope", 1));
     }

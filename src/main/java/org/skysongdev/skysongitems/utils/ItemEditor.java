@@ -90,6 +90,8 @@ public final class ItemEditor {
         NOT_A_NUMBER,
         /** The tag holds true or false and the value is neither. */
         NOT_A_BOOLEAN,
+        /** The tag holds true or false or text, so nothing can be added to it. */
+        NOT_NUMERIC,
         /** No trait is registered with this id. */
         UNKNOWN_TRAIT,
         /** The item already has the trait. */
@@ -358,6 +360,40 @@ public final class ItemEditor {
         }
         ItemMeta meta = item.getItemMeta();
         Result result = TagValues.write(meta.getPersistentDataContainer(), tag.key(), tag.type(), value);
+        if (Result.DONE.equals(result)) {
+            item.setItemMeta(meta);
+        }
+        return result;
+    }
+
+    /**
+     * Adds an amount to a registered number tag, like {@code /si tag add}; a negative
+     * amount takes it off, like {@code /si tag reduce}. A tag the item doesn't have counts
+     * as 0, and the result never goes below 0. The id matches a tag's key name, ignoring case.
+     *
+     * @return {@link Result#UNKNOWN_TAG}, {@link Result#NOT_NUMERIC} for a bool or string tag,
+     *         {@link Result#NOT_A_NUMBER} when the amount isn't the tag's kind of number,
+     *         otherwise {@link Result#DONE}
+     */
+    public Result addTag(ItemStack item, String tagId, String amount) {
+        return addTag(item, tagId, amount, 1);
+    }
+
+    /**
+     * Adds the amount as many times as given, in one edit, as a repeating timer does for
+     * the repeats it missed. Otherwise the same as {@link #addTag(ItemStack, String, String)}.
+     */
+    public Result addTag(ItemStack item, String tagId, String amount, long times) {
+        return tracked(item, () -> applyAddTag(item, tagId, amount, times));
+    }
+
+    private Result applyAddTag(ItemStack item, String tagId, String amount, long times) {
+        TagRegistry.RegisteredTag tag = tags.find(tagId);
+        if (tag == null) {
+            return Result.UNKNOWN_TAG;
+        }
+        ItemMeta meta = item.getItemMeta();
+        Result result = TagValues.add(meta.getPersistentDataContainer(), tag.key(), tag.type(), amount, times);
         if (Result.DONE.equals(result)) {
             item.setItemMeta(meta);
         }
