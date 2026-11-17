@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.timer.TimerTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +27,7 @@ public class SkysongItem {
     // Each tag is stored with its own value so the two can never get out of step.
     private LinkedHashMap<NamespacedKey, String> tagValues;
     private CustomModelData customModelData;
+    private List<TimerTemplate> timers = List.of();
 
     public SkysongItem(String name, ArrayList<String> lore, String type, NamespacedKey itemModel, String deleted, String traits, Map<NamespacedKey, String> tagValues) {
         this.name = name;
@@ -47,6 +50,19 @@ public class SkysongItem {
         this.traits = other.traits;
         this.tagValues = new LinkedHashMap<>(other.tagValues);
         this.customModelData = other.customModelData;
+        this.timers = other.timers;
+    }
+
+    /** Returns a copy of this item that starts these timers on every item made from it. */
+    public SkysongItem withTimers(List<TimerTemplate> timers) {
+        SkysongItem copy = new SkysongItem(this);
+        copy.timers = List.copyOf(timers);
+        return copy;
+    }
+
+    /** The timers every item made from this one starts with, counted from when it is made. Immutable. */
+    public List<TimerTemplate> getTimers() {
+        return timers;
     }
 
     /** Returns a copy of this item with the given custom model data. */
@@ -77,6 +93,8 @@ public class SkysongItem {
         }
 
         this.customModelData = meta.hasCustomModelDataComponent() ? new CustomModelData(meta.getCustomModelDataComponent()) : null;
+        // Saved as spans, never dates: each item made from this one starts its own clock.
+        this.timers = TimerTemplate.allOf(ItemTimerStore.read(dataContainer));
     }
 
     public String getName() {

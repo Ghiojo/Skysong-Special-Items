@@ -9,11 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemTimer;
+import org.skysongdev.skysongitems.api.ItemTemplate;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
+import org.skysongdev.skysongitems.api.TemplateTimer;
 import org.skysongdev.skysongitems.api.TimerChange;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.Constants;
+import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
 import java.util.List;
@@ -106,5 +109,21 @@ class ItemTimersApiTest extends MockBukkitTest {
         assertThrows(IllegalArgumentException.class, () -> api.timers().clear(plain));
         api.detached().timers().clear(plain);
         assertEquals(List.of(), ItemTimerStore.read(plain.getPersistentDataContainer()));
+    }
+
+    @Test
+    void aTemplateKeepsTheItemsTimersAsSpansAndEachCreatedItemStartsThemAgain() {
+        ItemStack item = skysongItemWithTimers();
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ItemKeys.NAME, PersistentDataType.STRING, "Blade");
+        ItemData.from(meta).setLoreSections(List.of("physical", "functional", "skill"));
+        item.setItemMeta(meta);
+        long before = System.currentTimeMillis();
+
+        ItemTemplate template = api.templates().snapshot(item);
+
+        assertEquals(List.of(new TemplateTimer(TimerChange.removeTrait("honed"), "24h", false, "real"),
+                new TemplateTimer(TimerChange.setTag("arcrot", 3), "1mo", true, "real")), template.timers());
+        assertTrue(api.timers().list(template.create()).get(0).due() >= before + 86_400_000L);
     }
 }

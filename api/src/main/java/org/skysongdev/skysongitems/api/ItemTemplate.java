@@ -4,6 +4,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * A parsed description of a SkysongItems item, which creates items from it as often as
  * needed. A template is read once, from a snapshot of an item
@@ -13,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>A template holds only what SkysongItems stores: the material, the stored name and
  * physical description, the deleted lines, the traits text, the item model, the
- * registered tags with their values, and the custom model data. Anything else an item
+ * registered tags with their values, the custom model data, and its timers as spans (see
+ * {@link #timers()}). Anything else an item
  * carried, such as enchantments or durability, is not part of it.
  *
  * <p>A template keeps the values it was read with, so it is not affected by later changes
@@ -32,4 +35,13 @@ public interface ItemTemplate {
      * @throws IllegalStateException when called off the server's main thread
      */
     @NotNull ItemStack create();
+
+    /**
+     * The timers every item {@link #create()} makes starts with, each counted from when
+     * that item is made: a template read from an item keeps each of its timers' original
+     * time, not the time it had left. Immutable.
+     *
+     * @since 1.12.0
+     */
+    @NotNull List<TemplateTimer> timers();
 }

@@ -13,6 +13,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.timer.TimerOrigin;
+import org.skysongdev.skysongitems.timer.TimerTemplate;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,9 +31,31 @@ public final class ItemFactory {
 
     /**
      * Builds the item a template describes. Player heads get the template's skin,
-     * potions get the template's colour.
+     * potions get the template's colour. The template's timers start now.
      */
     public static ItemStack create(SkysongItem template) {
+        return create(template, null);
+    }
+
+    /**
+     * Builds the item a template describes, its timers counted from the origin instead of
+     * now when they are on the origin's clock.
+     */
+    public static ItemStack create(SkysongItem template, @Nullable TimerOrigin origin) {
+        ItemStack item = build(template);
+        List<ItemTimer> timers = startedTimers(template, origin);
+        if (!timers.isEmpty()) {
+            ItemTimerStore.write(item, timers);
+        }
+        return item;
+    }
+
+    /** The timers an item made from the template starts with, counted from the origin or now. */
+    public static List<ItemTimer> startedTimers(SkysongItem template, @Nullable TimerOrigin origin) {
+        return TimerTemplate.startAll(template.getTimers(), getPlugin().getTimerClocks(), origin);
+    }
+
+    private static ItemStack build(SkysongItem template) {
         // A template read from an item carries neither skin nor potion colour, even when its
         // type is a head or a potion, so the subclass decides and not the type.
         if (template instanceof SkysongSkullItem skull) {

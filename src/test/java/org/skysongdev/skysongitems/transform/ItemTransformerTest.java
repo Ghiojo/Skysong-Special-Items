@@ -22,6 +22,8 @@ import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.timer.ItemTimer;
 import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.timer.TimerContext;
+import org.skysongdev.skysongitems.timer.TimerOrigin;
+import org.skysongdev.skysongitems.timer.TimerTemplate;
 import org.skysongdev.skysongitems.timer.action.TransformTimerAction;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Constants;
@@ -131,7 +133,7 @@ class ItemTransformerTest extends MockBukkitTest {
 
     @Test
     void aTransformTimerMovesTheItemOnAsManyFormsAsItCameDueRoundItsCycle() {
-        TransformTimerAction action = new TransformTimerAction(transformer);
+        TransformTimerAction action = new TransformTimerAction(transformer, plugin.getTimerClocks());
         TimerContext noHolder = new TimerContext(plugin.getItemEditor(), null);
 
         ItemStack threeTimes = action.apply(noHolder, dayBlade(), EVERY_12H, 3);
@@ -145,6 +147,22 @@ class ItemTransformerTest extends MockBukkitTest {
     }
 
     @Test
+    void theNewFormStartsItsSavedTimersFromWhenTheTransformationWasDueInsteadOfCarryingTheOldOne() {
+        Map<NamespacedKey, String> tags = Map.of(ItemKeys.MATERIAL_ID, "night_blade");
+        SkysongItem nightWithTimer = new SkysongItem("Night Blade", new ArrayList<>(List.of("physical", "functional", "skill")),
+                "IRON_SWORD", null, "", "", tags)
+                .withTimers(List.of(new TimerTemplate("real", "transform", null, null, "12h", true)));
+        rules = rulesFor(rule("day_blade", nightWithTimer));
+        ItemStack blade = dayBlade();
+        ItemTimerStore.write(blade, List.of(EVERY_12H));
+
+        ItemStack night = transformer.transformed(blade, rules.find("day_blade").orElseThrow(), new TimerOrigin("real", 5_000));
+
+        assertEquals(List.of(new ItemTimer("real", 5_000 + 12 * 3_600_000L, "transform", null, null, "12h", "12h")),
+                ItemTimerStore.read(night.getPersistentDataContainer()));
+    }
+
+    @Test
     void aCancelledTransformEventStopsATimedTransformationOfAHeldItem() {
         server.getPluginManager().registerEvents(new Listener() {
             @EventHandler
@@ -153,7 +171,7 @@ class ItemTransformerTest extends MockBukkitTest {
             }
         }, plugin);
 
-        ItemStack after = new TransformTimerAction(transformer)
+        ItemStack after = new TransformTimerAction(transformer, plugin.getTimerClocks())
                 .apply(new TimerContext(plugin.getItemEditor(), player), dayBlade(), EVERY_12H, 1);
 
         assertEquals("day_blade", read(after, ItemKeys.MATERIAL_ID, PersistentDataType.STRING));

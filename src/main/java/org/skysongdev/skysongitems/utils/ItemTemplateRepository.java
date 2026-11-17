@@ -4,6 +4,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.skysongdev.skysongitems.timer.TimerTemplateYaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,7 +133,8 @@ public final class ItemTemplateRepository {
         String traits = yaml.getString("traits", yaml.getString("properties", ""));
         LinkedHashMap<NamespacedKey, String> tagValues = readTagValues(yaml, file);
         SkysongItem item = new SkysongItem(name, lore, type, itemModel, deleted, traits, tagValues)
-                .withCustomModelData(customModelData);
+                .withCustomModelData(customModelData)
+                .withTimers(TimerTemplateYaml.read(yaml, file.getName(), getPlugin().getLogger()));
 
         if(type.equals(Material.PLAYER_HEAD.toString())) {
             String id = yaml.getString("id", "");
@@ -180,6 +182,7 @@ public final class ItemTemplateRepository {
         if(item.getCustomModelData() != null) {
             writeCustomModelData(yaml, item.getCustomModelData());
         }
+        TimerTemplateYaml.write(yaml, item.getTimers());
         return yaml;
     }
 
