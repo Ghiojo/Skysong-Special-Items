@@ -1,7 +1,10 @@
 package org.skysongdev.skysongitems.commands;
 
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.commands.books.BookCommand;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.hp.ItemHpCommand;
@@ -12,6 +15,7 @@ import org.skysongdev.skysongitems.commands.traits.DetailsCommand;
 import org.skysongdev.skysongitems.commands.traits.TraitsCommand;
 import org.skysongdev.skysongitems.commands.transform.TransformationsCommand;
 import org.skysongdev.skysongitems.commands.tags.TagCommand;
+import org.skysongdev.skysongitems.commands.timer.TimerCommand;
 
 import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
@@ -51,6 +55,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
         FurnitureIdCommand furnitureIdCommand = new FurnitureIdCommand();
         TransformationsCommand transformationsCommand = new TransformationsCommand();
+        TimerCommand timerCommand = new TimerCommand();
 
         registerItemEdit(Subcommand.builder("disable", new DisableFunc()).alias("dis").playerOnly());
         // Each book subcommand checks its own permission; anyone may view a bound description.
@@ -74,5 +79,15 @@ public class SkysongItemsCommand extends SubcommandRouter {
         registerItemEdit(Subcommand.builder("furniture", furnitureIdCommand).alias("ceid")
                 .tabCompleter(furnitureIdCommand).playerOnly());
         registerItemEdit(Subcommand.builder("transform", transformationsCommand).tabCompleter(transformationsCommand));
+        registerItemEdit(Subcommand.builder("timer", timerCommand).tabCompleter(timerCommand).playerOnly());
+    }
+
+    /** Applies the held item's due timers first, so every subcommand sees the item as it is now. */
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (sender instanceof Player player && getPlugin().getItemTimers() != null) {
+            getPlugin().getItemTimers().checkHeldItem(player);
+        }
+        return super.onCommand(sender, command, label, args);
     }
 }

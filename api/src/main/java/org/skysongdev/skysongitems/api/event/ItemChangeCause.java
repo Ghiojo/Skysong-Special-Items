@@ -7,5 +7,7 @@ public enum ItemChangeCause {
     /** The item was consumed and its {@code on_consumption} commands took charges off it. */
     CONSUMED,
     /** Another plugin wrote to the item through the SkysongItems API. */
-    API
+    API,
+    /** A timer on the item came due, such as a trait given for 24 hours running out. */
+    TIMER
 }

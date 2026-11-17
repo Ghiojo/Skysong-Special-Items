@@ -18,6 +18,7 @@ import org.skysongdev.skysongitems.commands.books.BookCommand;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
+import org.skysongdev.skysongitems.commands.timer.TimerCommand;
 import org.skysongdev.skysongitems.commands.misc.FurnitureIdCommand;
 import org.skysongdev.skysongitems.commands.misc.LoadItem;
 import org.skysongdev.skysongitems.commands.misc.ReloadCommand;
@@ -46,13 +47,13 @@ class SkysongItemsCommandTest extends MockBukkitTest {
     private static final String ITEM_EDIT_PERMISSION = "skysongspecialitems.cit";
     private static final List<String> ALL_SUBCOMMAND_NAMES = List.of(
             "disable", "dis", "book", "updatelore", "tag", "trait", "prop", "property", "details", "update", "reload",
-            "rename", "charges", "hp", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid", "transform");
+            "rename", "charges", "hp", "loaditem", "saveitem", "setmodel", "cmd", "furniture", "ceid", "transform", "timer");
     /** Subcommands anyone may run, in registration order; every other one needs the item edit permission. */
     private static final List<String> SUBCOMMANDS_WITHOUT_PERMISSION = List.of("book", "trait", "prop", "property", "details", "update");
 
     /** Subcommands whose handlers act on the sender's own player and inventory. */
     private static final List<String> PLAYER_ONLY_SUBCOMMANDS = List.of(
-            "disable", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "hp", "cmd", "furniture");
+            "disable", "updatelore", "tag", "details", "update", "reload", "rename", "charges", "hp", "cmd", "furniture", "timer");
 
     private final RecordingTraitsCommand traitsCommand = new RecordingTraitsCommand();
     private final RecordingUpdateItem updateItem = new RecordingUpdateItem();
@@ -114,7 +115,8 @@ class SkysongItemsCommandTest extends MockBukkitTest {
                 Arguments.of("setmodel", SetItemModel.class),
                 Arguments.of("cmd", CustomModelDataCommand.class),
                 Arguments.of("furniture", FurnitureIdCommand.class),
-                Arguments.of("ceid", FurnitureIdCommand.class));
+                Arguments.of("ceid", FurnitureIdCommand.class),
+                Arguments.of("timer", TimerCommand.class));
     }
 
     @ParameterizedTest

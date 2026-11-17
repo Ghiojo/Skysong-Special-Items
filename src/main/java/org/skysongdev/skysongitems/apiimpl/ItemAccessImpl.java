@@ -7,6 +7,7 @@ import org.skysongdev.skysongitems.api.ItemHp;
 import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.ItemTags;
+import org.skysongdev.skysongitems.api.ItemTimers;
 import org.skysongdev.skysongitems.apiimpl.ItemWrites.ItemCheck;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
@@ -22,6 +23,7 @@ final class ItemAccessImpl implements ItemAccess {
     private final ItemTags tags;
     private final ItemCharges charges;
     private final ItemHp itemHp;
+    private final ItemTimers timers;
     // ItemProperties extends ItemTraits, so the one object serves traits() and the deprecated properties().
     @SuppressWarnings("removal")
     private final ItemProperties traits;
@@ -39,6 +41,7 @@ final class ItemAccessImpl implements ItemAccess {
     private ItemAccessImpl(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, ItemCheck check) {
         this.charges = new ItemChargesImpl(editor, check);
         this.itemHp = new ItemHpImpl(editor, check);
+        this.timers = new ItemTimersImpl(check);
         this.tags = new ItemTagsImpl(tagRegistry, charges, editor, check);
         this.traits = new ItemTraitsImpl(traitRegistry, editor, check);
     }
@@ -56,6 +59,11 @@ final class ItemAccessImpl implements ItemAccess {
     @Override
     public @NotNull ItemHp itemHp() {
         return itemHp;
+    }
+
+    @Override
+    public @NotNull ItemTimers timers() {
+        return timers;
     }
 
     @Override

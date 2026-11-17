@@ -23,6 +23,14 @@ import org.skysongdev.skysongitems.integration.SoftDependency;
 import org.skysongdev.skysongitems.listeners.*;
 import org.skysongdev.skysongitems.registration.RegistrationListener;
 import org.skysongdev.skysongitems.registration.RegistryLoader;
+import org.skysongdev.skysongitems.commands.timer.PlayerTimersCommand;
+import org.skysongdev.skysongitems.timer.ItemTimerRunner;
+import org.skysongdev.skysongitems.timer.ItemTimerTriggers;
+import org.skysongdev.skysongitems.timer.RealTimeClock;
+import org.skysongdev.skysongitems.timer.TimerActions;
+import org.skysongdev.skysongitems.timer.TimerClocks;
+import org.skysongdev.skysongitems.timer.TimerDescriptions;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.TransformationLoader;
 import org.skysongdev.skysongitems.transform.TransformationRules;
@@ -35,6 +43,7 @@ import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
 import java.io.File;
+import java.time.Clock;
 import java.util.Optional;
 
 // Not final: MockBukkit loads a plugin through a generated subclass of its main class.
@@ -61,6 +70,11 @@ public class SkysongItems extends JavaPlugin {
     private TransformationRules transformations = TransformationRules.empty();
     // Null until onEnable.
     private ItemTransformer itemTransformer;
+
+    private final TimerClocks timerClocks = new TimerClocks(new RealTimeClock(Clock.systemUTC()));
+    private final TimerActions timerActions = new TimerActions();
+    private final TimerDescriptions timerDescriptions = new TimerDescriptions(timerClocks, timerActions);
+    private ItemTimerTriggers itemTimers;
 
     public static SkysongItems getPlugin(){
         if(plugin == null){
@@ -139,6 +153,26 @@ public class SkysongItems extends JavaPlugin {
         traitRegistry.replaceWith(traits);
     }
 
+    /** Applies items' due timers when players deal with them. */
+    public ItemTimerTriggers getItemTimers() {
+        return itemTimers;
+    }
+
+    /** The clocks timers count in: real time, and those other plugins register. */
+    public TimerClocks getTimerClocks() {
+        return timerClocks;
+    }
+
+    /** The actions timers can apply. */
+    public TimerActions getTimerActions() {
+        return timerActions;
+    }
+
+    /** Describes items' timers for {@code /si timer list} and {@code /timers}. */
+    public TimerDescriptions getTimerDescriptions() {
+        return timerDescriptions;
+    }
+
     /** Changes items' charges, tags and traits. */
     public ItemEditor getItemEditor() {
         return itemEditor;
@@ -202,6 +236,11 @@ public class SkysongItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenDescRightClick(bookQueries), this);
         getServer().getPluginManager().registerEvents(new UpdateItemListener(this), this);
         getServer().getPluginManager().registerEvents(new ConsumptionListener(), this);
+        BuiltInTimerActions.registerAll(timerActions);
+        itemTimers = new ItemTimerTriggers(this, new ItemTimerRunner(timerClocks, timerActions, this::getItemEditor),
+                this::syncPermissionItems);
+        getServer().getPluginManager().registerEvents(itemTimers, this);
+        getCommand("timers").setExecutor(new PlayerTimersCommand(itemTimers, this::getTimerDescriptions));
         itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
                 updater::upgrade);
         getCommand("transform").setExecutor(new TransformCommand(itemTransformer, this::getTransformations));
