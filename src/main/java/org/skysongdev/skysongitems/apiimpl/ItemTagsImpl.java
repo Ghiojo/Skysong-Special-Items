@@ -8,6 +8,8 @@ import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.timer.Timing;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.TagRegistry;
@@ -44,20 +46,33 @@ final class ItemTagsImpl implements ItemTags {
     private final ItemCharges charges;
     private final ItemEditor editor;
     private final ItemWrites.ItemCheck check;
+    private final TimedWrites timed;
 
-    ItemTagsImpl(TagRegistry registry, ItemCharges charges, ItemEditor editor, ItemWrites.ItemCheck check) {
+    ItemTagsImpl(TagRegistry registry, ItemCharges charges, ItemEditor editor, ItemWrites.ItemCheck check, TimedWrites timed) {
         this.registry = registry;
         this.charges = charges;
         this.editor = editor;
         this.check = check;
+        this.timed = timed;
     }
 
     @Override
     public void set(Player holder, ItemStack item, String tagId, Object value) {
+        set(holder, item, tagId, value, null);
+    }
+
+    @Override
+    public void setFor(Player holder, ItemStack item, String tagId, Object value, String time) {
+        set(holder, item, tagId, value, timed.timing(time));
+    }
+
+    /** Sets the tag, then removes it after the time, or keeps it for good without one. */
+    private void set(Player holder, ItemStack item, String tagId, Object value, Timing timing) {
         check.require(item);
         RegisteredTag tag = writableTag(tagId);
         String text = asText(TagTypes.of(tag.type()), value, tagId);
         ItemWrites.requireDone(editor.editedBy(holder, ItemChangeCause.API).setTag(item, tagId, text), "tag " + tagId);
+        timed.then(item, timing, BuiltInTimerActions.REMOVE_TAG.id(), tagId);
     }
 
     @Override

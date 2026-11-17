@@ -9,6 +9,7 @@ import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.ItemTimers;
 import org.skysongdev.skysongitems.apiimpl.ItemWrites.ItemCheck;
+import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
@@ -28,22 +29,34 @@ final class ItemAccessImpl implements ItemAccess {
     @SuppressWarnings("removal")
     private final ItemProperties traits;
 
+    /**
+     * What the views read and write through.
+     *
+     * @param clocks reads the times given to timed writes
+     */
+    record Writers(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, TimerClocks clocks) {
+        private Writers silently() {
+            return new Writers(tagRegistry, traitRegistry, editor.silently(), clocks);
+        }
+    }
+
     /** Edits as the {@code /si} commands do: events, lore redraw, SkysongItems items only. */
-    static ItemAccessImpl held(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor) {
-        return new ItemAccessImpl(tagRegistry, traitRegistry, editor, ItemCheck.SKYSONG_ITEM);
+    static ItemAccessImpl held(Writers writers) {
+        return new ItemAccessImpl(writers, ItemCheck.SKYSONG_ITEM);
     }
 
     /** Stores the value and nothing else, for an item nobody holds. */
-    static ItemAccessImpl detached(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor) {
-        return new ItemAccessImpl(tagRegistry, traitRegistry, editor.silently(), ItemCheck.ANY_ITEM);
+    static ItemAccessImpl detached(Writers writers) {
+        return new ItemAccessImpl(writers.silently(), ItemCheck.ANY_ITEM);
     }
 
-    private ItemAccessImpl(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, ItemCheck check) {
-        this.charges = new ItemChargesImpl(editor, check);
-        this.itemHp = new ItemHpImpl(editor, check);
+    private ItemAccessImpl(Writers writers, ItemCheck check) {
+        this.charges = new ItemChargesImpl(writers.editor(), check);
+        this.itemHp = new ItemHpImpl(writers.editor(), check);
         this.timers = new ItemTimersImpl(check);
-        this.tags = new ItemTagsImpl(tagRegistry, charges, editor, check);
-        this.traits = new ItemTraitsImpl(traitRegistry, editor, check);
+        TimedWrites timed = new TimedWrites(writers.clocks());
+        this.tags = new ItemTagsImpl(writers.tagRegistry(), charges, writers.editor(), check, timed);
+        this.traits = new ItemTraitsImpl(writers.traitRegistry(), writers.editor(), check, timed);
     }
 
     @Override

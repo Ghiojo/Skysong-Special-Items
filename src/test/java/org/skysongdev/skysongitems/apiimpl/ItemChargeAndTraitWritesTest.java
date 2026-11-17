@@ -10,6 +10,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemCharges;
+import org.skysongdev.skysongitems.api.ItemTimer;
 import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
@@ -158,6 +159,22 @@ class ItemChargeAndTraitWritesTest extends MockBukkitTest {
     @Test
     void addTraitRefusesAnUnknownTrait() {
         assertThrows(IllegalArgumentException.class, () -> traits.add(skysongItem(), "nope"));
+    }
+
+    @Test
+    void addForRemovesTheTraitLaterAndAPlainAddKeepsItForGood() {
+        ItemStack item = skysongItem();
+
+        assertTrue(traits.addFor(item, "test", "24h"));
+        assertFalse(traits.addFor(item, "test", "2d"));
+        List<ItemTimer> timers = SkysongItemsApi.get().timers().list(item);
+        assertEquals(1, timers.size());
+        assertEquals("remove_trait", timers.get(0).action());
+        assertEquals("2d", timers.get(0).span());
+
+        traits.add(item, "test");
+        assertTrue(SkysongItemsApi.get().timers().list(item).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> traits.addFor(item, "test", "soon"));
     }
 
     @Test

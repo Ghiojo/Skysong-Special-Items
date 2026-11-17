@@ -35,7 +35,8 @@ public interface ItemTraits {
 
     /**
      * Adds a trait to the item, like {@code /si trait add}. A printable trait's
-     * value tags are set to their empty value (0, false or an empty text).
+     * value tags are set to their empty value (0, false or an empty text). The trait stays
+     * for good: a removal set up by {@link #addFor} is cancelled.
      *
      * @param holder the player holding the item, named in the change events; may be null
      * @return true when added, false when the item already has it
@@ -47,6 +48,26 @@ public interface ItemTraits {
     /** Same as {@link #add(Player, ItemStack, String)} with no holder. */
     default boolean add(ItemStack item, String traitId) {
         return add(null, item, traitId);
+    }
+
+    /**
+     * Adds a trait to the item for a while, like {@code /si trait add <trait> <time>}: it is
+     * removed once the time has passed. On an item that already has the trait, its time
+     * restarts; adding it with {@link #add(Player, ItemStack, String)} keeps it for good.
+     *
+     * @param time how long, as staff type it: a number and a unit (s, m, h, d, w, mo, y),
+     *             combinable, such as {@code 24h} or {@code 1d12h}
+     * @return true when added, false when the item already had it
+     * @throws IllegalArgumentException as {@link #add(Player, ItemStack, String)} does, or when
+     *                                  the time isn't one
+     * @see ItemTimers
+     * @since 1.9.0
+     */
+    boolean addFor(@Nullable Player holder, ItemStack item, String traitId, String time);
+
+    /** Same as {@link #addFor(Player, ItemStack, String, String)} with no holder. */
+    default boolean addFor(ItemStack item, String traitId, String time) {
+        return addFor(null, item, traitId, time);
     }
 
     /**

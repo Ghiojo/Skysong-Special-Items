@@ -13,6 +13,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.ItemTemplates;
+import org.skysongdev.skysongitems.api.ItemTimer;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.api.event.ItemTagChangeEvent;
@@ -21,6 +22,7 @@ import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -105,6 +107,22 @@ class ItemTagWritesTest extends MockBukkitTest {
         assertThrows(IllegalArgumentException.class, () -> tags.set(item, "cursed", "true"));
         assertThrows(IllegalArgumentException.class, () -> tags.set(item, "origin", null));
         assertFalse(tags.getInt(item, "arcrot").isPresent());
+    }
+
+    @Test
+    void setForRemovesTheTagLaterAndAPlainSetKeepsItForGood() {
+        ItemStack item = skysongItem();
+
+        tags.setFor(item, "arcrot", 3, "24h");
+        assertEquals(3, tags.getInt(item, "arcrot").orElseThrow());
+        List<ItemTimer> timers = SkysongItemsApi.get().timers().list(item);
+        assertEquals(1, timers.size());
+        assertEquals("remove_tag", timers.get(0).action());
+        assertEquals("arcrot", timers.get(0).target());
+
+        tags.set(item, "arcrot", 4);
+        assertTrue(SkysongItemsApi.get().timers().list(item).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> tags.setFor(item, "arcrot", 3, "1x"));
     }
 
     @Test

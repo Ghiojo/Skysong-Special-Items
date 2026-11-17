@@ -5,6 +5,8 @@ import org.bukkit.inventory.ItemStack;
 import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.timer.Timing;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Trait;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
@@ -25,22 +27,35 @@ final class ItemTraitsImpl implements ItemProperties {
     private final TraitRegistry registry;
     private final ItemEditor editor;
     private final ItemWrites.ItemCheck check;
+    private final TimedWrites timed;
 
-    ItemTraitsImpl(TraitRegistry registry, ItemEditor editor, ItemWrites.ItemCheck check) {
+    ItemTraitsImpl(TraitRegistry registry, ItemEditor editor, ItemWrites.ItemCheck check, TimedWrites timed) {
         this.registry = registry;
         this.editor = editor;
         this.check = check;
+        this.timed = timed;
     }
 
     @Override
     public boolean add(Player holder, ItemStack item, String traitId) {
+        return add(holder, item, traitId, null);
+    }
+
+    @Override
+    public boolean addFor(Player holder, ItemStack item, String traitId, String time) {
+        return add(holder, item, traitId, timed.timing(time));
+    }
+
+    /** Adds the trait, then removes it after the time, or keeps it for good without one. */
+    private boolean add(Player holder, ItemStack item, String traitId, Timing timing) {
         check.require(item);
         ItemEditor.Result result = editorFor(holder).addTrait(item, traitId);
-        if (ItemEditor.Result.ALREADY_PRESENT.equals(result)) {
-            return false;
+        boolean added = !ItemEditor.Result.ALREADY_PRESENT.equals(result);
+        if (added) {
+            ItemWrites.requireDone(result, "trait " + traitId);
         }
-        ItemWrites.requireDone(result, "trait " + traitId);
-        return true;
+        timed.then(item, timing, BuiltInTimerActions.REMOVE_TRAIT.id(), traitId);
+        return added;
     }
 
     @Override

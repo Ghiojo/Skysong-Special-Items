@@ -65,7 +65,8 @@ public interface ItemTags {
     int sumInt(Iterable<ItemStack> items, String tagId, boolean onlyWithChargesLeft);
 
     /**
-     * Sets a tag on the item, replacing any value it had, like {@code /si tag set}.
+     * Sets a tag on the item, replacing any value it had, like {@code /si tag set}. The tag
+     * stays for good: a removal set up by {@link #setFor} is cancelled.
      *
      * @param holder the player holding the item, named in the change event; may be null
      * @param value  an {@code Integer} for an int tag, any {@code Number} for a float tag,
@@ -79,6 +80,26 @@ public interface ItemTags {
     /** Same as {@link #set(Player, ItemStack, String, Object)} with no holder. */
     default void set(ItemStack item, String tagId, Object value) {
         set(null, item, tagId, value);
+    }
+
+    /**
+     * Sets a tag on the item for a while, like {@code /si tag set <tag> <value> <time>}: the tag
+     * is removed once the time has passed, not restored to an earlier value. Setting the same tag
+     * again for a while restarts its time; setting it with {@link #set(Player, ItemStack, String, Object)}
+     * keeps it for good.
+     *
+     * @param time how long, as staff type it: a number and a unit (s, m, h, d, w, mo, y),
+     *             combinable, such as {@code 24h} or {@code 1d12h}
+     * @throws IllegalArgumentException as {@link #set(Player, ItemStack, String, Object)} does,
+     *                                  or when the time isn't one
+     * @see ItemTimers
+     * @since 1.9.0
+     */
+    void setFor(@Nullable Player holder, ItemStack item, String tagId, Object value, String time);
+
+    /** Same as {@link #setFor(Player, ItemStack, String, Object, String)} with no holder. */
+    default void setFor(ItemStack item, String tagId, Object value, String time) {
+        setFor(null, item, tagId, value, time);
     }
 
     /**
