@@ -4,6 +4,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 import org.skysongdev.skysongitems.commands.books.BookCommand;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
+import org.skysongdev.skysongitems.commands.hp.ItemHpCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
@@ -44,6 +45,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         TagCommand tagCommand = new TagCommand();
         RenameCommand renameCommand = new RenameCommand();
         ChargesCommand chargesCommand = new ChargesCommand();
+        ItemHpCommand itemHpCommand = new ItemHpCommand();
         LoadItem loadItem = new LoadItem();
         SaveItem saveItem = new SaveItem();
         CustomModelDataCommand customModelDataCommand = new CustomModelDataCommand();
@@ -64,6 +66,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         registerItemEdit(Subcommand.builder("reload", new ReloadCommand()).playerOnly());
         registerItemEdit(Subcommand.builder("rename", renameCommand).tabCompleter(renameCommand).playerOnly());
         registerItemEdit(Subcommand.builder("charges", chargesCommand).tabCompleter(chargesCommand).playerOnly());
+        registerItemEdit(Subcommand.builder("hp", itemHpCommand).tabCompleter(itemHpCommand).playerOnly());
         registerItemEdit(Subcommand.builder("loaditem", loadItem).tabCompleter(loadItem));
         registerItemEdit(Subcommand.builder("saveitem", saveItem).tabCompleter(saveItem));
         registerItemEdit(Subcommand.builder("setmodel", new SetItemModel()));

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Characterisation tests for the traits loaded from the {@code traits}
- * section of config.yml. The bundled config.yml defines test, charges and spell.
+ * section of config.yml. The bundled config.yml defines test, charges, item_hp and spell.
  */
 class TraitRegistryTest extends MockBukkitTest {
     private SkysongItems plugin;
@@ -79,7 +79,18 @@ class TraitRegistryTest extends MockBukkitTest {
 
     @Test
     void bundledTraitsAreLoadedInConfigOrder() {
-        assertEquals(List.of("test", "charges", "spell"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals(List.of("test", "charges", "item_hp", "spell"), allTraits().stream().map(Trait::getId).toList());
+    }
+
+    @Test
+    void aConfigWithoutTheItemHpTraitGetsTheBundledOne() {
+        plugin.getConfig().set("traits.item_hp", null);
+
+        reloadTraits();
+
+        PrintableTrait itemHp = assertInstanceOf(PrintableTrait.class, trait("item_hp"));
+        assertEquals(List.of("item_hp", "max_item_hp"), itemHp.getValuetags());
+        assertEquals("item_hp", allTraits().getLast().getId());
     }
 
     @Test
@@ -153,7 +164,7 @@ class TraitRegistryTest extends MockBukkitTest {
 
         reloadTraits();
 
-        assertEquals(List.of("fresh"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals(List.of("fresh", "item_hp"), allTraits().stream().map(Trait::getId).toList());
         assertFalse(isTrait("charges"));
     }
 
@@ -164,17 +175,18 @@ class TraitRegistryTest extends MockBukkitTest {
 
         reloadTraits();
 
-        assertEquals(List.of("Tool"), traitTypes());
+        // Magic stays because the built-in item_hp trait uses it.
+        assertEquals(List.of("Tool", "Magic"), traitTypes());
     }
 
     @Test
-    void reloadWithAnEmptyTraitsSectionLeavesNoTraitTypes() {
+    void reloadWithAnEmptyTraitsSectionLeavesOnlyTheBuiltInTraitType() {
         plugin.getConfig().createSection("traits");
 
         reloadTraits();
 
-        assertTrue(allTraits().isEmpty());
-        assertTrue(traitTypes().isEmpty());
+        assertEquals(List.of("item_hp"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals(List.of("Magic"), traitTypes());
     }
 
     /** Loads the traits with a logger that keeps the warnings it gets, and returns them. */
@@ -223,7 +235,7 @@ class TraitRegistryTest extends MockBukkitTest {
 
         List<String> warnings = reloadTraitsCollectingWarnings();
 
-        assertEquals(List.of("legacy"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals(List.of("legacy", "item_hp"), allTraits().stream().map(Trait::getId).toList());
         assertEquals("Old", trait("legacy").getPropType());
         assertTrue(anyMentions(warnings, "old 'properties' section"));
     }
@@ -235,7 +247,7 @@ class TraitRegistryTest extends MockBukkitTest {
 
         List<String> warnings = reloadTraitsCollectingWarnings();
 
-        assertEquals(List.of("fresh"), allTraits().stream().map(Trait::getId).toList());
+        assertEquals(List.of("fresh", "item_hp"), allTraits().stream().map(Trait::getId).toList());
         assertTrue(anyMentions(warnings, "only 'traits' is loaded"));
     }
 

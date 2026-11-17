@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.utils;
 
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -27,6 +28,11 @@ public class TraitRegistry {
     private static final String LEGACY_SECTION = "properties";
     private static final String TRAIT_TYPE_KEY = "traittype";
     private static final String LEGACY_TRAIT_TYPE_KEY = "proptype";
+    /**
+     * Traits the plugin needs that were added after servers had their config.yml.
+     * When the file lacks one, it is loaded from the bundled config.yml instead.
+     */
+    private static final List<String> BUILT_IN_TRAITS = List.of(ItemEditor.ITEM_HP_TRAIT);
 
     private volatile Snapshot snapshot = new Snapshot(List.of(), List.of(), Map.of());
 
@@ -58,12 +64,28 @@ public class TraitRegistry {
             loaded.add(trait);
             logger.info("Added " + trait.getClass().getSimpleName() + ": " + id);
         }
+        addMissingBuiltIns(config, loaded, logger);
         publish(loaded, new HashMap<>());
         if (!legacyTypeKeys.isEmpty()) {
             logger.warning("These traits set their type with the old '" + LEGACY_TRAIT_TYPE_KEY
                     + "' key; rename it to '" + TRAIT_TYPE_KEY + "': " + String.join(", ", legacyTypeKeys));
         }
         logger.info("Total traits added: " + loaded.size());
+    }
+
+    /** Adds each built-in trait the config doesn't define, as the bundled config.yml defines it. */
+    private static void addMissingBuiltIns(ConfigurationSection config, List<Trait> loaded, Logger logger) {
+        Configuration defaults = config.getRoot() == null ? null : config.getRoot().getDefaults();
+        if (defaults == null) {
+            return;
+        }
+        for (String id : BUILT_IN_TRAITS) {
+            ConfigurationSection builtIn = defaults.getConfigurationSection(SECTION + "." + id);
+            if (builtIn != null && loaded.stream().noneMatch(trait -> trait.getId().equalsIgnoreCase(id))) {
+                loaded.add(createTrait(builtIn, id));
+                logger.info("config.yml has no '" + id + "' trait; using the built-in one.");
+            }
+        }
     }
 
     /**

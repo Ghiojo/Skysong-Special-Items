@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.utils;
 
+import io.papermc.paper.persistence.PersistentDataContainerView;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -14,7 +15,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * The one place that changes an item's charges, tags and traits. The
+ * The one place that changes an item's charges, HP, tags and traits. The
  * commands and consumption all go through it, so a change is validated,
  * written and drawn into the lore the same way wherever it comes from.
  * <p>
@@ -42,6 +43,34 @@ import java.util.function.Supplier;
 public final class ItemEditor {
     /** The trait every charged item carries, so its lore shows the charges. */
     public static final String CHARGES_TRAIT = "charges";
+    /** The trait every item with HP carries, so its lore shows the HP. */
+    public static final String ITEM_HP_TRAIT = "item_hp";
+
+    /**
+     * A value an item counts down from a maximum, stored as two int tags and drawn
+     * by a printable trait: charges, and item HP.
+     */
+    private enum Meter {
+        CHARGES(ItemKeys.CHARGES, ItemKeys.MAX_CHARGES, CHARGES_TRAIT, Result.NOT_CHARGED),
+        ITEM_HP(ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP, ITEM_HP_TRAIT, Result.NO_HP);
+
+        private final NamespacedKey current;
+        private final NamespacedKey max;
+        private final String trait;
+        private final Result missing;
+
+        Meter(NamespacedKey current, NamespacedKey max, String trait, Result missing) {
+            this.current = current;
+            this.max = max;
+            this.trait = trait;
+            this.missing = missing;
+        }
+
+        /** Whether the item has both the value and its max. */
+        boolean isOn(PersistentDataContainerView container) {
+            return container.has(max) && container.has(current);
+        }
+    }
 
     /** What an edit did. */
     public enum Result {
@@ -49,6 +78,8 @@ public final class ItemEditor {
         DONE,
         /** The item doesn't have both charges and max charges. */
         NOT_CHARGED,
+        /** The item doesn't have both item HP and max item HP. */
+        NO_HP,
         /** The item doesn't allow adding charges. */
         ADDING_LOCKED,
         /** The amount is out of range: negative charges, or max charges under 1. */
@@ -132,23 +163,7 @@ public final class ItemEditor {
      * @return {@link Result#INVALID_AMOUNT} for a negative amount, otherwise {@link Result#DONE}
      */
     public Result setCharges(ItemStack item, int charges) {
-        return tracked(item, () -> applySetCharges(item, charges));
-    }
-
-    private Result applySetCharges(ItemStack item, int charges) {
-        if (charges < 0) {
-            return Result.INVALID_AMOUNT;
-        }
-        ItemMeta meta = item.getItemMeta();
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (!container.has(ItemKeys.MAX_CHARGES)) {
-            container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, charges);
-            addChargesTrait(container);
-        }
-        int maxCharges = container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, Math.min(charges, maxCharges));
-        saveAndRedraw(item, meta);
-        return Result.DONE;
+        return tracked(item, () -> applySet(item, Meter.CHARGES, charges));
     }
 
     /**
@@ -159,22 +174,7 @@ public final class ItemEditor {
      * @return {@link Result#INVALID_AMOUNT} for an amount under 1, otherwise {@link Result#DONE}
      */
     public Result setMaxCharges(ItemStack item, int maxCharges) {
-        return tracked(item, () -> applySetMaxCharges(item, maxCharges));
-    }
-
-    private Result applySetMaxCharges(ItemStack item, int maxCharges) {
-        if (maxCharges < 1) {
-            return Result.INVALID_AMOUNT;
-        }
-        ItemMeta meta = item.getItemMeta();
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (!container.has(ItemKeys.CHARGES)) {
-            container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, maxCharges);
-            addChargesTrait(container);
-        }
-        container.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, maxCharges);
-        saveAndRedraw(item, meta);
-        return Result.DONE;
+        return tracked(item, () -> applySetMax(item, Meter.CHARGES, maxCharges));
     }
 
     /**
@@ -191,19 +191,11 @@ public final class ItemEditor {
     }
 
     private Result applyAddCharges(ItemStack item, int amount, boolean ignoreLock) {
-        ItemMeta meta = item.getItemMeta();
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (!isCharged(container)) {
-            return Result.NOT_CHARGED;
-        }
-        if (amount > 0 && !ignoreLock && isAddingLocked(container)) {
+        PersistentDataContainerView view = item.getPersistentDataContainer();
+        if (amount > 0 && !ignoreLock && Meter.CHARGES.isOn(view) && isAddingLocked(view)) {
             return Result.ADDING_LOCKED;
         }
-        int charges = container.get(ItemKeys.CHARGES, PersistentDataType.INTEGER) + amount;
-        int maxCharges = container.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        container.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, charges > maxCharges ? maxCharges : Math.max(charges, 0));
-        saveAndRedraw(item, meta);
-        return Result.DONE;
+        return applyAdd(item, Meter.CHARGES, amount);
     }
 
     /**
@@ -221,18 +213,98 @@ public final class ItemEditor {
 
     /** Takes the item's charges, max charges and charges trait off it. */
     public void removeCharges(ItemStack item) {
-        tracked(item, () -> applyRemoveCharges(item));
+        tracked(item, () -> applyRemove(item, Meter.CHARGES));
     }
 
-    private Result applyRemoveCharges(ItemStack item) {
+    /**
+     * Sets the item's HP, capped at its max HP. An item without max HP gets this
+     * amount as its max and the item HP trait.
+     *
+     * @return {@link Result#INVALID_AMOUNT} for a negative amount, otherwise {@link Result#DONE}
+     */
+    public Result setItemHp(ItemStack item, int hp) {
+        return tracked(item, () -> applySet(item, Meter.ITEM_HP, hp));
+    }
+
+    /**
+     * Sets the item's max HP. HP the item already has is kept, even above the new
+     * max. An item without HP gets this amount as its HP and the item HP trait.
+     *
+     * @return {@link Result#INVALID_AMOUNT} for an amount under 1, otherwise {@link Result#DONE}
+     */
+    public Result setMaxItemHp(ItemStack item, int maxHp) {
+        return tracked(item, () -> applySetMax(item, Meter.ITEM_HP, maxHp));
+    }
+
+    /**
+     * Adds HP to the item, or takes it off for a negative amount. The result is
+     * kept between 0 and the item's max HP. Unlike charges, HP has no lock: who
+     * may restore it is up to the caller.
+     *
+     * @return {@link Result#NO_HP} for an item without HP, otherwise {@link Result#DONE}
+     */
+    public Result addItemHp(ItemStack item, int amount) {
+        return tracked(item, () -> applyAdd(item, Meter.ITEM_HP, amount));
+    }
+
+    /** Takes the item's HP, max HP and item HP trait off it. */
+    public void removeItemHp(ItemStack item) {
+        tracked(item, () -> applyRemove(item, Meter.ITEM_HP));
+    }
+
+    private Result applySet(ItemStack item, Meter meter, int value) {
+        if (value < 0) {
+            return Result.INVALID_AMOUNT;
+        }
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.remove(ItemKeys.CHARGES);
-        container.remove(ItemKeys.MAX_CHARGES);
-        // The lore redraw skips items without traits, so clear the charges
-        // line here when charges was the last trait.
+        if (!container.has(meter.max)) {
+            container.set(meter.max, PersistentDataType.INTEGER, value);
+            addTraitIfMissing(container, meter.trait);
+        }
+        int max = container.get(meter.max, PersistentDataType.INTEGER);
+        container.set(meter.current, PersistentDataType.INTEGER, Math.min(value, max));
+        saveAndRedraw(item, meta);
+        return Result.DONE;
+    }
+
+    private Result applySetMax(ItemStack item, Meter meter, int max) {
+        if (max < 1) {
+            return Result.INVALID_AMOUNT;
+        }
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (!container.has(meter.current)) {
+            container.set(meter.current, PersistentDataType.INTEGER, max);
+            addTraitIfMissing(container, meter.trait);
+        }
+        container.set(meter.max, PersistentDataType.INTEGER, max);
+        saveAndRedraw(item, meta);
+        return Result.DONE;
+    }
+
+    private Result applyAdd(ItemStack item, Meter meter, int amount) {
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (!meter.isOn(container)) {
+            return meter.missing;
+        }
+        int value = container.get(meter.current, PersistentDataType.INTEGER) + amount;
+        int max = container.get(meter.max, PersistentDataType.INTEGER);
+        container.set(meter.current, PersistentDataType.INTEGER, value > max ? max : Math.max(value, 0));
+        saveAndRedraw(item, meta);
+        return Result.DONE;
+    }
+
+    private Result applyRemove(ItemStack item, Meter meter) {
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        container.remove(meter.current);
+        container.remove(meter.max);
+        // The lore redraw skips items without traits, so clear the meter's
+        // line here when its trait was the last one.
         ItemData data = new ItemData(container);
-        if (data.removeTrait(CHARGES_TRAIT) && !data.hasTraits()) {
+        if (data.removeTrait(meter.trait) && !data.hasTraits()) {
             clearTraitLore(meta);
         }
         saveAndRedraw(item, meta);
@@ -252,7 +324,7 @@ public final class ItemEditor {
     private Result applyToggleChargeAdding(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (!isCharged(container)) {
+        if (!Meter.CHARGES.isOn(container)) {
             return Result.NOT_CHARGED;
         }
         boolean canAdd = Boolean.TRUE.equals(container.get(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN));
@@ -394,19 +466,15 @@ public final class ItemEditor {
         return result;
     }
 
-    private static boolean isCharged(PersistentDataContainer container) {
-        return container.has(ItemKeys.MAX_CHARGES) && container.has(ItemKeys.CHARGES);
-    }
-
     /** Whether adding charges was explicitly turned off; items that never set it allow it. */
-    private static boolean isAddingLocked(PersistentDataContainer container) {
+    private static boolean isAddingLocked(PersistentDataContainerView container) {
         return Boolean.FALSE.equals(container.get(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN));
     }
 
-    private static void addChargesTrait(PersistentDataContainer container) {
+    private static void addTraitIfMissing(PersistentDataContainer container, String traitId) {
         ItemData data = new ItemData(container);
-        if (!data.hasTrait(CHARGES_TRAIT)) {
-            data.addTrait(CHARGES_TRAIT);
+        if (!data.hasTrait(traitId)) {
+            data.addTrait(traitId);
         }
     }
 

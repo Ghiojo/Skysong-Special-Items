@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The charges and traits reads, with the traits in the bundled config.yml (test, charges, spell). */
+/** The charges and traits reads, with the traits in the bundled config.yml (test, charges, item_hp, spell). */
 class ItemChargeAndTraitReaderTest extends MockBukkitTest {
     private ItemCharges charges;
     private ItemTraits traits;
@@ -87,6 +87,6 @@ class ItemChargeAndTraitReaderTest extends MockBukkitTest {
     void configuredTraitsExist() {
         assertTrue(traits.exists("Spell"));
         assertFalse(traits.exists("missing"));
-        assertEquals(List.of("test", "charges", "spell"), List.copyOf(traits.ids()));
+        assertEquals(List.of("test", "charges", "item_hp", "spell"), List.copyOf(traits.ids()));
     }
 }

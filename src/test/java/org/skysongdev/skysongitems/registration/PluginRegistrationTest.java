@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Tests for other plugins registering tags and traits through
  * {@link SkysongItemsRegisterEvent}. The bundled config.yml defines the int tags arcrot,
- * charged_arcrot and fictis, and the traits test, charges and spell.
+ * charged_arcrot and fictis, and the traits test, charges, item_hp and spell.
  */
 class PluginRegistrationTest extends MockBukkitTest {
     private SkysongItems plugin;
