@@ -10,6 +10,7 @@ import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.timer.RealTimeClock;
+import org.skysongdev.skysongitems.timer.TimerActions;
 import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
@@ -71,7 +72,7 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
         Updater updater = new Updater();
         ItemTransformer transformer = new ItemTransformer(TransformationRules::empty, tags, ignored -> { }, updater::upgrade);
         return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), updater, transformer,
-                new TimerClocks(new RealTimeClock(Clock.systemUTC())));
+                new TimerClocks(new RealTimeClock(Clock.systemUTC())), new TimerActions());
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.ItemTimers;
 import org.skysongdev.skysongitems.apiimpl.ItemWrites.ItemCheck;
+import org.skysongdev.skysongitems.timer.TimerActions;
 import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
@@ -32,11 +33,13 @@ final class ItemAccessImpl implements ItemAccess {
     /**
      * What the views read and write through.
      *
-     * @param clocks reads the times given to timed writes
+     * @param clocks  reads the times given to timed writes
+     * @param actions the changes timers can make
      */
-    record Writers(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, TimerClocks clocks) {
+    record Writers(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, TimerClocks clocks,
+                   TimerActions actions) {
         private Writers silently() {
-            return new Writers(tagRegistry, traitRegistry, editor.silently(), clocks);
+            return new Writers(tagRegistry, traitRegistry, editor.silently(), clocks, actions);
         }
     }
 
@@ -53,8 +56,8 @@ final class ItemAccessImpl implements ItemAccess {
     private ItemAccessImpl(Writers writers, ItemCheck check) {
         this.charges = new ItemChargesImpl(writers.editor(), check);
         this.itemHp = new ItemHpImpl(writers.editor(), check);
-        this.timers = new ItemTimersImpl(check);
         TimedWrites timed = new TimedWrites(writers.clocks());
+        this.timers = new ItemTimersImpl(check, writers.editor(), writers.actions(), timed);
         this.tags = new ItemTagsImpl(writers.tagRegistry(), charges, writers.editor(), check, timed);
         this.traits = new ItemTraitsImpl(writers.traitRegistry(), writers.editor(), check, timed);
     }

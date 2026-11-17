@@ -17,6 +17,7 @@ import org.skysongdev.skysongitems.api.ItemTransformations;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
+import org.skysongdev.skysongitems.timer.TimerActions;
 import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
@@ -28,7 +29,7 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
  */
 public final class SkysongItemsApiImpl implements SkysongItemsApi {
     /** The API version this implementation provides. See {@link SkysongItemsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.9.0";
+    public static final String API_VERSION = "1.10.0";
 
     private final ItemAccess held;
     private final ItemAccess detached;
@@ -38,12 +39,12 @@ public final class SkysongItemsApiImpl implements SkysongItemsApi {
     /** An API reading through the plugin's tag and trait registries and writing through its item editor. */
     public SkysongItemsApiImpl(SkysongItems plugin) {
         this(plugin.getTagRegistry(), plugin.getTraitRegistry(), plugin.getItemEditor(), plugin.getUpdater(),
-                plugin.getItemTransformer(), plugin.getTimerClocks());
+                plugin.getItemTransformer(), plugin.getTimerClocks(), plugin.getTimerActions());
     }
 
     SkysongItemsApiImpl(TagRegistry tagRegistry, TraitRegistry traitRegistry, ItemEditor editor, Updater updater,
-                        ItemTransformer transformer, TimerClocks clocks) {
-        ItemAccessImpl.Writers writers = new ItemAccessImpl.Writers(tagRegistry, traitRegistry, editor, clocks);
+                        ItemTransformer transformer, TimerClocks clocks, TimerActions actions) {
+        ItemAccessImpl.Writers writers = new ItemAccessImpl.Writers(tagRegistry, traitRegistry, editor, clocks, actions);
         this.held = ItemAccessImpl.held(writers);
         this.detached = ItemAccessImpl.detached(writers);
         this.templates = new ItemTemplatesImpl(updater);

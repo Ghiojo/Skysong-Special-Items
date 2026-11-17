@@ -46,7 +46,7 @@ class AddTraitTest extends MockBukkitTest {
     void noTraitIdShowsTheAddUsage() {
         run();
 
-        assertEquals("[SkysongItems] Usage: /si trait add <trait> [time]", nextMessage());
+        assertEquals("[SkysongItems] Usage: /si trait add <trait> [time | after <time> | every <time>]", nextMessage());
     }
 
     @Test
@@ -90,6 +90,17 @@ class AddTraitTest extends MockBukkitTest {
 
         assertEquals("[SkysongItems] This item's trait is now permanent.", nextMessage());
         assertTrue(heldTimers().isEmpty());
+    }
+
+    @Test
+    void addingATraitEveryMonthOnlyStoresARepeatingTimer() {
+        run("test", "every", "1mo");
+
+        assertEquals("[SkysongItems] Timer set: trait add test every 1mo.", nextMessage());
+        List<ItemTimer> timers = heldTimers();
+        assertEquals("add_trait", timers.get(0).action());
+        assertEquals("1mo", timers.get(0).every());
+        assertTrue(ItemData.from(player.getInventory().getItemInMainHand().getItemMeta()).getTraits().isEmpty());
     }
 
     @Test

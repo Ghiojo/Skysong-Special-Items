@@ -10,6 +10,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemTimer;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
+import org.skysongdev.skysongitems.api.TimerChange;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.Constants;
@@ -52,6 +53,37 @@ class ItemTimersApiTest extends MockBukkitTest {
                         new ItemTimer("real", 2000, "set_tag", "arcrot", "3", "1mo", "1mo")),
                 api.timers().list(skysongItemWithTimers()));
         assertEquals(List.of(), api.timers().list(null));
+    }
+
+    @Test
+    void afterAndEveryStoreTheChangeAndReplaceTheSameChangesEarlierTimer() {
+        ItemStack item = skysongItemWithTimers();
+        long before = System.currentTimeMillis();
+
+        ItemTimer later = api.timers().after(item, TimerChange.setTag("arcrot", 5), "1d");
+        ItemTimer monthly = api.timers().every(item, TimerChange.addToTag("arcrot", -1), "1mo");
+
+        assertEquals("set_tag", later.action());
+        assertEquals("5", later.value());
+        assertTrue(later.due() >= before + 86_400_000L);
+        assertEquals("1mo", monthly.every());
+        assertFalse(api.tags().getInt(item, "arcrot").isPresent());
+        // The new set_tag timer on arcrot replaced the monthly one that was stored before.
+        assertEquals(List.of("remove_trait", "set_tag", "add_tag"),
+                api.timers().list(item).stream().map(ItemTimer::action).toList());
+    }
+
+    @Test
+    void afterRefusesAChangeTheItemCanNeverTakeButNotOneItJustDoesNotNeedYet() {
+        ItemStack item = skysongItemWithTimers();
+
+        assertThrows(IllegalArgumentException.class, () -> api.timers().after(item, TimerChange.setTag("arcrot", "three"), "1d"));
+        assertThrows(IllegalArgumentException.class, () -> api.timers().after(item, TimerChange.addTrait("nope"), "1d"));
+        assertThrows(IllegalArgumentException.class, () -> api.timers().after(item, TimerChange.removeTrait("test"), "soon"));
+        assertEquals(2, api.timers().list(item).size());
+
+        api.timers().after(item, TimerChange.removeTrait("test"), "1d");
+        assertEquals(3, api.timers().list(item).size());
     }
 
     @Test

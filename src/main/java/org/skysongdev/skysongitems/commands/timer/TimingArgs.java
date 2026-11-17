@@ -1,43 +1,101 @@
 package org.skysongdev.skysongitems.commands.timer;
 
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.timer.Timing;
+import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 
 /**
- * Reads the optional time typed after a command's own arguments, such as the {@code 24h} of
- * {@code /si trait add honed 24h}, so no command reads times itself.
+ * Reads the optional time typed after a command's own arguments, so no command reads times
+ * itself: {@code 24h} makes the change for a while, {@code after 2d} makes it later and
+ * {@code every 1mo} makes it again and again.
  *
- * @param timing the time typed, or null when none was
+ * @param kind    which of the three was typed, or null when no time was
+ * @param timing  the time typed, or null when none was or it couldn't be read
  * @param badTime the text typed where the time goes when it isn't one, or null
  */
-public record TimingArgs(@Nullable Timing timing, @Nullable String badTime) {
+public record TimingArgs(@Nullable Kind kind, @Nullable Timing timing, @Nullable String badTime) {
     /** The message for a time that isn't one. */
     public static final String BAD_TIME = "Invalid time! Use a number and a unit, such as 30m, 24h, 7d, 1mo or 1d12h.";
 
     private static final List<String> EXAMPLES = List.of("30m", "1h", "24h", "7d", "1mo");
+    private static final List<String> WORDS = List.of("after", "every");
 
-    /** Example times starting with what was typed, for tab completion. */
-    public static List<String> suggestions(String typed) {
-        return EXAMPLES.stream().filter(example -> example.startsWith(typed)).toList();
+    /** How the time is used. */
+    public enum Kind {
+        /** A bare time, such as {@code 24h}: the change is made now and undone later. */
+        FOR,
+        /** {@code after 2d}: the change is made once the time has passed. */
+        AFTER,
+        /** {@code every 1mo}: the change is made each time the time passes. */
+        EVERY
+    }
+
+    /** Example times, and {@code after} and {@code every} where they fit, starting with what was typed. */
+    public static List<String> suggestions(String[] args, int ownCount) {
+        int typed = args.length - 1 - ownCount;
+        String last = args[args.length - 1].toLowerCase(Locale.ROOT);
+        if (typed == 0) {
+            return Stream.concat(WORDS.stream(), EXAMPLES.stream()).filter(word -> word.startsWith(last)).toList();
+        }
+        if (typed == 1 && WORDS.contains(args[ownCount].toLowerCase(Locale.ROOT))) {
+            return EXAMPLES.stream().filter(example -> example.startsWith(last)).toList();
+        }
+        return List.of();
     }
 
     /**
-     * Reads the argument after the command's own ones.
+     * Reads the arguments after the command's own ones.
      *
-     * @param args      the command's arguments
-     * @param ownCount  how many arguments the command itself takes before the time
+     * @param args     the command's arguments
+     * @param ownCount how many arguments the command itself takes before the time
      */
     public static TimingArgs read(String[] args, int ownCount, TimerClocks clocks) {
         if (args.length <= ownCount) {
-            return new TimingArgs(null, null);
+            return new TimingArgs(null, null, null);
         }
-        String text = args[ownCount];
+        Kind kind = kindNamed(args[ownCount]);
+        int timeIndex = Kind.FOR.equals(kind) ? ownCount : ownCount + 1;
+        String text = timeIndex < args.length ? args[timeIndex] : "";
         Optional<Timing> timing = clocks.parseTiming(text);
-        return timing.map(found -> new TimingArgs(found, null)).orElseGet(() -> new TimingArgs(null, text));
+        return timing.map(found -> new TimingArgs(kind, found, null)).orElseGet(() -> new TimingArgs(kind, null, text));
+    }
+
+    /**
+     * Reads the time after the command's own arguments, or tells the player why it can't be
+     * used: it isn't a time, or it is a bare time on a command that only takes
+     * {@code after} or {@code every}.
+     *
+     * @param laterOnly whether the command only takes {@code after} or {@code every}
+     * @return the time read, or null when the player was told it can't be used
+     */
+    public static @Nullable TimingArgs readOrRefuse(Player player, String[] args, int ownCount, boolean laterOnly) {
+        TimingArgs timing = read(args, ownCount, getPlugin().getTimerClocks());
+        String refusal = timing.isBad() ? BAD_TIME : null;
+        if (laterOnly && timing.isTimed()) {
+            refusal = LaterEdits.LATER_ONLY;
+        }
+        if (refusal != null) {
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + refusal));
+            return null;
+        }
+        return timing;
+    }
+
+    private static Kind kindNamed(String word) {
+        return switch (word.toLowerCase(Locale.ROOT)) {
+            case "after" -> Kind.AFTER;
+            case "every" -> Kind.EVERY;
+            default -> Kind.FOR;
+        };
     }
 
     /** Whether a time was typed but couldn't be read. */
@@ -45,13 +103,33 @@ public record TimingArgs(@Nullable Timing timing, @Nullable String badTime) {
         return badTime != null;
     }
 
-    /** Whether a time was typed and read. */
+    /** Whether a bare time was typed and read: the change is made now and undone later. */
     public boolean isTimed() {
-        return timing != null;
+        return timing != null && Kind.FOR.equals(kind);
     }
 
-    /** {@code " for 24h"} when a time was typed, otherwise nothing, for confirmation messages. */
+    /** The bare time typed, such as the {@code 24h} of {@code /si trait add honed 24h}, or null when none was. */
+    public @Nullable Timing forTiming() {
+        return isTimed() ? timing : null;
+    }
+
+    /** Whether {@code after} or {@code every} was typed with a time: the change is left to a timer. */
+    public boolean isLater() {
+        return timing != null && !Kind.FOR.equals(kind);
+    }
+
+    /** Whether {@code every} was typed. */
+    public boolean repeats() {
+        return Kind.EVERY.equals(kind);
+    }
+
+    /** {@code " for 24h"} when a bare time was typed, otherwise nothing, for confirmation messages. */
     public String forText() {
-        return timing == null ? "" : " for " + timing.text();
+        return isTimed() ? " for " + timing.text() : "";
+    }
+
+    /** {@code "after 2d"} or {@code "every 1mo"}, for confirmation messages. */
+    public String laterText() {
+        return isLater() ? kind.name().toLowerCase(Locale.ROOT) + " " + timing.text() : "";
     }
 }
