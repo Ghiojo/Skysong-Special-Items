@@ -66,7 +66,7 @@ public interface SkysongItemsApi extends ItemAccess {
     @NotNull ItemTransformations transformations();
 
     /**
-     * The same {@link #tags()}, {@link #charges()} and {@link #traits()} for items
+     * The same {@link #tags()}, {@link #charges()}, {@link #itemHp()} and {@link #traits()} for items
      * nobody holds, such as a copy a plugin is building before it gives it to anyone.
      *
      * <pre>{@code
@@ -124,6 +124,30 @@ public interface SkysongItemsApi extends ItemAccess {
      */
     default boolean hasCharges(@Nullable ItemStack item) {
         return charges().hasLeft(item);
+    }
+
+    /**
+     * The HP left on an item.
+     *
+     * @param item the item, may be null or air
+     * @return the HP, 0 when the item has none stored
+     * @throws IllegalStateException when called off the server's main thread
+     * @since 1.6.0
+     */
+    default int getItemHp(@Nullable ItemStack item) {
+        return itemHp().get(item).orElse(0);
+    }
+
+    /**
+     * Whether an item has HP left.
+     *
+     * @param item the item, may be null or air
+     * @return true when the item has more than 0 HP
+     * @throws IllegalStateException when called off the server's main thread
+     * @since 1.6.0
+     */
+    default boolean hasItemHp(@Nullable ItemStack item) {
+        return itemHp().hasLeft(item);
     }
 
     /**

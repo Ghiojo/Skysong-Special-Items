@@ -17,6 +17,7 @@ final class ItemWrites {
 
     static {
         REFUSALS.put(Result.NOT_CHARGED, "the item has no charges");
+        REFUSALS.put(Result.NO_HP, "the item has no HP");
         REFUSALS.put(Result.ADDING_LOCKED, "the item doesn't allow adding charges");
         REFUSALS.put(Result.INVALID_AMOUNT, "the amount is out of range");
         REFUSALS.put(Result.UNKNOWN_TAG, "there is no tag with this id");
