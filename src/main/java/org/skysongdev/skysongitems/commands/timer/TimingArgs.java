@@ -25,6 +25,10 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 public record TimingArgs(@Nullable Kind kind, @Nullable Timing timing, @Nullable String badTime) {
     /** The message for a time that isn't one. */
     public static final String BAD_TIME = "Invalid time! Use a number and a unit, such as 30m, 24h, 7d, 1mo or 1d12h.";
+    /** The message for a time typed by a player who isn't staff. */
+    public static final String STAFF_ONLY = "Only staff can change items over time.";
+    /** The permission needed to type a time after a command. */
+    public static final String TIME_PERMISSION = "skysongspecialitems.cit";
 
     private static final List<String> EXAMPLES = List.of("30m", "1h", "24h", "7d", "1mo");
     private static final List<String> WORDS = List.of("after", "every");
@@ -88,6 +92,20 @@ public record TimingArgs(@Nullable Kind kind, @Nullable Timing timing, @Nullable
             return null;
         }
         return timing;
+    }
+
+    /**
+     * Tells a player who isn't staff that they can't type a time, for the commands players
+     * may run too, such as {@code /si hp reduce}: changing an item over time is for staff.
+     *
+     * @return whether a time was typed by a player who isn't staff, who was told so
+     */
+    public static boolean refusedForPlayer(Player player, String[] args, int ownCount) {
+        if (args.length <= ownCount || player.hasPermission(TIME_PERMISSION)) {
+            return false;
+        }
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + STAFF_ONLY));
+        return true;
     }
 
     private static Kind kindNamed(String word) {

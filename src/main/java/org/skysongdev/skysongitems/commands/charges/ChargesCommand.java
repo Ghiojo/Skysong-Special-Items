@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
 import org.skysongdev.skysongitems.utils.Constants;
 
 import java.util.ArrayList;
@@ -83,6 +84,9 @@ public class ChargesCommand implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        if (strings.length > 1) {
+            return timeSuggestions(commandSender, strings);
+        }
         ArrayList<String> subcommands = new ArrayList<>();
         if (commandSender.hasPermission("skysongspecialitems.cit")) {
             subcommands.add("set");
@@ -96,5 +100,15 @@ public class ChargesCommand implements TabExecutor {
             subcommands.add("reduce");
         }
         return subcommands.stream().filter(a -> a.startsWith(strings[0])).toList();
+    }
+
+    /** Example times after the amount, or right after {@code remove}, for staff. */
+    private static List<String> timeSuggestions(CommandSender sender, String[] args) {
+        String subcommand = args[0].toLowerCase();
+        int ownCount = "remove".equals(subcommand) ? 1 : 2;
+        if ("addable".equals(subcommand) || args.length <= ownCount || !sender.hasPermission("skysongspecialitems.cit")) {
+            return List.of();
+        }
+        return TimingArgs.suggestions(args, ownCount);
     }
 }

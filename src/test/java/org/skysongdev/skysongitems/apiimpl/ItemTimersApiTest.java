@@ -90,6 +90,21 @@ class ItemTimersApiTest extends MockBukkitTest {
     }
 
     @Test
+    void hpAndChargesTimersNeedAnItemWithHpOrCharges() {
+        ItemStack item = skysongItemWithTimers();
+
+        assertThrows(IllegalArgumentException.class, () -> api.timers().every(item, TimerChange.addHp(-1), "1d"));
+        api.itemHp().set(item, 10);
+        ItemTimer daily = api.timers().every(item, TimerChange.addHp(-1), "1d");
+        api.timers().after(item, TimerChange.setMaxCharges(3), "1w");
+
+        assertEquals("add_hp", daily.action());
+        assertEquals("-1", daily.value());
+        assertEquals(List.of("remove_trait", "set_tag", "add_hp", "set_max_charges"),
+                api.timers().list(item).stream().map(ItemTimer::action).toList());
+    }
+
+    @Test
     void cancelRemovesOneTimerAndClearRemovesAll() {
         ItemStack item = skysongItemWithTimers();
 

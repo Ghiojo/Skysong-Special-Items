@@ -153,6 +153,47 @@ class ItemTimerRunnerTest extends MockBukkitTest {
         assertEquals(0, arcrot(item));
     }
 
+    /** Stores the value and its max under the two keys, as an item with HP or charges has them. */
+    private static void setMeter(ItemStack item, NamespacedKey current, NamespacedKey max, int value, int maxValue) {
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(current, PersistentDataType.INTEGER, value);
+        meta.getPersistentDataContainer().set(max, PersistentDataType.INTEGER, maxValue);
+        item.setItemMeta(meta);
+    }
+
+    private static Integer stored(ItemStack item, NamespacedKey key) {
+        return item.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+    }
+
+    @Test
+    void hpTimersCountEveryMissedRepeatAndKeepTheHpBetweenZeroAndItsMax() {
+        long threeDaysAgo = NOW - 3 * 86_400_000L + 1;
+        ItemStack item = itemWith(new ItemTimer("real", threeDaysAgo, "add_hp", null, "-1", "1d", "1d"));
+        setMeter(item, ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP, 6, 10);
+
+        runner.run(item, null);
+        assertEquals(3, stored(item, ItemKeys.ITEM_HP));
+
+        ItemTimerStore.write(item, List.of(once(NOW, "add_hp", null, "20"), once(NOW, "set_hp", null, "five")));
+        runner.run(item, null);
+        assertEquals(10, stored(item, ItemKeys.ITEM_HP));
+        assertFalse(ItemTimerStore.hasTimers(item.getPersistentDataContainer()));
+    }
+
+    @Test
+    void chargeTimersAddChargesEvenToAnItemThatDoesNotAllowAddingThem() {
+        ItemStack item = itemWith(once(NOW - 20, "add_charges", null, "2"), once(NOW - 10, "set_max_charges", null, "3"));
+        setMeter(item, ItemKeys.CHARGES, ItemKeys.MAX_CHARGES, 2, 5);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ItemKeys.CAN_ADD_CHARGES, PersistentDataType.BOOLEAN, false);
+        item.setItemMeta(meta);
+
+        runner.run(item, null);
+
+        assertEquals(4, stored(item, ItemKeys.CHARGES));
+        assertEquals(3, stored(item, ItemKeys.MAX_CHARGES));
+    }
+
     @Test
     void aTimerWhoseTargetIsGoneClearsItselfWhenItRunsOnce() {
         ItemStack item = itemWith(once(NOW, "remove_trait", "deleted_trait", null));
