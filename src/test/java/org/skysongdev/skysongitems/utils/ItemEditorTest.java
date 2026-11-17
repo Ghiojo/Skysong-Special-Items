@@ -381,6 +381,20 @@ class ItemEditorTest extends MockBukkitTest {
     }
 
     @Test
+    void removingTheLastTraitOfAnItemWithoutStoredLoreLeavesItsLoreAlone() {
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        new ItemData(meta.getPersistentDataContainer()).addTrait("test");
+        meta.lore(List.of(Component.text("plain lore")));
+        item.setItemMeta(meta);
+
+        assertEquals(ItemEditor.Result.DONE, editor.removeTrait(item, "test"));
+
+        assertFalse(data(item).has(ItemKeys.TRAITS));
+        assertEquals(List.of(Component.text("plain lore")), item.getItemMeta().lore());
+    }
+
+    @Test
     void removeTraitReportsAnItemWithoutTraits() {
         assertEquals(ItemEditor.Result.NO_TRAITS, editor.removeTrait(item(null), "test"));
     }
