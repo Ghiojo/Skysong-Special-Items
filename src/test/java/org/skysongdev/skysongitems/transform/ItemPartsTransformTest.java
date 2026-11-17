@@ -57,6 +57,8 @@ class ItemPartsTransformTest extends MockBukkitTest {
         tags.put(ARCROT, "3");
         tags.put(ItemKeys.MAX_CHARGES, "4");
         tags.put(ItemKeys.CHARGES, "4");
+        tags.put(ItemKeys.MAX_ITEM_HP, "10");
+        tags.put(ItemKeys.ITEM_HP, "10");
         tags.put(ItemKeys.PERMISSION, "skysong.night");
         SkysongItem night = new SkysongItem("Night Blade", new ArrayList<>(List.of("Dark steel", "Cuts shadows", "Umbral strike")),
                 "NETHERITE_SWORD", NIGHT_MODEL, "", "charges", tags);
@@ -73,6 +75,8 @@ class ItemPartsTransformTest extends MockBukkitTest {
         data.set(FICTIS, PersistentDataType.INTEGER, 1);
         data.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, 8);
         data.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, 6);
+        data.set(ItemKeys.MAX_ITEM_HP, PersistentDataType.INTEGER, 20);
+        data.set(ItemKeys.ITEM_HP, PersistentDataType.INTEGER, 7);
         ItemData.from(meta).setLoreSections(List.of("Bright steel", "Cuts light", "Solar strike"));
         item.setItemMeta(meta);
         return item;
@@ -129,6 +133,15 @@ class ItemPartsTransformTest extends MockBukkitTest {
     }
 
     @Test
+    void hpTakesTheNewMaximumAndKeepsTheHpLeftUpToIt() {
+        ItemStack result = transform(dayBlade(), "hp");
+
+        assertEquals(10, read(result, ItemKeys.MAX_ITEM_HP, PersistentDataType.INTEGER));
+        assertEquals(7, read(result, ItemKeys.ITEM_HP, PersistentDataType.INTEGER));
+        assertEquals(8, read(result, ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER), "charges are a part of their own");
+    }
+
+    @Test
     void tagsReplaceTheItemsTagsButKeepOtherPluginsOnes() {
         plugin.getTagRegistry().register(RANDOM_ID, TagType.STRING, "SkysongCrafting");
         ItemStack held = dayBlade();
@@ -142,6 +155,7 @@ class ItemPartsTransformTest extends MockBukkitTest {
         assertFalse(result.getPersistentDataContainer().has(FICTIS));
         assertEquals("a1b2", read(result, RANDOM_ID, PersistentDataType.STRING));
         assertEquals(6, read(result, ItemKeys.CHARGES, PersistentDataType.INTEGER), "charges are their own part");
+        assertEquals(7, read(result, ItemKeys.ITEM_HP, PersistentDataType.INTEGER), "and HP too");
         assertNull(read(result, ItemKeys.PERMISSION, PersistentDataType.STRING), "so is the permission");
     }
 

@@ -46,7 +46,7 @@ public final class TransformationLoader {
     private static final String MESSAGES = "messages";
 
     private static final String PART_NAMES = "name, physical, functional, skill, lore, traits, tags, "
-            + "charges, permission, model, cmd, material";
+            + "charges, hp, permission, model, cmd, material";
 
     private final Function<String, Optional<SkysongItem>> savedItems;
     private final Predicate<String> isTag;

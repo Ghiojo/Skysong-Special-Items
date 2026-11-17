@@ -105,6 +105,13 @@ public record ItemPart(Kind kind, @Nullable String tagId) {
                 copy.copyCharges();
             }
         },
+        /** The maximum HP; the HP left is kept, up to the new maximum. */
+        ITEM_HP("hp") {
+            @Override
+            void copy(PartCopy copy, ItemPart part) {
+                copy.copyItemHp();
+            }
+        },
         /** The permission the item grants while held. */
         PERMISSION("permission") {
             @Override

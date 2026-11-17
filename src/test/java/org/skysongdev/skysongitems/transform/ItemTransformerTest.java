@@ -138,6 +138,18 @@ class ItemTransformerTest extends MockBukkitTest {
     }
 
     @Test
+    void hpIsKeptButNeverAboveTheNewFormsMaximum() {
+        SkysongItem night = form("Night Blade", "night_blade", Map.of(ItemKeys.MAX_ITEM_HP, "10", ItemKeys.ITEM_HP, "10"));
+        Transformation rule = rule("day_blade", night);
+        ItemStack damaged = edited(dayBlade(), meta -> meta.getPersistentDataContainer().set(ItemKeys.ITEM_HP, PersistentDataType.INTEGER, 3));
+        ItemStack sturdy = edited(dayBlade(), meta -> meta.getPersistentDataContainer().set(ItemKeys.ITEM_HP, PersistentDataType.INTEGER, 15));
+
+        assertEquals(3, read(transformer.transformed(damaged, rule), ItemKeys.ITEM_HP, PersistentDataType.INTEGER),
+                "transforming never repairs an item");
+        assertEquals(10, read(transformer.transformed(sturdy, rule), ItemKeys.ITEM_HP, PersistentDataType.INTEGER));
+    }
+
+    @Test
     void aFormWithoutChargesDropsThem() {
         ItemStack charged = edited(dayBlade(), meta -> meta.getPersistentDataContainer().set(ItemKeys.CHARGES, PersistentDataType.INTEGER, 2));
 
