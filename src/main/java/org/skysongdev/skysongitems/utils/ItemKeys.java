@@ -44,6 +44,9 @@ public final class ItemKeys {
     public static final NamespacedKey RIGHT_CLICKABLE = named("is_right_clickable");
     public static final NamespacedKey DM_ONLY = named("dm_only");
 
+    /** The item's timers: changes made to it once their time comes, see {@code ItemTimerStore}. */
+    public static final NamespacedKey TIMERS = named("timers");
+
     /** Model key owned by the FurnitureLib plugin, not by this one. */
     public static final NamespacedKey FURNITURE_MODEL = new NamespacedKey("furniturelib", "model");
 
@@ -51,7 +54,7 @@ public final class ItemKeys {
     private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES,
             MAX_ITEM_HP, ITEM_HP, VERSION, LORE,
             NAME, DELETED_LINES, TRAITS, LEGACY_TRAITS, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
-            DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY);
+            DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY, TIMERS);
 
     private ItemKeys() {
     }

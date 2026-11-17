@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The tags, charges, HP and traits of items, read and written one way.
+ * The tags, charges, HP, traits and timers of items, read and written one way.
  *
  * <p>{@link SkysongItemsApi} itself is the way items a player holds are edited: a write is
  * checked the way the {@code /si} commands check it, shows in the item's lore, fires the
@@ -29,6 +29,13 @@ public interface ItemAccess {
      * @since 1.6.0
      */
     @NotNull ItemHp itemHp();
+
+    /**
+     * Reads and cancels the timers stored on items.
+     *
+     * @since 1.7.0
+     */
+    @NotNull ItemTimers timers();
 
     /** Reads and writes the traits stored on items, and tells which traits exist. */
     @NotNull ItemTraits traits();

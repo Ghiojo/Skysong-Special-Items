@@ -46,6 +46,12 @@ commands:
     aliases: [ tf ]
     permission: skysongitems.transform
     permission-message: "You do not have permission to use this command!"
+  timers:
+    description: "Shows the timers on the item in your main hand"
+    usage: "/timers"
+    aliases: [ itemtimers ]
+    permission: skysongitems.timers
+    permission-message: "You do not have permission to use this command!"
 permissions:
   skysongspecialitems.si:
     description: "Allows you to do /si"
@@ -71,6 +77,9 @@ permissions:
   skysongitems.transform:
     description: Allows you to transform the item you hold with /transform.
     default: true
+  skysongitems.timers:
+    description: Allows you to see the timers on the item you hold with /timers.
+    default: true
   skysongitems.*:
     description: Wildcard permission
     default: op
@@ -80,3 +89,4 @@ permissions:
       skysongitems.fd: true
       skysongitems.sd: true
       skysongitems.transform: true
+      skysongitems.timers: true

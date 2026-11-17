@@ -62,7 +62,8 @@ class ItemKeysTest extends MockBukkitTest {
                 Arguments.of(ItemKeys.DISABLED, "is_disabled"),
                 Arguments.of(ItemKeys.BOUND_BOOK, "bound_book"),
                 Arguments.of(ItemKeys.RIGHT_CLICKABLE, "is_right_clickable"),
-                Arguments.of(ItemKeys.DM_ONLY, "dm_only")
+                Arguments.of(ItemKeys.DM_ONLY, "dm_only"),
+                Arguments.of(ItemKeys.TIMERS, "timers")
         );
     }
 
