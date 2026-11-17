@@ -8,6 +8,7 @@ import java.util.Optional;
 /** The clocks timers can count in, by id. Real time is always there; other plugins add theirs. */
 public final class TimerClocks {
     private final Map<String, TimerClock> byId = new HashMap<>();
+    private final Map<String, String> owners = new HashMap<>();
     private final TimerClock realTime;
 
     public TimerClocks(TimerClock realTime) {
@@ -48,6 +49,38 @@ public final class TimerClocks {
                 .map(clock -> Timing.of(clock, text))
                 .flatMap(Optional::stream)
                 .findFirst();
+    }
+
+    /**
+     * Adds a clock another plugin counts, under that plugin's name.
+     *
+     * @throws IllegalArgumentException when the id is that of real time
+     */
+    public void register(TimerClock clock, String owner) {
+        register(clock);
+        owners.put(normalise(clock.id()), owner);
+    }
+
+    /** The plugin that registered the clock with this id, or null for real time and unknown ids. */
+    public String ownerOf(String id) {
+        return owners.get(normalise(id));
+    }
+
+    /** Drops the clocks a plugin registered, such as when it is disabled. Timers in them wait. */
+    public void removeOwnedBy(String owner) {
+        owners.entrySet().removeIf(entry -> {
+            boolean owned = entry.getValue().equals(owner);
+            if (owned) {
+                byId.remove(entry.getKey());
+            }
+            return owned;
+        });
+    }
+
+    /** Drops every clock other plugins registered, before they register them again on a reload. */
+    public void removeAllOwned() {
+        owners.keySet().forEach(byId::remove);
+        owners.clear();
     }
 
     /** Real time. */

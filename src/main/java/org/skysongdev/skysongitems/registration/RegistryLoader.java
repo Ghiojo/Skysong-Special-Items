@@ -4,13 +4,14 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.PluginManager;
 import org.skysongdev.skysongitems.api.event.SkysongItemsReadyEvent;
 import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
-import org.skysongdev.skysongitems.utils.TraitRegistry;
+import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.TagRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 
 import java.util.logging.Logger;
 
 /**
- * Builds the tag and trait registries. Every load starts from new registries filled
+ * Builds the tag and trait registries, and collects other plugins' units of time. Every load starts from new registries filled
  * from the built-in tags and config.yml; a full load then lets other plugins add theirs.
  * The new registries are only handed over once complete, so nothing ever reads a
  * half-built one.
@@ -23,10 +24,13 @@ public final class RegistryLoader {
     }
 
     private final PluginManager pluginManager;
+    private final TimerClocks clocks;
     private final Logger logger;
 
-    public RegistryLoader(PluginManager pluginManager, Logger logger) {
+    /** @param clocks where other plugins' units of time go; they register them again on every load */
+    public RegistryLoader(PluginManager pluginManager, TimerClocks clocks, Logger logger) {
         this.pluginManager = pluginManager;
+        this.clocks = clocks;
         this.logger = logger;
     }
 
@@ -47,7 +51,8 @@ public final class RegistryLoader {
     public void loadWithPlugins(ConfigurationSection config, RegistriesConsumer consumer) {
         TagRegistry tags = loadTags(config);
         TraitRegistry traits = loadTraits(config);
-        pluginManager.callEvent(new SkysongItemsRegisterEvent(new PluginRegistrar(tags, traits, logger)));
+        clocks.removeAllOwned();
+        pluginManager.callEvent(new SkysongItemsRegisterEvent(new PluginRegistrar(tags, traits, clocks, logger)));
         consumer.use(tags, traits);
         pluginManager.callEvent(new SkysongItemsReadyEvent());
     }
