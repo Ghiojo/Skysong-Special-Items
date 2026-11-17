@@ -31,6 +31,7 @@ import org.skysongdev.skysongitems.timer.TimerActions;
 import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.timer.TimerDescriptions;
 import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
+import org.skysongdev.skysongitems.timer.action.TransformTimerAction;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.TransformationLoader;
 import org.skysongdev.skysongitems.transform.TransformationRules;
@@ -244,6 +245,7 @@ public class SkysongItems extends JavaPlugin {
         itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
                 updater::upgrade);
         getCommand("transform").setExecutor(new TransformCommand(itemTransformer, this::getTransformations));
+        timerActions.register(new TransformTimerAction(itemTransformer));
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }

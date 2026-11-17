@@ -5,7 +5,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.bukkit.inventory.ItemStack;
+import org.skysongdev.skysongitems.commands.timer.LaterEdits;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.TimerAction;
+import org.skysongdev.skysongitems.timer.action.TransformTimerAction;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
+import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.transform.Transformation;
 import org.skysongdev.skysongitems.transform.TransformationRules;
 import org.skysongdev.skysongitems.utils.Constants;
@@ -24,10 +30,12 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
  *     <li>{@code /si transform list} lists every rule, then every rule skipped on load and why</li>
  *     <li>{@code /si transform check} shows the held item's form and what it would become,
  *     without changing it</li>
+ *     <li>{@code /si transform after <time>} transforms the held item once the time has passed,
+ *     and {@code /si transform every <time>} each time it passes</li>
  * </ul>
  */
 public class TransformationsCommand implements TabExecutor {
-    private static final String USAGE = "Usage: /si transform <list | check>";
+    private static final String USAGE = "Usage: /si transform <list | check | after <time> | every <time>>";
 
     private final Supplier<TransformationRules> rules;
 
@@ -46,6 +54,7 @@ public class TransformationsCommand implements TabExecutor {
         switch (action) {
             case "list" -> list(sender, rules.get());
             case "check" -> check(sender, rules.get());
+            case "after", "every" -> schedule(sender, args);
             default -> send(sender, USAGE);
         }
         return true;
@@ -82,15 +91,36 @@ public class TransformationsCommand implements TabExecutor {
                 + rule.get().targetMaterialId() + "<gray> (" + rule.get().targetId() + ").");
     }
 
+    /** Stores a timer on the held item that transforms it later, or again and again. */
+    private static void schedule(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            send(sender, "<red>Only players can time the item they hold.");
+            return;
+        }
+        TimingArgs timing = TimingArgs.readOrRefuse(player, args, 0, true);
+        if (timing == null) {
+            return;
+        }
+        ItemStack held = player.getInventory().getItemInMainHand();
+        TimerAction transform = getPlugin().getTimerActions().find(TransformTimerAction.ID).orElseThrow();
+        if (held.getType().isAir()
+                || !ItemEditor.Result.DONE.equals(LaterEdits.schedule(player, held, timing, transform, null, null))) {
+            send(player, "<red>This item has no transformation to time.");
+        }
+    }
+
     private static void send(CommandSender receiver, String message) {
         receiver.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + message));
     }
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 2) {
+            return TimingArgs.suggestions(args, 0);
+        }
         if (args.length != 1) {
             return List.of();
         }
-        return List.of("list", "check").stream().filter(option -> option.startsWith(args[0])).toList();
+        return List.of("list", "check", "after", "every").stream().filter(option -> option.startsWith(args[0])).toList();
     }
 }

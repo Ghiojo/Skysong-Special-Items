@@ -47,4 +47,15 @@ public record TimerChange(@NotNull String action, @Nullable String target, @Null
     public static TimerChange removeTrait(String traitId) {
         return new TimerChange("remove_trait", traitId, null);
     }
+
+    /**
+     * Transforms the item into its next form, like {@code /si transform after|every}: as
+     * {@code /transform} does, without its permission check or messages. A repeating timer
+     * that came due several times moves the item on that many forms, round its cycle.
+     *
+     * @since 1.11.0
+     */
+    public static TimerChange transform() {
+        return new TimerChange("transform", null, null);
+    }
 }

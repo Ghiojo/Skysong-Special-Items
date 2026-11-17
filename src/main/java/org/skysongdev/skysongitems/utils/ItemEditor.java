@@ -99,7 +99,9 @@ public final class ItemEditor {
         /** The item doesn't have the tag or trait. */
         MISSING,
         /** The item has no traits at all. */
-        NO_TRAITS
+        NO_TRAITS,
+        /** The item's form has no transformation. */
+        NO_TRANSFORMATION
     }
 
     /**
