@@ -10,11 +10,12 @@ import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TraitDefinition;
 
 import java.util.Objects;
+import java.util.function.LongSupplier;
 
 /**
  * Fired while SkysongItems loads its tags and traits, once all plugins have enabled
- * and again after every {@code /si reload}. Listen to it to add your plugin's own tags
- * and traits, so they don't have to be set up in SkysongItems' config.yml.
+ * and again after every {@code /si reload}. Listen to it to add your plugin's own tags,
+ * traits and units of time, so they don't have to be set up in SkysongItems' config.yml.
  * <p>
  * Every load starts from SkysongItems' own tags and config.yml, so register everything
  * you need each time the event fires. Nothing you register is written to disk, and it
@@ -58,6 +59,31 @@ public final class SkysongItemsRegisterEvent extends Event {
     }
 
     /**
+     * Registers a unit of time that your plugin counts, such as the seasons of a calendar,
+     * so item timers can count in it: {@code /si transform every 1season}, or
+     * {@code timers().every(item, change, "2season")}.
+     *
+     * <p>The counter only says how many units have passed so far, and must never go down.
+     * SkysongItems asks for it only when an item's timers are checked, never on a schedule,
+     * so the plugin doesn't have to tick it: a calendar can work it out from the date or
+     * from an admin's command. A timer in the unit is due once the counter reaches its
+     * count, and catches up on every unit it missed, the same as real time.
+     *
+     * <p>Timers in a unit no plugin has registered, such as after your plugin is removed,
+     * are kept on items and wait; commands using it are refused.
+     *
+     * @param unitId the unit as staff type it after a number, lowercase letters only, such
+     *               as {@code season}; it can't be read as real time ({@code s}, {@code m},
+     *               {@code h}, {@code d}, {@code w}, {@code mo}, {@code y}) or be {@code real}
+     * @param counter how many units have passed so far
+     * @return whether the unit was registered
+     * @since 1.13.0
+     */
+    public boolean registerTimeUnit(@NotNull Plugin owner, @NotNull String unitId, @NotNull LongSupplier counter) {
+        return registrar.registerTimeUnit(owner, unitId, counter);
+    }
+
+    /**
      * Same as {@link #registerTrait(Plugin, TraitDefinition)}, under its name from before
      * properties were renamed to traits.
      *
@@ -85,5 +111,7 @@ public final class SkysongItemsRegisterEvent extends Event {
         boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type);
 
         boolean registerTrait(@NotNull Plugin owner, @NotNull TraitDefinition trait);
+
+        boolean registerTimeUnit(@NotNull Plugin owner, @NotNull String unitId, @NotNull LongSupplier counter);
     }
 }

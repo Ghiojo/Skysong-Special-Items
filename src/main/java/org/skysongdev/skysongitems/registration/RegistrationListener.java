@@ -8,7 +8,7 @@ import org.skysongdev.skysongitems.SkysongItems;
 
 /**
  * Asks other plugins for their tags and traits once every plugin has enabled, and
- * drops a plugin's tags and traits as soon as it is disabled.
+ * drops a plugin's tags, traits and units of time as soon as it is disabled.
  */
 public final class RegistrationListener implements Listener {
     private final SkysongItems plugin;
@@ -34,5 +34,6 @@ public final class RegistrationListener implements Listener {
         String owner = event.getPlugin().getName();
         plugin.getTagRegistry().removeOwnedBy(owner);
         plugin.getTraitRegistry().removeOwnedBy(owner);
+        plugin.getTimerClocks().removeOwnedBy(owner);
     }
 }

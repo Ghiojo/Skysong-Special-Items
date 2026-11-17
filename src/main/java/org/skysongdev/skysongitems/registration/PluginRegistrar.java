@@ -1,22 +1,27 @@
 package org.skysongdev.skysongitems.registration;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TraitDefinition;
 import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
+import org.skysongdev.skysongitems.timer.CounterClock;
+import org.skysongdev.skysongitems.timer.RealTimeClock;
+import org.skysongdev.skysongitems.timer.TimeSpan;
+import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.PrintableTrait;
-import org.skysongdev.skysongitems.utils.Trait;
-import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.RenameTrait;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 import org.skysongdev.skysongitems.utils.TagTypes;
+import org.skysongdev.skysongitems.utils.Trait;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.LongSupplier;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -28,15 +33,36 @@ import java.util.regex.Pattern;
 final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     // Ids become key names under the skysong_items namespace, so they follow the key rules.
     private static final Pattern VALID_ID = Pattern.compile("[a-z0-9_.-]+");
+    private static final Pattern UNIT_ID = Pattern.compile("[a-z]+");
 
     private final TagRegistry tags;
     private final TraitRegistry traits;
+    private final TimerClocks clocks;
     private final Logger logger;
 
-    PluginRegistrar(TagRegistry tags, TraitRegistry traits, Logger logger) {
+    PluginRegistrar(TagRegistry tags, TraitRegistry traits, TimerClocks clocks, Logger logger) {
         this.tags = tags;
         this.traits = traits;
+        this.clocks = clocks;
         this.logger = logger;
+    }
+
+    @Override
+    public boolean registerTimeUnit(@NotNull Plugin owner, @NotNull String unitId, @NotNull LongSupplier counter) {
+        Objects.requireNonNull(owner, "owner");
+        Objects.requireNonNull(counter, "counter");
+        if (unitId == null || !UNIT_ID.matcher(unitId).matches()) {
+            return refuse(owner, "time unit", String.valueOf(unitId), "units may only contain lowercase letters");
+        }
+        if (RealTimeClock.ID.equals(unitId) || TimeSpan.parse("1" + unitId).isPresent()) {
+            return refuse(owner, "time unit", unitId, "it would read as real time");
+        }
+        String existingOwner = clocks.ownerOf(unitId);
+        if (existingOwner != null) {
+            return refuse(owner, "time unit", unitId, "it is already registered by " + existingOwner);
+        }
+        clocks.register(new CounterClock(unitId, counter), owner.getName());
+        return true;
     }
 
     @Override

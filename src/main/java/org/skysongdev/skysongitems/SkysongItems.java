@@ -251,7 +251,7 @@ public class SkysongItems extends JavaPlugin {
         }
 
         // Other plugins add their tags and traits once all plugins have enabled.
-        registryLoader = new RegistryLoader(getServer().getPluginManager(), getLogger());
+        registryLoader = new RegistryLoader(getServer().getPluginManager(), timerClocks, getLogger());
         registryLoader.loadConfig(getConfig(), this::useRegistries);
         getServer().getPluginManager().registerEvents(new RegistrationListener(this), this);
         materialPermissions.load(getDataFolder(), getLogger());
