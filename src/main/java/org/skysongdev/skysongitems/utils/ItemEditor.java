@@ -486,9 +486,12 @@ public final class ItemEditor {
         }
     }
 
-    /** Clears the lore lines a trait drew, for an item that just lost its last trait. */
+    /**
+     * Clears the lore lines a trait drew, for an item that just lost its last trait.
+     * An item without stored lore is left alone, as there is nothing to draw it from.
+     */
     private void clearTraitLore(ItemMeta meta) {
-        if (effects.redrawLore()) {
+        if (effects.redrawLore() && meta.getPersistentDataContainer().has(ItemKeys.LORE, PersistentDataType.STRING)) {
             ItemLoreRenderer.renderWithoutTraits(meta);
         }
     }
