@@ -9,7 +9,8 @@ import java.util.List;
 /**
  * Adds timers to items and cancels them. A tag or trait has at most one timer of each action:
  * scheduling one again replaces the earlier one, so honing an item that is already Honed
- * restarts its time instead of stacking a second removal.
+ * restarts its time instead of stacking a second removal. Undoing an amount added for a while
+ * is the exception: those timers {@link #add stack}.
  */
 public final class ItemTimerScheduler {
     private ItemTimerScheduler() {
@@ -44,6 +45,24 @@ public final class ItemTimerScheduler {
         timers.add(timer);
         ItemTimerStore.write(item, timers);
         return timer;
+    }
+
+    /**
+     * Adds the timer next to the item's other timers, even ones making the same change, so
+     * changes undone later stack: two 24-hour buffs each take off their own amount.
+     *
+     * @return the timer added
+     */
+    public static ItemTimer add(ItemStack item, ItemTimer timer) {
+        List<ItemTimer> timers = new ArrayList<>(ItemTimerStore.read(item.getPersistentDataContainer()));
+        timers.add(timer);
+        ItemTimerStore.write(item, timers);
+        return timer;
+    }
+
+    /** The amount with its sign turned, as text a number tag, HP or charges read: what undoes adding it. */
+    public static String negated(String amount) {
+        return amount.startsWith("-") ? amount.substring(1) : "-" + amount;
     }
 
     /**

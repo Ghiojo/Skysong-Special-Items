@@ -70,6 +70,25 @@ public interface ItemHp {
     }
 
     /**
+     * Adds HP for a while, like {@code /si hp add <amount> <time>}: the same amount is
+     * taken back off once the time has passed (a negative amount is given back), still between
+     * 0 and the max. These stack: each call undoes only its own amount.
+     *
+     * @param time how long, as staff type it, such as {@code 24h} or {@code 1d12h}
+     * @return the HP the item has now
+     * @throws IllegalArgumentException as {@link #add(Player, ItemStack, int)} does, or when the
+     *                                  time isn't one
+     * @see ItemTimers
+     * @since 1.15.0
+     */
+    int addFor(@Nullable Player holder, ItemStack item, int amount, String time);
+
+    /** Same as {@link #addFor(Player, ItemStack, int, String)} with no holder. */
+    default int addFor(ItemStack item, int amount, String time) {
+        return addFor(null, item, amount, time);
+    }
+
+    /**
      * Sets the item's max HP, like {@code /si hp setmax}. HP the item already has is kept,
      * and an item without HP gets this amount as its HP.
      *

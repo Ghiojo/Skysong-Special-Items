@@ -25,7 +25,8 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
  * that players cannot restore it: everyone may {@code reduce} it, and only staff
  * may {@code set}, {@code setmax}, {@code add} or {@code remove} it. Staff may also
  * make any of these changes later with {@code after <time>}, or again and again with
- * {@code every <time>}.
+ * {@code every <time>}, and add or reduce HP for a while with a time on its own, such as
+ * {@code add 5 24h}: the same amount is taken back off once the time has passed.
  */
 public class ItemHpCommand implements TabExecutor {
     /** The permission staff need to restore, set or remove an item's HP. */
@@ -35,7 +36,7 @@ public class ItemHpCommand implements TabExecutor {
     private static final String REMOVE = "remove";
     private static final List<String> STAFF_SUBCOMMANDS = List.of("set", "setmax", "add", REDUCE, REMOVE);
     private static final String USAGE = "/si hp (" + String.join("|", STAFF_SUBCOMMANDS)
-            + ") (amount) [after <time> | every <time>]";
+            + ") (amount) [time | after <time> | every <time>]";
     private static final List<String> PLAYER_SUBCOMMANDS = List.of(REDUCE);
 
     @Override
@@ -50,7 +51,7 @@ public class ItemHpCommand implements TabExecutor {
         if (TimingArgs.refusedForPlayer(player, args, ownCount)) {
             return true;
         }
-        TimingArgs timing = TimingArgs.readOrRefuse(player, args, ownCount, true);
+        TimingArgs timing = TimingArgs.readOrRefuse(player, args, ownCount, !undoable(subcommand));
         if (timing == null) {
             return true;
         }
@@ -112,6 +113,19 @@ public class ItemHpCommand implements TabExecutor {
         } else if (ItemEditor.Result.INVALID_AMOUNT.equals(result)) {
             send(player, "<red>\"" + edit.args()[1] + "\" is out of range!");
         }
+        if (ItemEditor.Result.DONE.equals(result) && edit.timing().isTimed()) {
+            int added = REDUCE.equals(edit.subcommand()) ? -amount : amount;
+            LaterEdits.undoLater(player, item, edit.timing(), BuiltInTimerActions.ADD_HP, null, String.valueOf(-added));
+        }
+    }
+
+    /**
+     * Whether the subcommand's change can be undone after a time on its own, such as
+     * {@code add 5 24h}: adding and reducing can, by the same amount; setting and removing
+     * can't, since the old value isn't kept.
+     */
+    private static boolean undoable(String subcommand) {
+        return "add".equals(subcommand) || REDUCE.equals(subcommand);
     }
 
     private static ItemEditor.Result apply(ItemEditor editor, ItemStack item, String subcommand, int amount) {

@@ -59,6 +59,16 @@ final class ItemTraitsImpl implements ItemProperties {
     }
 
     @Override
+    public boolean removeFor(Player holder, ItemStack item, String traitId, String time) {
+        Timing timing = timed.timing(time);
+        boolean removed = remove(holder, item, traitId);
+        if (removed) {
+            timed.undoLater(item, timing, BuiltInTimerActions.ADD_TRAIT.id(), traitId, null);
+        }
+        return removed;
+    }
+
+    @Override
     public boolean remove(Player holder, ItemStack item, String traitId) {
         check.require(item);
         return ItemEditor.Result.DONE.equals(editorFor(holder).removeTrait(item, traitId));

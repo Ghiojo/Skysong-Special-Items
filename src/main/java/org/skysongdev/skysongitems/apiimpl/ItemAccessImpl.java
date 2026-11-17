@@ -54,9 +54,9 @@ final class ItemAccessImpl implements ItemAccess {
     }
 
     private ItemAccessImpl(Writers writers, ItemCheck check) {
-        this.charges = new ItemChargesImpl(writers.editor(), check);
-        this.itemHp = new ItemHpImpl(writers.editor(), check);
         TimedWrites timed = new TimedWrites(writers.clocks());
+        this.charges = new ItemChargesImpl(writers.editor(), check, timed);
+        this.itemHp = new ItemHpImpl(writers.editor(), check, timed);
         this.timers = new ItemTimersImpl(check, writers.editor(), writers.actions(), timed);
         this.tags = new ItemTagsImpl(writers.tagRegistry(), charges, writers.editor(), check, timed);
         this.traits = new ItemTraitsImpl(writers.traitRegistry(), writers.editor(), check, timed);

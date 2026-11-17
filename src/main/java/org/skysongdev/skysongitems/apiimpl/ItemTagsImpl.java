@@ -8,6 +8,7 @@ import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemTags;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
+import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
 import org.skysongdev.skysongitems.timer.Timing;
 import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.ItemEditor;
@@ -77,6 +78,18 @@ final class ItemTagsImpl implements ItemTags {
 
     @Override
     public void add(Player holder, ItemStack item, String tagId, Number amount) {
+        addText(holder, item, tagId, amount);
+    }
+
+    @Override
+    public void addFor(Player holder, ItemStack item, String tagId, Number amount, String time) {
+        Timing timing = timed.timing(time);
+        String text = addText(holder, item, tagId, amount);
+        timed.undoLater(item, timing, BuiltInTimerActions.ADD_TAG.id(), tagId, ItemTimerScheduler.negated(text));
+    }
+
+    /** Adds the amount to the tag, and returns it as the text the tag's parser read. */
+    private String addText(Player holder, ItemStack item, String tagId, Number amount) {
         check.require(item);
         RegisteredTag tag = writableTag(tagId);
         TagType type = TagTypes.of(tag.type());
@@ -85,6 +98,7 @@ final class ItemTagsImpl implements ItemTags {
         }
         String text = asText(type, amount, tagId);
         ItemWrites.requireDone(editor.editedBy(holder, ItemChangeCause.API).addTag(item, tagId, text), "tag " + tagId);
+        return text;
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.commands.timer.LaterEdits;
 import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
 import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
@@ -22,7 +23,8 @@ import static org.skysongdev.skysongitems.SkysongItems.getPlugin;
 /**
  * {@code /si tag add <tag> <amount>} and {@code /si tag reduce <tag> <amount>}: counts a
  * number tag on the held item up or down. A tag the item doesn't have counts as 0, and the
- * tag never goes below 0.
+ * tag never goes below 0. With a time on its own, such as {@code 24h}, the same amount is
+ * taken back off (or given back) once the time has passed.
  */
 public class AdjustTag implements TabExecutor {
     private final boolean reduce;
@@ -36,10 +38,10 @@ public class AdjustTag implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player player = (Player) sender;
         if (args.length < 2) {
-            send(player, "Usage: /si tag " + name() + " <tag> <amount> [after <time> | every <time>]");
+            send(player, "Usage: /si tag " + name() + " <tag> <amount> [time | after <time> | every <time>]");
             return true;
         }
-        TimingArgs timing = TimingArgs.readOrRefuse(player, args, 2, true);
+        TimingArgs timing = TimingArgs.readOrRefuse(player, args, 2, false);
         if (timing == null) {
             return true;
         }
@@ -49,7 +51,7 @@ public class AdjustTag implements TabExecutor {
             send(player, "You must hold an item in your main hand to use this command.");
             return true;
         }
-        String amount = reduce ? negated(args[1]) : args[1];
+        String amount = reduce ? ItemTimerScheduler.negated(args[1]) : args[1];
         ItemEditor.Result result = timing.isLater()
                 ? LaterEdits.schedule(player, item, timing, BuiltInTimerActions.ADD_TAG, args[0], amount)
                 : getPlugin().getItemEditor().forCommand(player).addTag(item, args[0], amount);
@@ -57,21 +59,23 @@ public class AdjustTag implements TabExecutor {
             send(player, "<red>" + failureMessage(result));
             return true;
         }
-        if (timing.isLater()) {
-            return true;
+        if (!timing.isLater()) {
+            confirm(player, item, args[0], amount, timing);
         }
-        getPlugin().syncPermissionItems(player);
-        send(player, "<green>The tag " + args[0] + " is now " + currentValue(item, args[0]) + ".");
         return true;
+    }
+
+    /** Tells the player the tag's new value and, for a time on its own, stores the undo. */
+    private static void confirm(Player player, ItemStack item, String tagId, String amount, TimingArgs timing) {
+        getPlugin().syncPermissionItems(player);
+        send(player, "<green>The tag " + tagId + " is now " + currentValue(item, tagId) + ".");
+        if (timing.isTimed()) {
+            LaterEdits.undoLater(player, item, timing, BuiltInTimerActions.ADD_TAG, tagId, ItemTimerScheduler.negated(amount));
+        }
     }
 
     private String name() {
         return reduce ? "reduce" : "add";
-    }
-
-    /** The amount with its sign turned, as text the tag's parser reads. */
-    private static String negated(String amount) {
-        return amount.startsWith("-") ? amount.substring(1) : "-" + amount;
     }
 
     private static String failureMessage(ItemEditor.Result result) {

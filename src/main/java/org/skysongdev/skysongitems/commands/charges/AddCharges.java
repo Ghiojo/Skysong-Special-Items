@@ -45,6 +45,9 @@ public class AddCharges implements CommandExecutor {
                 ? LaterEdits.schedule(player, item, timing, BuiltInTimerActions.ADD_CHARGES, null, String.valueOf(num))
                 : getPlugin().getItemEditor().forCommand(player).addCharges(item, num, ignoreLock);
         report(player, result);
+        if (timing.isTimed()) {
+            undoLater(player, item, timing, num, result);
+        }
         return true;
     }
 
@@ -53,7 +56,14 @@ public class AddCharges implements CommandExecutor {
         if (TimingArgs.refusedForPlayer(player, args, 1)) {
             return null;
         }
-        return TimingArgs.readOrRefuse(player, args, 1, true);
+        return TimingArgs.readOrRefuse(player, args, 1, false);
+    }
+
+    /** After adding the charges for a while, stores taking them back off. */
+    private static void undoLater(Player player, ItemStack item, TimingArgs timing, int added, ItemEditor.Result result) {
+        if (ItemEditor.Result.DONE.equals(result)) {
+            LaterEdits.undoLater(player, item, timing, BuiltInTimerActions.ADD_CHARGES, null, String.valueOf(-added));
+        }
     }
 
     private static void report(Player player, ItemEditor.Result result) {

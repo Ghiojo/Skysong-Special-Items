@@ -144,6 +144,17 @@ class ChargesCommandsTest extends MockBukkitTest {
     }
 
     @Test
+    void staffCanReduceChargesForATimeAndTheyComeBackLater() {
+        holdItem(true);
+        player.addAttachment(MockBukkit.createMockPlugin(), CIT_PERMISSION, true);
+
+        run(new AddCharges(), "-1", "24h");
+
+        assertEquals(1, heldCharges());
+        assertEquals("[SkysongItems] Undone after 24h: charges add 1.", nextMessage());
+    }
+
+    @Test
     void onlyStaffCanChangeChargesOverTime() {
         holdItem(true);
 

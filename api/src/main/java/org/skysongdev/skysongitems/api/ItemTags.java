@@ -122,6 +122,24 @@ public interface ItemTags {
     }
 
     /**
+     * Adds an amount to a number tag for a while, like {@code /si tag add <tag> <amount> <time>}:
+     * the same amount is taken back off once the time has passed (a negative amount is given
+     * back), still never below 0. These stack: each call undoes only its own amount.
+     *
+     * @param time how long, as staff type it, such as {@code 24h} or {@code 1d12h}
+     * @throws IllegalArgumentException as {@link #add(Player, ItemStack, String, Number)} does,
+     *                                  or when the time isn't one
+     * @see ItemTimers
+     * @since 1.15.0
+     */
+    void addFor(@Nullable Player holder, ItemStack item, String tagId, Number amount, String time);
+
+    /** Same as {@link #addFor(Player, ItemStack, String, Number, String)} with no holder. */
+    default void addFor(ItemStack item, String tagId, Number amount, String time) {
+        addFor(null, item, tagId, amount, time);
+    }
+
+    /**
      * Takes a tag off the item, like {@code /si tag remove}.
      *
      * @param holder the player holding the item, named in the change event; may be null

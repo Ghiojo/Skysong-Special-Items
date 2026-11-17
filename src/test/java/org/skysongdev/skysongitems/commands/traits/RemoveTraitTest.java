@@ -16,6 +16,8 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -94,7 +96,20 @@ class RemoveTraitTest extends MockBukkitTest {
     void noTraitIdShowsTheRemoveUsage() {
         run();
 
-        assertEquals("[SkysongItems] Usage: /si trait remove <trait> [after <time> | every <time>]", nextMessage());
+        assertEquals("[SkysongItems] Usage: /si trait remove <trait> [time | after <time> | every <time>]", nextMessage());
+    }
+
+    @Test
+    void removingATraitForATimeAddsItBackLater() {
+        holdItemWithTraits("test;spell");
+
+        run("spell", "24h");
+
+        assertEquals(List.of("test"), ItemData.from(heldMeta()).getTraits());
+        assertEquals("[SkysongItems] Trait removed successfully!", nextMessage());
+        assertEquals("[SkysongItems] Undone after 24h: trait add spell.", nextMessage());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals("add_trait", timers.get(0).action());
     }
 
     @Test
