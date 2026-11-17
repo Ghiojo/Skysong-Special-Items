@@ -61,6 +61,18 @@ final class ItemTagsImpl implements ItemTags {
     }
 
     @Override
+    public void add(Player holder, ItemStack item, String tagId, Number amount) {
+        check.require(item);
+        RegisteredTag tag = writableTag(tagId);
+        TagType type = TagTypes.of(tag.type());
+        if (!TagType.INT.equals(type) && !TagType.FLOAT.equals(type)) {
+            throw new IllegalArgumentException("The " + tagId + " tag holds " + type + " values, not numbers");
+        }
+        String text = asText(type, amount, tagId);
+        ItemWrites.requireDone(editor.editedBy(holder, ItemChangeCause.API).addTag(item, tagId, text), "tag " + tagId);
+    }
+
+    @Override
     public boolean remove(Player holder, ItemStack item, String tagId) {
         check.require(item);
         writableTag(tagId);
