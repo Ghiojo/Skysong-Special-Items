@@ -34,6 +34,22 @@ public final class TimerClocks {
         return Optional.ofNullable(byId.get(normalise(id)));
     }
 
+    /**
+     * Reads a time as staff type it, such as {@code 24h}, in the first clock that understands
+     * it, real time first; empty when none does.
+     */
+    public Optional<Timing> parseTiming(String text) {
+        Optional<Timing> real = Timing.of(realTime, text);
+        if (real.isPresent()) {
+            return real;
+        }
+        return byId.values().stream()
+                .filter(clock -> !clock.equals(realTime))
+                .map(clock -> Timing.of(clock, text))
+                .flatMap(Optional::stream)
+                .findFirst();
+    }
+
     /** Real time. */
     public TimerClock realTime() {
         return realTime;

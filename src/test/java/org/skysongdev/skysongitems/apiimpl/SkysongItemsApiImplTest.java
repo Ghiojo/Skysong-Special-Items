@@ -9,9 +9,13 @@ import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.transform.ItemTransformer;
 import org.skysongdev.skysongitems.transform.TransformationRules;
+import org.skysongdev.skysongitems.timer.RealTimeClock;
+import org.skysongdev.skysongitems.timer.TimerClocks;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.TraitRegistry;
 import org.skysongdev.skysongitems.utils.TagRegistry;
+
+import java.time.Clock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -66,7 +70,8 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
         TraitRegistry traits = new TraitRegistry();
         Updater updater = new Updater();
         ItemTransformer transformer = new ItemTransformer(TransformationRules::empty, tags, ignored -> { }, updater::upgrade);
-        return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), updater, transformer);
+        return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), updater, transformer,
+                new TimerClocks(new RealTimeClock(Clock.systemUTC())));
     }
 
     @Test

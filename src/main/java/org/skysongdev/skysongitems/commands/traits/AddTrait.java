@@ -7,6 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skysongdev.skysongitems.commands.timer.TimingArgs;
+import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
+import org.skysongdev.skysongitems.timer.action.BuiltInTimerActions;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Trait;
@@ -28,7 +31,12 @@ public class AddTrait implements TabExecutor {
 
 
         if(args.length < 1){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait add <trait>"));
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Usage: /si trait add <trait> [time]"));
+            return true;
+        }
+        TimingArgs timing = TimingArgs.read(args, 1, getPlugin().getTimerClocks());
+        if (timing.isBad()) {
+            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "<red>" + TimingArgs.BAD_TIME));
             return true;
         }
 
@@ -45,18 +53,32 @@ public class AddTrait implements TabExecutor {
             return true;
         }
 
-        if(ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addTrait(itemInMainHand, args[0]))){
-            player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "This item already has this trait!"));
-            return true;
-        }
-
+        boolean added = !ItemEditor.Result.ALREADY_PRESENT.equals(getPlugin().getItemEditor().forCommand(player).addTrait(itemInMainHand, args[0]));
+        boolean timerChanged = ItemTimerScheduler.replaceOrCancel(itemInMainHand, timing.timing(),
+                BuiltInTimerActions.REMOVE_TRAIT.id(), args[0]);
         player.updateInventory();
-        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + "Trait added!"));
+        player.sendMessage(getPlugin().getMiniMessage().deserialize(Constants.pluginTag + confirmation(added, timerChanged, timing)));
         return true;
+    }
+
+    private static String confirmation(boolean added, boolean timerChanged, TimingArgs timing) {
+        if (added) {
+            return "Trait added" + timing.forText() + "!";
+        }
+        if (!timerChanged) {
+            return "This item already has this trait!";
+        }
+        return timing.isTimed() ? "This item already has this trait; it now lasts" + timing.forText() + "." : "This item's trait is now permanent.";
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 2) {
+            return TimingArgs.suggestions(args[1]);
+        }
+        if (args.length > 2) {
+            return List.of();
+        }
         ArrayList<String> traits = new ArrayList<>();
         for(Trait trait : getPlugin().getTraitRegistry().getAll()){
             traits.add(trait.getId());

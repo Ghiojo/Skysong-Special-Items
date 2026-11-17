@@ -19,6 +19,8 @@ import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.api.event.ItemTagChangeEvent;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.RecordedItemEvents;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
@@ -83,6 +85,19 @@ class TagCommandsTest extends MockBukkitTest {
 
         assertEquals(4, heldArcrot());
         assertEquals("[SkysongItems] The tag arcrot set to 4 successfully!", nextMessage());
+    }
+
+    @Test
+    void setTagForATimeSchedulesItsRemovalAndSettingItWithoutOneCancelsIt() {
+        run(new SetTag(), "arcrot", "4", "24h");
+        assertEquals("[SkysongItems] The tag arcrot set to 4 for 24h successfully!", nextMessage());
+        List<ItemTimer> timers = ItemTimerStore.read(player.getInventory().getItemInMainHand().getPersistentDataContainer());
+        assertEquals(1, timers.size());
+        assertEquals("remove_tag", timers.get(0).action());
+
+        run(new SetTag(), "arcrot", "5");
+
+        assertFalse(ItemTimerStore.hasTimers(player.getInventory().getItemInMainHand().getPersistentDataContainer()));
     }
 
     @Test
