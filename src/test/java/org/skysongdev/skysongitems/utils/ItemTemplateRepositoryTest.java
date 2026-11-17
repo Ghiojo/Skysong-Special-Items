@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems.utils;
 import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,6 +11,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
+import org.skysongdev.skysongitems.timer.ItemTimer;
+import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.timer.TimerTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -260,5 +264,24 @@ class ItemTemplateRepositoryTest extends MockBukkitTest {
 
         assertThrows(IllegalArgumentException.class, () -> ItemTemplateRepository.save(item, ".."));
         assertFalse(outside.exists());
+    }
+
+    @Test
+    void savedItemsKeepTheirTimersAsSpansAndEveryItemMadeFromThemStartsItsOwnClock() {
+        ItemStack held = ItemFactory.create(item("IRON_SWORD", null));
+        ItemTimerStore.write(held, List.of(
+                new ItemTimer("real", 5, "remove_trait", "honed", null, "24h", null),
+                new ItemTimer("real", 7, "add_tag", "arcrot", "-1", "1d", "1d")));
+        long before = System.currentTimeMillis();
+
+        SkysongItem loaded = saveAndLoad(new SkysongItem(held));
+        List<ItemTimer> started = ItemTimerStore.read(ItemFactory.create(loaded).getPersistentDataContainer());
+
+        assertEquals(List.of(new TimerTemplate("real", "remove_trait", "honed", null, "24h", false),
+                new TimerTemplate("real", "add_tag", "arcrot", "-1", "1d", true)), loaded.getTimers());
+        assertTrue(started.get(0).due() >= before + 86_400_000L);
+        assertEquals("1d", started.get(1).every());
+        String yaml = YamlConfiguration.loadConfiguration(savedFile()).saveToString();
+        assertTrue(yaml.contains("after: 24h") && yaml.contains("every: 1d") && !yaml.contains("clock"), yaml);
     }
 }

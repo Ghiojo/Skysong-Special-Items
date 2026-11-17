@@ -13,12 +13,14 @@ import org.skysongdev.skysongitems.api.TransformResult;
 import org.skysongdev.skysongitems.api.event.ItemTransformEvent;
 import org.skysongdev.skysongitems.timer.ItemTimer;
 import org.skysongdev.skysongitems.timer.ItemTimerStore;
+import org.skysongdev.skysongitems.timer.TimerOrigin;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TagRegistry;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -109,20 +111,37 @@ public final class ItemTransformer {
         return item.getPersistentDataContainer().get(ItemKeys.MATERIAL_ID, PersistentDataType.STRING);
     }
 
+    /** The item the held one becomes under this rule, its new timers counted from now. */
+    public ItemStack transformed(ItemStack held, Transformation rule) {
+        return transformed(held, rule, null);
+    }
+
     /**
      * The item the held one becomes under this rule. The held item itself is not changed.
-     * Of the held item's timers, only those that transform it carry over, so a repeating
-     * transformation keeps going; its other timers belonged to the old form and are dropped.
+     *
+     * <p>The new form starts the timers of its saved item, counted from the origin when given.
+     * Of the held item's own timers, only those that transform it carry over, so a repeating
+     * transformation keeps going, unless the new form's saved item brings a transformation
+     * timer of its own. Its other timers belonged to the old form and are dropped.
+     *
+     * @param origin where the new form's timers count from, or null for now
      */
-    public ItemStack transformed(ItemStack held, Transformation rule) {
+    public ItemStack transformed(ItemStack held, Transformation rule, @Nullable TimerOrigin origin) {
         ItemStack result = rule.isWholeItem() ? wholeItem(held, rule) : withParts(held, rule);
-        List<ItemTimer> carried = ItemTimerStore.read(held.getPersistentDataContainer()).stream()
-                .filter(timer -> TIMER_ACTION.equals(timer.action()))
-                .toList();
-        if (!carried.isEmpty() || ItemTimerStore.hasTimers(result.getPersistentDataContainer())) {
-            ItemTimerStore.write(result, carried);
+        List<ItemTimer> timers = new ArrayList<>(ItemFactory.startedTimers(rule.target(), origin));
+        if (timers.stream().noneMatch(ItemTransformer::transforms)) {
+            ItemTimerStore.read(held.getPersistentDataContainer()).stream()
+                    .filter(ItemTransformer::transforms)
+                    .forEach(timers::add);
+        }
+        if (!timers.isEmpty() || ItemTimerStore.hasTimers(result.getPersistentDataContainer())) {
+            ItemTimerStore.write(result, timers);
         }
         return result;
+    }
+
+    private static boolean transforms(ItemTimer timer) {
+        return TIMER_ACTION.equals(timer.action());
     }
 
     /**

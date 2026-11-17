@@ -245,7 +245,7 @@ public class SkysongItems extends JavaPlugin {
         itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
                 updater::upgrade);
         getCommand("transform").setExecutor(new TransformCommand(itemTransformer, this::getTransformations));
-        timerActions.register(new TransformTimerAction(itemTransformer));
+        timerActions.register(new TransformTimerAction(itemTransformer, timerClocks));
         for (LoreSection section : LoreSection.values()) {
             getCommand(section.getCommandName()).setExecutor(new LoreSectionCommand(section));
         }
