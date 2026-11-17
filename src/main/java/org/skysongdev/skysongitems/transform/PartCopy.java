@@ -26,7 +26,7 @@ import java.util.Set;
 final class PartCopy {
     /** Tags other parts take care of, which the {@code tags} part leaves alone. */
     private static final Set<NamespacedKey> NOT_PLAIN_TAGS = Set.of(ItemKeys.MATERIAL_ID, ItemKeys.CHARGES,
-            ItemKeys.MAX_CHARGES, ItemKeys.CAN_ADD_CHARGES, ItemKeys.PERMISSION, ItemKeys.NAME, ItemKeys.LORE,
+            ItemKeys.MAX_CHARGES, ItemKeys.CAN_ADD_CHARGES, ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP, ItemKeys.PERMISSION, ItemKeys.NAME, ItemKeys.LORE,
             ItemKeys.VERSION, ItemKeys.DELETED_LINES, ItemKeys.BOUND_BOOK);
     private static final int LORE_SECTIONS = 3;
 
@@ -130,18 +130,35 @@ final class PartCopy {
 
     /** Takes the new form's maximum, keeping the charges left up to it; no maximum means no charges. */
     void copyCharges() {
-        Integer maxCharges = from.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        if (maxCharges == null) {
-            to.remove(ItemKeys.CHARGES);
-            to.remove(ItemKeys.MAX_CHARGES);
+        if (copyMax(ItemKeys.CHARGES, ItemKeys.MAX_CHARGES)) {
+            copyKey(ItemKeys.CAN_ADD_CHARGES);
+        } else {
             to.remove(ItemKeys.CAN_ADD_CHARGES);
-            return;
         }
-        Integer charges = to.get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
-        Integer newCharges = charges != null ? charges : from.get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
-        to.set(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER, maxCharges);
-        to.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, newCharges == null ? maxCharges : Math.min(newCharges, maxCharges));
-        copyKey(ItemKeys.CAN_ADD_CHARGES);
+    }
+
+    /** Takes the new form's maximum HP, keeping the HP left up to it; no maximum means no HP. */
+    void copyItemHp() {
+        copyMax(ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP);
+    }
+
+    /**
+     * Takes the new form's maximum, keeping the value left up to it. An item without a
+     * value gets the new form's, or the full maximum. Returns false when the new form has
+     * no maximum, after taking the value and maximum off the item.
+     */
+    private boolean copyMax(NamespacedKey current, NamespacedKey max) {
+        Integer newMax = from.get(max, PersistentDataType.INTEGER);
+        if (newMax == null) {
+            to.remove(current);
+            to.remove(max);
+            return false;
+        }
+        Integer kept = to.get(current, PersistentDataType.INTEGER);
+        Integer value = kept != null ? kept : from.get(current, PersistentDataType.INTEGER);
+        to.set(max, PersistentDataType.INTEGER, newMax);
+        to.set(current, PersistentDataType.INTEGER, value == null ? newMax : Math.min(value, newMax));
+        return true;
     }
 
     void copyItemModel() {

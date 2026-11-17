@@ -145,7 +145,7 @@ class TransformationLoaderTest {
 
         assertTrue(rules.all().isEmpty());
         assertEquals(List.of("transformations.yml: skipped the transformation of day_blade: its parts must be among "
-                + "name, physical, functional, skill, lore, traits, tags, charges, permission, model, cmd, material, "
+                + "name, physical, functional, skill, lore, traits, tags, charges, hp, permission, model, cmd, material, "
                 + "or tag:<id> with a registered tag."), rules.problems());
     }
 

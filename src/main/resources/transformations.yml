@@ -2,7 +2,7 @@
 # the saved item named by "to" (an id as /si loaditem takes it, such as weapons/sword).
 # The saved item must have a material_id tag of its own, different from the key, as the
 # material_id says which form the item is in. Reloaded by /si reload.
-# Players run /transform (or /tf) holding the item. Charges, durability damage, a bound
+# Players run /transform (or /tf) holding the item. Charges, item HP, durability damage, a bound
 # book and other plugins' tags carry over; everything else comes from the new form.
 #
 # transformations:

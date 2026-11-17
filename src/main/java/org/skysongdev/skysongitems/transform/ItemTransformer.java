@@ -33,6 +33,7 @@ import java.util.function.UnaryOperator;
  *     <li>the stack size;</li>
  *     <li>its charges, capped at the new form's maximum, so cycling forms never refills an
  *     item (when the new form has no charges, none are kept);</li>
+ *     <li>its HP, capped at the new form's maximum in the same way;</li>
  *     <li>its durability damage, when both forms can be damaged;</li>
  *     <li>the book bound to it, with its right-click and DM-only settings;</li>
  *     <li>the tags other plugins registered, unless the new form sets them itself.</li>
@@ -139,7 +140,8 @@ public final class ItemTransformer {
         ItemMeta meta = result.getItemMeta();
         PersistentDataContainerView from = held.getPersistentDataContainer();
         PersistentDataContainer to = meta.getPersistentDataContainer();
-        keepCharges(from, to);
+        keepUpToTheNewMax(from, to, ItemKeys.CHARGES, ItemKeys.MAX_CHARGES);
+        keepUpToTheNewMax(from, to, ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP);
         keepBoundBook(from, to);
         keepOtherPluginsTags(from, to);
         keepDamage(held, result, meta);
@@ -149,11 +151,13 @@ public final class ItemTransformer {
         return result;
     }
 
-    private static void keepCharges(PersistentDataContainerView from, PersistentDataContainer to) {
-        Integer charges = from.get(ItemKeys.CHARGES, PersistentDataType.INTEGER);
-        Integer maxCharges = to.get(ItemKeys.MAX_CHARGES, PersistentDataType.INTEGER);
-        if (charges != null && maxCharges != null) {
-            to.set(ItemKeys.CHARGES, PersistentDataType.INTEGER, Math.min(charges, maxCharges));
+    /** Keeps the held item's charges or HP, capped at the new form's maximum; a form without one gets none. */
+    private static void keepUpToTheNewMax(PersistentDataContainerView from, PersistentDataContainer to,
+                                          NamespacedKey current, NamespacedKey max) {
+        Integer value = from.get(current, PersistentDataType.INTEGER);
+        Integer newMax = to.get(max, PersistentDataType.INTEGER);
+        if (value != null && newMax != null) {
+            to.set(current, PersistentDataType.INTEGER, Math.min(value, newMax));
         }
     }
 
