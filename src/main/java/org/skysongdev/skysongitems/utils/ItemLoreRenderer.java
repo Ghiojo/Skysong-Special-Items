@@ -24,7 +24,8 @@ public final class ItemLoreRenderer {
 
     /**
      * Refreshes the lore and name of the item in place and returns it. The lore
-     * is only rewritten when the item has traits. Returns null for a missing item.
+     * is only rewritten when the item has traits or other plugins' lines, and the
+     * name only when it has traits. Returns null for a missing item.
      */
     public static ItemStack refresh(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
@@ -35,16 +36,35 @@ public final class ItemLoreRenderer {
             return null;
         }
         ItemData data = ItemData.from(meta);
-        List<Component> lore = sectionLines(meta, data.getLoreSections());
+        ExtraLore extras = ExtraLore.read(meta.getPersistentDataContainer());
         if (data.hasTraits()) {
             List<String> traitIds = data.getTraits();
+            List<Component> lore = sectionLines(meta, data.getLoreSections(), extras);
             lore.add(getPlugin().getMiniMessage().deserialize(""));
             addPrintableTraits(lore, item, traitIds);
+            LoreLayout.appendAfterTraits(lore, extras);
             applyRenameTraits(meta, item, traitIds);
             meta.lore(lore);
+        } else if (!extras.isEmpty()) {
+            renderSections(meta, data.getLoreSections());
         }
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Redraws the item's lore from what it stores, even when it has neither traits nor
+     * other plugins' lines, as when the last of those lines was just removed. Items
+     * without stored lore are left alone.
+     */
+    public static void redraw(ItemStack item) {
+        if (ItemData.from(item.getItemMeta()).hasTraits()) {
+            refresh(item);
+        } else if (item.getPersistentDataContainer().has(ItemKeys.LORE, PersistentDataType.STRING)) {
+            ItemMeta meta = item.getItemMeta();
+            renderSections(meta, ItemData.from(meta).getLoreSections());
+            item.setItemMeta(meta);
+        }
     }
 
     /**
@@ -60,16 +80,20 @@ public final class ItemLoreRenderer {
 
     /**
      * Rewrites the lore from these lore sections, leaving out the sections the item
-     * hides, without trait lines. Every place that writes an item's lore goes through
-     * here or {@link #refresh}, so the lore is always laid out the same way.
+     * hides, without trait lines but with other plugins' lines. Every place that writes
+     * an item's lore goes through here or {@link #refresh}, so the lore is always laid
+     * out the same way.
      */
     public static void renderSections(ItemMeta meta, List<String> sections) {
-        meta.lore(sectionLines(meta, sections));
+        ExtraLore extras = ExtraLore.read(meta.getPersistentDataContainer());
+        List<Component> lore = sectionLines(meta, sections, extras);
+        LoreLayout.appendAfterTraits(lore, extras);
+        meta.lore(lore);
     }
 
-    /** The lines these lore sections show on the item, its hidden sections left out. */
-    private static List<Component> sectionLines(ItemMeta meta, List<String> sections) {
-        return TextParser.TranslateToLore(sections, ItemData.from(meta).getDeletedLines());
+    /** The lines these lore sections and the extra lines around them show on the item. */
+    private static List<Component> sectionLines(ItemMeta meta, List<String> sections, ExtraLore extras) {
+        return LoreLayout.sections(sections, ItemData.from(meta).getDeletedLines(), extras);
     }
 
     /** Adds one lore line per printable trait, heaviest first. */

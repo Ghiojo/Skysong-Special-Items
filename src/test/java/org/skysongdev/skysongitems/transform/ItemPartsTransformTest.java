@@ -1,6 +1,7 @@
 package org.skysongdev.skysongitems.transform;
 
 import io.papermc.paper.datacomponent.DataComponentTypes;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -12,11 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.api.ExtraLorePosition;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.CustomModelData;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.utils.ExtraLore;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.Trait;
 import org.skysongdev.skysongitems.utils.SkysongItem;
@@ -178,6 +181,19 @@ class ItemPartsTransformTest extends MockBukkitTest {
         assertEquals(true, read(result, broken, PersistentDataType.BOOLEAN));
         assertEquals(List.of("charges", "cursed"), ItemData.from(result.getItemMeta()).getTraits());
         assertFalse(result.getPersistentDataContainer().has(FICTIS), "tags not kept are still replaced");
+    }
+
+    @Test
+    void otherPluginsLoreLinesAreDropped() {
+        ItemStack held = dayBlade();
+        ItemMeta meta = held.getItemMeta();
+        ExtraLore.write(meta.getPersistentDataContainer(), "skysongnpcs", ExtraLorePosition.afterTraits(),
+                List.of(Component.text("Owner: Alex")));
+        held.setItemMeta(meta);
+
+        ItemStack result = transform(held, "functional");
+
+        assertFalse(result.getPersistentDataContainer().has(ItemKeys.EXTRA_LORE));
     }
 
     @Test

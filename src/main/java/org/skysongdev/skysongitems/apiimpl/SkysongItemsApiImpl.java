@@ -6,6 +6,7 @@ import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemAccess;
+import org.skysongdev.skysongitems.api.ItemLore;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemHp;
 import org.skysongdev.skysongitems.api.ItemProperties;
@@ -29,7 +30,7 @@ import org.skysongdev.skysongitems.utils.TagRegistry;
  */
 public final class SkysongItemsApiImpl implements SkysongItemsApi {
     /** The API version this implementation provides. See {@link SkysongItemsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.16.0";
+    public static final String API_VERSION = "1.17.0";
 
     private final ItemAccess held;
     private final ItemAccess detached;
@@ -74,6 +75,11 @@ public final class SkysongItemsApiImpl implements SkysongItemsApi {
     @Override
     public @NotNull ItemTraits traits() {
         return held.traits();
+    }
+
+    @Override
+    public @NotNull ItemLore lore() {
+        return held.lore();
     }
 
     @Override

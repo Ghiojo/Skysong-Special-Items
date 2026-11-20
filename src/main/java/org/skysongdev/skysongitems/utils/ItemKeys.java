@@ -47,6 +47,9 @@ public final class ItemKeys {
     /** The item's timers: changes made to it once their time comes, see {@code ItemTimerStore}. */
     public static final NamespacedKey TIMERS = named("timers");
 
+    /** The lore lines other plugins add to the item, see {@code ExtraLore}. */
+    public static final NamespacedKey EXTRA_LORE = named("extra_lore");
+
     /** Model key owned by the FurnitureLib plugin, not by this one. */
     public static final NamespacedKey FURNITURE_MODEL = new NamespacedKey("furniturelib", "model");
 
@@ -54,7 +57,7 @@ public final class ItemKeys {
     private static final Set<NamespacedKey> OWN_KEYS = Set.of(MAX_CHARGES, CHARGES, CAN_ADD_CHARGES,
             MAX_ITEM_HP, ITEM_HP, VERSION, LORE,
             NAME, DELETED_LINES, TRAITS, LEGACY_TRAITS, PERMISSION, SHIFT_RIGHT_CLICKABLE, MATERIAL_ID, ON_CONSUMPTION, DYE_COLOR,
-            DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY, TIMERS);
+            DISABLED, BOUND_BOOK, RIGHT_CLICKABLE, DM_ONLY, TIMERS, EXTRA_LORE);
 
     private ItemKeys() {
     }
