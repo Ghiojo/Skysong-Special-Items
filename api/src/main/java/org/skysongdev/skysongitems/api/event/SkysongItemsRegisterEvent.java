@@ -5,6 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongitems.api.OnTransform;
 import org.skysongdev.skysongitems.api.PropertyDefinition;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TraitDefinition;
@@ -39,12 +40,27 @@ public final class SkysongItemsRegisterEvent extends Event {
 
     /**
      * Registers an item tag, the same as one in the {@code tags} section of config.yml.
-     * Its id is the name used by {@code /si tag set} and the API.
+     * Its id is the name used by {@code /si tag set} and the API. The tag is dropped when
+     * its item transforms, unless the new form sets it.
      *
      * @return whether the tag was registered
      */
     public boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type) {
-        return registrar.registerTag(owner, tagId, type);
+        return registerTag(owner, tagId, type, OnTransform.DROP);
+    }
+
+    /**
+     * Registers an item tag, the same as one in the {@code tags} section of config.yml
+     * with {@code keep_on_transform} set as {@code onTransform} says. When config.yml already
+     * defines the tag, its own setting is used.
+     *
+     * @param onTransform whether the tag stays on its item when the item transforms
+     * @return whether the tag was registered
+     * @since 1.16.0
+     */
+    public boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type,
+                               @NotNull OnTransform onTransform) {
+        return registrar.registerTag(owner, tagId, type, onTransform);
     }
 
     /**
@@ -108,7 +124,8 @@ public final class SkysongItemsRegisterEvent extends Event {
     /** What SkysongItems does with each registration. */
     @ApiStatus.Internal
     public interface Registrar {
-        boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type);
+        boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type,
+                            @NotNull OnTransform onTransform);
 
         boolean registerTrait(@NotNull Plugin owner, @NotNull TraitDefinition trait);
 

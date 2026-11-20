@@ -4,6 +4,8 @@ database:
   user: "root"
   password: ""
   database_name: "book_descriptions"
+# A tag or trait with keep_on_transform: true stays on an item, with its value, when the
+# item transforms (see transformations.yml). Without it, the new form brings its own.
 tags:
   arcrot:
     namespace: "arcrot"

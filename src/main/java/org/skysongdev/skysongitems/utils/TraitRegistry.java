@@ -28,6 +28,8 @@ public class TraitRegistry {
     private static final String LEGACY_SECTION = "properties";
     private static final String TRAIT_TYPE_KEY = "traittype";
     private static final String LEGACY_TRAIT_TYPE_KEY = "proptype";
+    /** Shared with the tags section: whether the entry stays on an item when it transforms. */
+    public static final String KEEP_ON_TRANSFORM_KEY = "keep_on_transform";
     /**
      * Traits the plugin needs that were added after servers had their config.yml.
      * When the file lacks one, it is loaded from the bundled config.yml instead.
@@ -187,12 +189,14 @@ public class TraitRegistry {
         ArrayList<String> valueTags = new ArrayList<>(config.getStringList("valuetags"));
         int weight = config.getInt("weight");
 
-        return switch (type.toLowerCase()) {
+        Trait trait = switch (type.toLowerCase()) {
             case "rename" -> new RenameTrait(id, traitType, item, name, description, config.getString("tag"));
             case "printable" -> new PrintableTrait(id, traitType, item, name, description, printable, valueTags, weight);
             case "breweryprintable" -> new BreweryPrintableTrait(id, traitType, item, name, description, printable, valueTags, weight);
             default -> new Trait(id, traitType, item, name, description);
         };
+        trait.setKeptOnTransform(config.getBoolean(KEEP_ON_TRANSFORM_KEY));
+        return trait;
     }
 
     /** Whether a trait with this id is loaded, ignoring case. */

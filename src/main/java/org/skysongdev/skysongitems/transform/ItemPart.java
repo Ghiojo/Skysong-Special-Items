@@ -78,13 +78,14 @@ public record ItemPart(Kind kind, @Nullable String tagId) {
                 copy.copyKey(ItemKeys.DELETED_LINES);
             }
         },
+        /** The new form's traits, plus the item's kept ones. */
         TRAITS("traits") {
             @Override
             void copy(PartCopy copy, ItemPart part) {
                 copy.copyTraits();
             }
         },
-        /** Every tag, whichever plugin registered it, except the ones other parts cover. */
+        /** Every tag, whichever plugin registered it, except the ones other parts cover and the kept ones. */
         TAGS("tags") {
             @Override
             void copy(PartCopy copy, ItemPart part) {

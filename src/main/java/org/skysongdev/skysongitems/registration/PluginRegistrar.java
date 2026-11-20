@@ -4,6 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongitems.api.OnTransform;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TraitDefinition;
 import org.skysongdev.skysongitems.api.event.SkysongItemsRegisterEvent;
@@ -66,9 +67,11 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     }
 
     @Override
-    public boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type) {
+    public boolean registerTag(@NotNull Plugin owner, @NotNull String tagId, @NotNull TagType type,
+                               @NotNull OnTransform onTransform) {
         Objects.requireNonNull(owner, "owner");
         Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(onTransform, "onTransform");
         if (!isValidId(owner, "tag", tagId)) {
             return false;
         }
@@ -83,7 +86,7 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
         if (tags.contains(key)) {
             return acceptConfiguredTag(owner, tagId, key, type);
         }
-        tags.register(key, type, owner.getName());
+        tags.register(key, type, owner.getName(), onTransform == OnTransform.KEEP);
         return true;
     }
 
@@ -132,6 +135,12 @@ final class PluginRegistrar implements SkysongItemsRegisterEvent.Registrar {
     }
 
     private static Trait toTrait(TraitDefinition definition) {
+        Trait trait = newTrait(definition);
+        trait.setKeptOnTransform(definition.onTransform() == OnTransform.KEEP);
+        return trait;
+    }
+
+    private static Trait newTrait(TraitDefinition definition) {
         String icon = definition.icon().name();
         return switch (definition.kind()) {
             case BASE -> new Trait(definition.id(), definition.category(), icon, definition.name(),

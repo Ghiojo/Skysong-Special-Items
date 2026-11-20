@@ -29,6 +29,7 @@ import org.skysongdev.skysongitems.utils.ItemEditor;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.PrintableTrait;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
 import java.util.ArrayList;
@@ -51,6 +52,9 @@ class ItemTransformerTest extends MockBukkitTest {
     private static final NamespacedKey ARCROT = ItemKeys.named("arcrot");
     private static final NamespacedKey FICTIS = ItemKeys.named("fictis");
     private static final NamespacedKey RANDOM_ID = ItemKeys.named("random_id");
+    private static final NamespacedKey BROKEN = ItemKeys.named("broken");
+    private static final NamespacedKey WEAR = ItemKeys.named("wear");
+    private static final NamespacedKey RUST = ItemKeys.named("rust");
 
     private SkysongItems plugin;
     private PlayerMock player;
@@ -64,7 +68,7 @@ class ItemTransformerTest extends MockBukkitTest {
         player = server.addPlayer();
         rules = rulesFor(rule("day_blade", form("Night Blade", "night_blade", Map.of(ARCROT, "3"))),
                 rule("night_blade", form("Day Blade", "day_blade", Map.of(FICTIS, "1"))));
-        transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), synced::add,
+        transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), plugin.getTraitRegistry(), synced::add,
                 plugin.getUpdater()::upgrade);
     }
 
@@ -254,6 +258,51 @@ class ItemTransformerTest extends MockBukkitTest {
         ItemStack night = transformer.transformed(crafted, rules.find("day_blade").orElseThrow());
 
         assertFalse(night.getPersistentDataContainer().has(RANDOM_ID), "a transform is full, whoever owns the tag");
+    }
+
+    @Test
+    void keptTagsStayWithTheHeldItemsValueEvenWhenTheNewFormSetsThem() {
+        plugin.getTagRegistry().register(BROKEN, TagType.BOOL, "SkysongNPCs", true);
+        plugin.getTagRegistry().register(WEAR, TagType.INT, "SkysongNPCs", true);
+        rules = rulesFor(rule("day_blade", form("Night Blade", "night_blade", Map.of(WEAR, "0"))));
+        ItemStack worn = edited(dayBlade(), meta -> {
+            meta.getPersistentDataContainer().set(BROKEN, PersistentDataType.BOOLEAN, true);
+            meta.getPersistentDataContainer().set(WEAR, PersistentDataType.INTEGER, 5);
+        });
+
+        ItemStack night = transformer.transformed(worn, rules.find("day_blade").orElseThrow());
+
+        assertEquals(true, read(night, BROKEN, PersistentDataType.BOOLEAN));
+        assertEquals(5, read(night, WEAR, PersistentDataType.INTEGER));
+    }
+
+    @Test
+    void aKeptTraitStaysWithTheTagsItPrints() {
+        plugin.getTagRegistry().register(RUST, TagType.INT, "SkysongNPCs");
+        PrintableTrait rusty = new PrintableTrait("rusty", "Other", "PAPER", "Rusty", "", "Rust $1",
+                new ArrayList<>(List.of("rust")), 0);
+        rusty.setKeptOnTransform(true);
+        plugin.getTraitRegistry().register(rusty, "SkysongNPCs");
+        ItemStack rusted = edited(dayBlade(), meta -> {
+            ItemData.from(meta).setTraits(List.of("rusty"));
+            meta.getPersistentDataContainer().set(RUST, PersistentDataType.INTEGER, 2);
+        });
+
+        ItemStack night = transformer.transformed(rusted, rules.find("day_blade").orElseThrow());
+
+        assertEquals(List.of("rusty"), ItemData.from(night.getItemMeta()).getTraits());
+        assertEquals(2, read(night, RUST, PersistentDataType.INTEGER));
+    }
+
+    @Test
+    void aRulesKeepListKeepsTagsNotMarkedToBeKept() {
+        SkysongItem night = form("Night Blade", "night_blade", Map.of());
+        Transformation keepsFictis = new Transformation("day_blade", "weapons/night_blade", night, "night_blade",
+                null, null, new TransformScope(List.of(), List.of("Fictis")));
+
+        ItemStack result = transformer.transformed(dayBlade(), keepsFictis);
+
+        assertEquals(1, read(result, FICTIS, PersistentDataType.INTEGER));
     }
 
     @Test

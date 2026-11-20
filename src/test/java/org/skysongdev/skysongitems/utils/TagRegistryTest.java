@@ -71,6 +71,19 @@ class TagRegistryTest extends MockBukkitTest {
     }
 
     @Test
+    void aConfiguredTagCanBeMarkedToStayOnTransform() {
+        configureOnlyTag("broken", "bool");
+        plugin.getConfig().set("tags.broken.keep_on_transform", true);
+        plugin.getConfig().set("tags.worn.namespace", "worn");
+        plugin.getConfig().set("tags.worn.type", "int");
+
+        reloadTags();
+
+        assertTrue(plugin.getTagRegistry().isKeptOnTransform(tag("broken")));
+        assertFalse(plugin.getTagRegistry().isKeptOnTransform(tag("worn")), "tags are dropped unless marked");
+    }
+
+    @Test
     void builtInTagsAreRegisteredWithTheirTypes() {
         assertEquals(PersistentDataType.INTEGER, typeOf(ItemKeys.CHARGES));
         assertEquals(PersistentDataType.INTEGER, typeOf(ItemKeys.MAX_CHARGES));

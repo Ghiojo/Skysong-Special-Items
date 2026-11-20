@@ -19,6 +19,7 @@ import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
 import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TagRegistry;
+import org.skysongdev.skysongitems.utils.TraitRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +41,12 @@ import java.util.function.UnaryOperator;
  *     item (when the new form has no charges, none are kept);</li>
  *     <li>its HP, capped at the new form's maximum in the same way;</li>
  *     <li>its durability damage, when both forms can be damaged;</li>
- *     <li>the book bound to it, with its right-click and DM-only settings.</li>
+ *     <li>the book bound to it, with its right-click and DM-only settings;</li>
+ *     <li>the tags and traits marked {@code keep_on_transform}, or named in the rule's
+ *     {@code keep} list, with the held item's values, see {@link KeptOnTransform}.</li>
  * </ul>
- * Everything else comes from the new form, so every tag and trait the new form lacks is
- * dropped, whichever plugin registered it.
+ * Everything else comes from the new form, so every other tag and trait the new form
+ * lacks is dropped, whichever plugin registered it.
  */
 public final class ItemTransformer {
     /** The id of the timer action that transforms an item, the timers that carry over to its new form. */
@@ -51,19 +54,22 @@ public final class ItemTransformer {
 
     private final Supplier<TransformationRules> rules;
     private final TagRegistry tags;
+    private final TraitRegistry traits;
     private final Consumer<Player> permissionItemSync;
     private final UnaryOperator<ItemStack> upgrader;
 
     /**
      * @param rules              looked up on each use, since /si reload replaces them
-     * @param tags               the tag types, for the parts a rule copies
+     * @param tags               the tag types, and which tags are kept on transform
+     * @param traits             which traits are kept on transform
      * @param permissionItemSync grants and revokes the player's permission-item permissions after the change
      * @param upgrader           brings an item up to the current item version, as {@code /si update} does
      */
-    public ItemTransformer(Supplier<TransformationRules> rules, TagRegistry tags, Consumer<Player> permissionItemSync,
-                           UnaryOperator<ItemStack> upgrader) {
+    public ItemTransformer(Supplier<TransformationRules> rules, TagRegistry tags, TraitRegistry traits,
+                           Consumer<Player> permissionItemSync, UnaryOperator<ItemStack> upgrader) {
         this.rules = rules;
         this.tags = tags;
+        this.traits = traits;
         this.permissionItemSync = permissionItemSync;
         this.upgrader = upgrader;
     }
@@ -156,7 +162,7 @@ public final class ItemTransformer {
             result = PartCopy.withMaterial(result, target.getType());
         }
         ItemMeta meta = result.getItemMeta();
-        PartCopy copy = new PartCopy(meta, target, tags);
+        PartCopy copy = new PartCopy(meta, target, tags, keptFrom(result.getPersistentDataContainer(), rule));
         rule.parts().forEach(part -> part.copy(copy));
         meta.getPersistentDataContainer().set(ItemKeys.MATERIAL_ID, PersistentDataType.STRING, rule.targetMaterialId());
         if (!ItemData.from(meta).hasTraits()) {
@@ -184,6 +190,7 @@ public final class ItemTransformer {
         keepUpToTheNewMax(from, to, ItemKeys.CHARGES, ItemKeys.MAX_CHARGES);
         keepUpToTheNewMax(from, to, ItemKeys.ITEM_HP, ItemKeys.MAX_ITEM_HP);
         keepBoundBook(from, to);
+        keepMarkedTagsAndTraits(from, to, keptFrom(from, rule));
         keepDamage(held, result, meta);
         result.setItemMeta(meta);
         // Redraws the trait lines, such as the charges line, with the kept values.
@@ -198,6 +205,30 @@ public final class ItemTransformer {
         Integer newMax = to.get(max, PersistentDataType.INTEGER);
         if (value != null && newMax != null) {
             to.set(current, PersistentDataType.INTEGER, Math.min(value, newMax));
+        }
+    }
+
+    private KeptOnTransform keptFrom(PersistentDataContainerView held, Transformation rule) {
+        return new KeptOnTransform(tags, traits, ItemData.parseTraits(ItemData.readTraitsText(held)), rule.keep());
+    }
+
+    /** Puts the kept tags back with the held item's values, and adds the kept traits the new form lacks. */
+    private void keepMarkedTagsAndTraits(PersistentDataContainerView from, PersistentDataContainer to,
+                                         KeptOnTransform kept) {
+        for (NamespacedKey key : from.getKeys()) {
+            if (kept.keepsTag(key)) {
+                copy(from, to, key, tags.getType(key));
+            }
+        }
+        ItemData data = new ItemData(to);
+        kept.traits().stream().filter(traitId -> !data.hasTrait(traitId)).forEach(data::addTrait);
+    }
+
+    private static <P, C> void copy(PersistentDataContainerView from, PersistentDataContainer to,
+                                    NamespacedKey key, PersistentDataType<P, C> type) {
+        C value = from.get(key, type);
+        if (value != null) {
+            to.set(key, type, value);
         }
     }
 

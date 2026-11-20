@@ -6,6 +6,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -105,6 +106,14 @@ public interface ItemTraits {
 
     /** Whether SkysongItems has a trait with this id, ignoring case. */
     boolean exists(String traitId);
+
+    /**
+     * Whether the trait with this id stays on an item when it transforms, as config.yml or
+     * the registering plugin set it. Empty when there is no such trait.
+     *
+     * @since 1.16.0
+     */
+    Optional<OnTransform> onTransform(String traitId);
 
     /** Every trait id, as written in config.yml. Immutable. */
     Set<String> ids();

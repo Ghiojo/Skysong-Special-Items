@@ -18,6 +18,7 @@ import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.CustomModelData;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.Trait;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ class ItemPartsTransformTest extends MockBukkitTest {
     @BeforeEach
     void setUp() {
         plugin = MockBukkit.load(SkysongItems.class);
-        transformer = new ItemTransformer(TransformationRules::empty, plugin.getTagRegistry(), ignored -> { },
+        transformer = new ItemTransformer(TransformationRules::empty, plugin.getTagRegistry(), plugin.getTraitRegistry(), ignored -> { },
                 plugin.getUpdater()::upgrade);
     }
 
@@ -157,6 +158,26 @@ class ItemPartsTransformTest extends MockBukkitTest {
         assertEquals(6, read(result, ItemKeys.CHARGES, PersistentDataType.INTEGER), "charges are their own part");
         assertEquals(7, read(result, ItemKeys.ITEM_HP, PersistentDataType.INTEGER), "and HP too");
         assertNull(read(result, ItemKeys.PERMISSION, PersistentDataType.STRING), "so is the permission");
+    }
+
+    @Test
+    void keptTagsAndTraitsSurviveTheTagsAndTraitsParts() {
+        NamespacedKey broken = ItemKeys.named("broken");
+        plugin.getTagRegistry().register(broken, TagType.BOOL, "SkysongNPCs", true);
+        Trait cursed = new Trait("cursed", "Other", "PAPER", "Cursed", "");
+        cursed.setKeptOnTransform(true);
+        plugin.getTraitRegistry().register(cursed, "SkysongNPCs");
+        ItemStack held = dayBlade();
+        ItemMeta meta = held.getItemMeta();
+        meta.getPersistentDataContainer().set(broken, PersistentDataType.BOOLEAN, true);
+        ItemData.from(meta).setTraits(List.of("cursed"));
+        held.setItemMeta(meta);
+
+        ItemStack result = transform(held, "tags", "traits");
+
+        assertEquals(true, read(result, broken, PersistentDataType.BOOLEAN));
+        assertEquals(List.of("charges", "cursed"), ItemData.from(result.getItemMeta()).getTraits());
+        assertFalse(result.getPersistentDataContainer().has(FICTIS), "tags not kept are still replaced");
     }
 
     @Test

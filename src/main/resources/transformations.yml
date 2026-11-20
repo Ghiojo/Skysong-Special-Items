@@ -2,14 +2,16 @@
 # the saved item named by "to" (an id as /si loaditem takes it, such as weapons/sword).
 # The saved item must have a material_id tag of its own, different from the key, as the
 # material_id says which form the item is in. Reloaded by /si reload.
-# Players run /transform (or /tf) holding the item. Charges, item HP, durability damage and a
-# bound book carry over; everything else, including every tag and trait, comes from the new form.
+# Players run /transform (or /tf) holding the item. Charges, item HP, durability damage, a
+# bound book and the tags and traits marked keep_on_transform in config.yml (or by their plugin)
+# carry over; everything else, including every other tag and trait, comes from the new form.
 #
 # transformations:
 #   moon_blade_day:
 #     to: weapons/moon_blade_night
 #     permission: skysong.transform.moon_blade   # optional: needed to use this rule
 #     message: "<gray>The blade darkens."        # optional: replaces the default line
+#     keep: [broken]                             # optional: tags and traits this transform also keeps
 #   moon_blade_night:
 #     to: weapons/moon_blade_day
 transformations: {}

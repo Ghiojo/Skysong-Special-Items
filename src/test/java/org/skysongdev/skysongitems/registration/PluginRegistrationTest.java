@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongitems.SkysongItems;
+import org.skysongdev.skysongitems.api.OnTransform;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.TraitDefinition;
@@ -29,6 +30,7 @@ import org.skysongdev.skysongitems.utils.RenameTrait;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -104,6 +106,20 @@ class PluginRegistrationTest extends MockBukkitTest {
         assertTrue(SkysongItemsApi.get().isTag("mana"));
         assertEquals(TagType.INT, SkysongItemsApi.get().getTagType("mana").orElseThrow());
         assertTrue(SkysongItemsApi.get().traits().exists("bearer"));
+    }
+
+    @Test
+    void tagsAndTraitsCanBeMarkedToStayOnTransform() {
+        onRegister(stats, event -> results.add(event.registerTag(stats, "broken", TagType.BOOL, OnTransform.KEEP)));
+        registerTag(stats, "mana", TagType.INT);
+        registerTrait(stats, TraitDefinition.base("cursed").onTransform(OnTransform.KEEP));
+
+        fireServerLoad();
+
+        assertEquals(Optional.of(OnTransform.KEEP), SkysongItemsApi.get().tags().onTransform("Broken"));
+        assertEquals(Optional.of(OnTransform.DROP), SkysongItemsApi.get().tags().onTransform("mana"));
+        assertEquals(Optional.empty(), SkysongItemsApi.get().tags().onTransform("unknown"));
+        assertEquals(Optional.of(OnTransform.KEEP), SkysongItemsApi.get().traits().onTransform("cursed"));
     }
 
     @Test
