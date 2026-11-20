@@ -9,6 +9,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TextParser;
 
 import java.util.List;
@@ -77,7 +78,7 @@ public class Updater {
         }
 
 
-        buffer.lore(TextParser.TranslateToLore(parsedLore, data.getDeletedLines()));
+        ItemLoreRenderer.renderSections(buffer, parsedLore);
 
 
         if(bufferDataContainer.has(ItemKeys.CHARGES)){

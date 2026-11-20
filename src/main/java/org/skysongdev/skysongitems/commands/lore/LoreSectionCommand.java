@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.events.ItemEditEvent;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemData;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.TextParser;
 
 import java.util.Arrays;
@@ -113,7 +114,7 @@ public class LoreSectionCommand implements CommandExecutor {
         ItemMeta meta = item.getItemMeta();
         ItemData data = ItemData.from(meta);
         data.toggleSectionDeleted(section.getIndex());
-        meta.lore(TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines()));
+        ItemLoreRenderer.renderSections(meta, data.getLoreSections());
         item.setItemMeta(meta);
     }
 
@@ -153,7 +154,7 @@ public class LoreSectionCommand implements CommandExecutor {
         ItemData data = ItemData.from(meta);
         List<String> sections = edit.apply(data.getLoreSections());
         data.setLoreSections(sections);
-        meta.lore(TextParser.TranslateToLore(sections, data.getDeletedLines()));
+        ItemLoreRenderer.renderSections(meta, sections);
         item.setItemMeta(meta);
     }
 }
