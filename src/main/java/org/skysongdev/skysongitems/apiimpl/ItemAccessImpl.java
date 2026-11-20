@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.ItemAccess;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemHp;
+import org.skysongdev.skysongitems.api.ItemLore;
 import org.skysongdev.skysongitems.api.ItemProperties;
 import org.skysongdev.skysongitems.api.ItemTraits;
 import org.skysongdev.skysongitems.api.ItemTags;
@@ -26,6 +27,7 @@ final class ItemAccessImpl implements ItemAccess {
     private final ItemCharges charges;
     private final ItemHp itemHp;
     private final ItemTimers timers;
+    private final ItemLore lore;
     // ItemProperties extends ItemTraits, so the one object serves traits() and the deprecated properties().
     @SuppressWarnings("removal")
     private final ItemProperties traits;
@@ -60,6 +62,12 @@ final class ItemAccessImpl implements ItemAccess {
         this.timers = new ItemTimersImpl(check, writers.editor(), writers.actions(), timed);
         this.tags = new ItemTagsImpl(writers.tagRegistry(), charges, writers.editor(), check, timed);
         this.traits = new ItemTraitsImpl(writers.traitRegistry(), writers.editor(), check, timed);
+        this.lore = new ItemLoreImpl(check);
+    }
+
+    @Override
+    public @NotNull ItemLore lore() {
+        return lore;
     }
 
     @Override

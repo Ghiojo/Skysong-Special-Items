@@ -162,6 +162,8 @@ public final class ItemTransformer {
             result = PartCopy.withMaterial(result, target.getType());
         }
         ItemMeta meta = result.getItemMeta();
+        // Other plugins' lore lines belong to the old form; they set them again if needed.
+        meta.getPersistentDataContainer().remove(ItemKeys.EXTRA_LORE);
         PartCopy copy = new PartCopy(meta, target, tags, keptFrom(result.getPersistentDataContainer(), rule));
         rule.parts().forEach(part -> part.copy(copy));
         meta.getPersistentDataContainer().set(ItemKeys.MATERIAL_ID, PersistentDataType.STRING, rule.targetMaterialId());

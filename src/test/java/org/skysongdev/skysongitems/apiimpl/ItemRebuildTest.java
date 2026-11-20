@@ -1,5 +1,6 @@
 package org.skysongdev.skysongitems.apiimpl;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -8,12 +9,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongitems.api.ItemTemplate;
 import org.skysongdev.skysongitems.api.ItemTemplates;
+import org.skysongdev.skysongitems.api.ExtraLorePosition;
 import org.skysongdev.skysongitems.api.SkysongItemsApi;
 import org.skysongdev.skysongitems.testsupport.MockBukkitTest;
 import org.skysongdev.skysongitems.testsupport.TaggedItems;
@@ -23,6 +26,7 @@ import org.skysongdev.skysongitems.utils.ItemKeys;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -93,6 +97,18 @@ class ItemRebuildTest extends MockBukkitTest {
         assertTrue(plainLore(rebuilt).contains("[Charges: 5/10]"),
                 "the printable property lines are missing from " + plainLore(rebuilt));
         assertTrue(plainLore(rebuilt).contains("physical"));
+    }
+
+    @Test
+    void otherPluginsLoreLinesAreKeptByARebuildButNotByASnapshot() {
+        ItemStack item = storedItem();
+        Plugin npcs = MockBukkit.createMockPlugin("SkysongNPCs");
+        SkysongItemsApi.get().lore().setExtra(npcs, item, ExtraLorePosition.afterTraits(), List.of(Component.text("Owner: Alex")));
+
+        ItemStack rebuilt = templates.rebuild(item);
+
+        assertEquals("Owner: Alex", plainLore(rebuilt).getLast());
+        assertFalse(templates.snapshot(item).create().getPersistentDataContainer().has(ItemKeys.EXTRA_LORE));
     }
 
     @Test

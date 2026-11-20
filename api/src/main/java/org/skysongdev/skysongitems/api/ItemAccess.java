@@ -37,6 +37,13 @@ public interface ItemAccess {
      */
     @NotNull ItemTimers timers();
 
+    /**
+     * Reads and writes the lore lines other plugins add to items.
+     *
+     * @since 1.17.0
+     */
+    @NotNull ItemLore lore();
+
     /** Reads and writes the traits stored on items, and tells which traits exist. */
     @NotNull ItemTraits traits();
 

@@ -3,6 +3,8 @@ package org.skysongdev.skysongitems.apiimpl;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongitems.api.ItemTemplate;
@@ -11,6 +13,7 @@ import org.skysongdev.skysongitems.commands.lore.Updater;
 import org.skysongdev.skysongitems.utils.Constants;
 import org.skysongdev.skysongitems.utils.ItemFactory;
 import org.skysongdev.skysongitems.utils.ItemKeys;
+import org.skysongdev.skysongitems.utils.ItemLoreRenderer;
 import org.skysongdev.skysongitems.utils.ItemTemplateRepository;
 import org.skysongdev.skysongitems.utils.SkysongItem;
 
@@ -83,6 +86,21 @@ final class ItemTemplatesImpl implements ItemTemplates {
         requireStored(item, ItemKeys.NAME, "name");
         requireStored(item, ItemKeys.LORE, "physical description");
         return new SkysongItemTemplate(new SkysongItem(item));
+    }
+
+    /** The snapshot's new item, given back the lore lines other plugins put on the item. */
+    @Override
+    public @NotNull ItemStack rebuild(ItemStack item) {
+        ItemStack rebuilt = snapshot(item).create();
+        PersistentDataContainer extras = item.getPersistentDataContainer()
+                .get(ItemKeys.EXTRA_LORE, PersistentDataType.TAG_CONTAINER);
+        if (extras == null) {
+            return rebuilt;
+        }
+        ItemMeta meta = rebuilt.getItemMeta();
+        meta.getPersistentDataContainer().set(ItemKeys.EXTRA_LORE, PersistentDataType.TAG_CONTAINER, extras);
+        rebuilt.setItemMeta(meta);
+        return ItemLoreRenderer.refresh(rebuilt);
     }
 
     private static void requireStored(ItemStack item, NamespacedKey key, String what) {

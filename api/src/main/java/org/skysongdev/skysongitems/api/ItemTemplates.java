@@ -59,8 +59,10 @@ public interface ItemTemplates {
      * name and physical description, deleted lines, traits text, item model, registered
      * tags with their values, and custom model data. Everything else the item carried is
      * left behind, such as enchantments, durability and tags that are no longer registered.
+     * Other plugins' lore lines ({@link ItemLore}) are kept, unlike in {@link #snapshot}.
      *
-     * <p>The item itself is not changed. Same as {@code snapshot(item).create()}.
+     * <p>The item itself is not changed. Same as {@code snapshot(item).create()}, plus the
+     * lore lines.
      *
      * @param item a SkysongItems item with a stored name and physical description
      * @return a new item, rebuilt from the stored data
