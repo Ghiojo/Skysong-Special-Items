@@ -142,7 +142,7 @@ class ItemPartsTransformTest extends MockBukkitTest {
     }
 
     @Test
-    void tagsReplaceTheItemsTagsButKeepOtherPluginsOnes() {
+    void tagsReplaceEveryTagIncludingOtherPluginsOnes() {
         plugin.getTagRegistry().register(RANDOM_ID, TagType.STRING, "SkysongCrafting");
         ItemStack held = dayBlade();
         ItemMeta meta = held.getItemMeta();
@@ -153,7 +153,7 @@ class ItemPartsTransformTest extends MockBukkitTest {
 
         assertEquals(3, read(result, ARCROT, PersistentDataType.INTEGER));
         assertFalse(result.getPersistentDataContainer().has(FICTIS));
-        assertEquals("a1b2", read(result, RANDOM_ID, PersistentDataType.STRING));
+        assertFalse(result.getPersistentDataContainer().has(RANDOM_ID), "other plugins' tags are replaced too");
         assertEquals(6, read(result, ItemKeys.CHARGES, PersistentDataType.INTEGER), "charges are their own part");
         assertEquals(7, read(result, ItemKeys.ITEM_HP, PersistentDataType.INTEGER), "and HP too");
         assertNull(read(result, ItemKeys.PERMISSION, PersistentDataType.STRING), "so is the permission");
