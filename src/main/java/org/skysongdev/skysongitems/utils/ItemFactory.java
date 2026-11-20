@@ -119,12 +119,11 @@ public final class ItemFactory {
 
         ItemData data = ItemData.from(meta);
         data.setLoreSections(template.getLore());
-        meta.lore(TextParser.TranslateToLore(template.getLore(), template.getDeleted()));
-
         String deleted = template.getDeleted();
         if (deleted != null && !deleted.isEmpty()) {
             data.setDeletedLines(deleted);
         }
+        ItemLoreRenderer.renderSections(meta, template.getLore());
 
         NamespacedKey itemModel = template.getItemModel();
         if (itemModel != null) {

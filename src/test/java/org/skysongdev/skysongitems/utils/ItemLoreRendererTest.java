@@ -66,6 +66,18 @@ class ItemLoreRendererTest extends MockBukkitTest {
     }
 
     @Test
+    void renderSectionsDrawsTheGivenSectionsLeavingOutTheHiddenOnes() {
+        ItemStack item = itemWithTraits("charges");
+        ItemMeta meta = item.getItemMeta();
+        ItemData.from(meta).setDeletedLines("010");
+
+        ItemLoreRenderer.renderSections(meta, List.of("new physical", "functional", "new skill"));
+        item.setItemMeta(meta);
+
+        assertEquals(List.of("new physical", "", "new skill"), plainLore(item), "no trait lines either");
+    }
+
+    @Test
     void missingItemReturnsNull() {
         assertNull(ItemLoreRenderer.refresh(null));
         assertNull(ItemLoreRenderer.refresh(new ItemStack(Material.AIR)));

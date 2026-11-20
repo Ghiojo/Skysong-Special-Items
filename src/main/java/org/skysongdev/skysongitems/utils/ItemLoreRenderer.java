@@ -35,7 +35,7 @@ public final class ItemLoreRenderer {
             return null;
         }
         ItemData data = ItemData.from(meta);
-        List<Component> lore = TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines());
+        List<Component> lore = sectionLines(meta, data.getLoreSections());
         if (data.hasTraits()) {
             List<String> traitIds = data.getTraits();
             lore.add(getPlugin().getMiniMessage().deserialize(""));
@@ -54,9 +54,22 @@ public final class ItemLoreRenderer {
      * its last trait.
      */
     public static void renderWithoutTraits(ItemMeta meta) {
-        ItemData data = ItemData.from(meta);
-        meta.lore(TextParser.TranslateToLore(data.getLoreSections(), data.getDeletedLines()));
+        renderSections(meta, ItemData.from(meta).getLoreSections());
         applyStoredName(meta);
+    }
+
+    /**
+     * Rewrites the lore from these lore sections, leaving out the sections the item
+     * hides, without trait lines. Every place that writes an item's lore goes through
+     * here or {@link #refresh}, so the lore is always laid out the same way.
+     */
+    public static void renderSections(ItemMeta meta, List<String> sections) {
+        meta.lore(sectionLines(meta, sections));
+    }
+
+    /** The lines these lore sections show on the item, its hidden sections left out. */
+    private static List<Component> sectionLines(ItemMeta meta, List<String> sections) {
+        return TextParser.TranslateToLore(sections, ItemData.from(meta).getDeletedLines());
     }
 
     /** Adds one lore line per printable trait, heaviest first. */
