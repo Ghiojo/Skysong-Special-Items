@@ -9,6 +9,7 @@ import org.skysongdev.skysongitems.commands.books.BookCommand;
 import org.skysongdev.skysongitems.commands.charges.ChargesCommand;
 import org.skysongdev.skysongitems.commands.hp.ItemHpCommand;
 import org.skysongdev.skysongitems.commands.custommodeldata.CustomModelDataCommand;
+import org.skysongdev.skysongitems.commands.lore.ExtraLoreCommand;
 import org.skysongdev.skysongitems.commands.lore.RenameCommand;
 import org.skysongdev.skysongitems.commands.misc.*;
 import org.skysongdev.skysongitems.commands.traits.DetailsCommand;
@@ -56,6 +57,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
         FurnitureIdCommand furnitureIdCommand = new FurnitureIdCommand();
         TransformationsCommand transformationsCommand = new TransformationsCommand();
         TimerCommand timerCommand = new TimerCommand();
+        ExtraLoreCommand extraLoreCommand = new ExtraLoreCommand();
 
         registerItemEdit(Subcommand.builder("disable", new DisableFunc()).alias("dis").playerOnly());
         // Each book subcommand checks its own permission; anyone may view a bound description.
@@ -80,6 +82,7 @@ public class SkysongItemsCommand extends SubcommandRouter {
                 .tabCompleter(furnitureIdCommand).playerOnly());
         registerItemEdit(Subcommand.builder("transform", transformationsCommand).tabCompleter(transformationsCommand));
         registerItemEdit(Subcommand.builder("timer", timerCommand).tabCompleter(timerCommand).playerOnly());
+        registerItemEdit(Subcommand.builder("extralore", extraLoreCommand).tabCompleter(extraLoreCommand).playerOnly());
     }
 
     /** Applies the held item's due timers first, so every subcommand sees the item as it is now. */
