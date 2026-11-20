@@ -35,17 +35,20 @@ final class PartCopy {
     private final PersistentDataContainer to;
     private final PersistentDataContainerView from;
     private final TagRegistry tags;
+    private final KeptOnTransform kept;
 
     /**
      * @param meta   the meta of the item being transformed, which the copies change
      * @param target the new form, built from its saved item
+     * @param kept   the item's tags and traits the {@code tags} and {@code traits} parts leave alone
      */
-    PartCopy(ItemMeta meta, ItemStack target, TagRegistry tags) {
+    PartCopy(ItemMeta meta, ItemStack target, TagRegistry tags, KeptOnTransform kept) {
         this.meta = meta;
         this.targetMeta = target.getItemMeta();
         this.to = meta.getPersistentDataContainer();
         this.from = target.getPersistentDataContainer();
         this.tags = tags;
+        this.kept = kept;
     }
 
     /** The item turned into the given material, keeping everything it stores. */
@@ -93,25 +96,30 @@ final class PartCopy {
         return sections;
     }
 
+    /** Takes the new form's traits, plus the item's kept traits the new form lacks. */
     void copyTraits() {
-        String traits = ItemData.readTraitsText(from);
+        List<String> traits = ItemData.parseTraits(ItemData.readTraitsText(from));
+        kept.traits().stream().filter(traitId -> !traits.contains(traitId)).forEach(traits::add);
         ItemData data = new ItemData(to);
-        if (traits == null || traits.isEmpty()) {
+        if (traits.isEmpty()) {
             data.clearTraits();
         } else {
-            data.setTraitsText(traits);
+            data.setTraits(traits);
         }
     }
 
-    /** Drops every tag the item has, whichever plugin registered it, then copies the new form's tags. */
+    /**
+     * Drops every tag the item has, whichever plugin registered it, then copies the new
+     * form's tags. Kept tags stay, with the item's value even when the new form sets them.
+     */
     void copyTags() {
         for (NamespacedKey key : List.copyOf(to.getKeys())) {
-            if (isPlainTag(key)) {
+            if (isPlainTag(key) && !kept.keepsTag(key)) {
                 to.remove(key);
             }
         }
         for (NamespacedKey key : from.getKeys()) {
-            if (isPlainTag(key)) {
+            if (isPlainTag(key) && !(kept.keepsTag(key) && to.has(key))) {
                 copy(key, tags.getType(key));
             }
         }

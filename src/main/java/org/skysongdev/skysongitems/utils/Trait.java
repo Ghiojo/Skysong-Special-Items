@@ -8,6 +8,7 @@ public class Trait {
     private ItemStack item;
     private String name;
     private String description;
+    private boolean keptOnTransform;
 
     public Trait(String id, String type, String item, String name, String description) {
         this.id = id;
@@ -39,5 +40,14 @@ public class Trait {
 
     public String getType(){
         return "base";
+    }
+
+    /** Whether the trait stays on an item when the item transforms into another form. */
+    public boolean isKeptOnTransform() {
+        return keptOnTransform;
+    }
+
+    public void setKeptOnTransform(boolean keptOnTransform) {
+        this.keptOnTransform = keptOnTransform;
     }
 }

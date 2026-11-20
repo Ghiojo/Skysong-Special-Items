@@ -3,6 +3,7 @@ package org.skysongdev.skysongitems.apiimpl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.skysongdev.skysongitems.api.ItemProperties;
+import org.skysongdev.skysongitems.api.OnTransform;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.utils.ItemData;
 import org.skysongdev.skysongitems.timer.Timing;
@@ -14,6 +15,7 @@ import org.skysongdev.skysongitems.utils.TraitRegistry;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -95,6 +97,15 @@ final class ItemTraitsImpl implements ItemProperties {
     @Override
     public boolean exists(String traitId) {
         return registry.contains(traitId);
+    }
+
+    @Override
+    public Optional<OnTransform> onTransform(String traitId) {
+        Trait trait = registry.get(traitId);
+        if (trait == null) {
+            return Optional.empty();
+        }
+        return Optional.of(trait.isKeptOnTransform() ? OnTransform.KEEP : OnTransform.DROP);
     }
 
     @Override

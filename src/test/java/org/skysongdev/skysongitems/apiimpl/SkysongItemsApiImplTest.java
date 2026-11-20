@@ -70,7 +70,8 @@ class SkysongItemsApiImplTest extends MockBukkitTest {
         TagRegistry tags = new TagRegistry();
         TraitRegistry traits = new TraitRegistry();
         Updater updater = new Updater();
-        ItemTransformer transformer = new ItemTransformer(TransformationRules::empty, tags, ignored -> { }, updater::upgrade);
+        ItemTransformer transformer = new ItemTransformer(TransformationRules::empty, tags, traits, ignored -> { },
+                updater::upgrade);
         return new SkysongItemsApiImpl(tags, traits, new ItemEditor(tags, traits), updater, transformer,
                 new TimerClocks(new RealTimeClock(Clock.systemUTC())), new TimerActions());
     }

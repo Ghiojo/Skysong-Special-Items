@@ -6,6 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.skysongdev.skysongitems.api.ItemCharges;
 import org.skysongdev.skysongitems.api.ItemTags;
+import org.skysongdev.skysongitems.api.OnTransform;
 import org.skysongdev.skysongitems.api.TagType;
 import org.skysongdev.skysongitems.api.event.ItemChangeCause;
 import org.skysongdev.skysongitems.timer.ItemTimerScheduler;
@@ -191,6 +192,15 @@ final class ItemTagsImpl implements ItemTags {
     public Optional<TagType> type(String tagId) {
         RegisteredTag tag = registry.find(tagId);
         return tag == null ? Optional.empty() : Optional.ofNullable(TagTypes.of(tag.type()));
+    }
+
+    @Override
+    public Optional<OnTransform> onTransform(String tagId) {
+        RegisteredTag tag = registry.find(tagId);
+        if (tag == null) {
+            return Optional.empty();
+        }
+        return Optional.of(registry.isKeptOnTransform(tag.key()) ? OnTransform.KEEP : OnTransform.DROP);
     }
 
     @Override

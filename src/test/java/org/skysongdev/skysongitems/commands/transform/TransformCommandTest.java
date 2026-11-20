@@ -50,7 +50,7 @@ class TransformCommandTest extends MockBukkitTest {
     }
 
     private void run() {
-        ItemTransformer transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), ignored -> { },
+        ItemTransformer transformer = new ItemTransformer(() -> rules, plugin.getTagRegistry(), plugin.getTraitRegistry(), ignored -> { },
                 plugin.getUpdater()::upgrade);
         new TransformCommand(transformer, () -> rules).onCommand(player, command, "transform", new String[0]);
     }

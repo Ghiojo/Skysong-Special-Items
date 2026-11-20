@@ -160,6 +160,15 @@ public interface ItemTags {
     /** The type of the tag with this id, empty when there is no such tag. */
     Optional<TagType> type(String tagId);
 
+    /**
+     * Whether the tag with this id stays on an item when it transforms, as config.yml or the
+     * registering plugin set it. Empty when there is no such tag. SkysongItems' own tags,
+     * such as charges, follow their own rules and report {@link OnTransform#DROP}.
+     *
+     * @since 1.16.0
+     */
+    Optional<OnTransform> onTransform(String tagId);
+
     /** Every tag id, lowercased. Immutable. */
     Set<String> ids();
 }

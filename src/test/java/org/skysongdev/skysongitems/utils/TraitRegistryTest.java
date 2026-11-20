@@ -104,6 +104,17 @@ class TraitRegistryTest extends MockBukkitTest {
     }
 
     @Test
+    void aConfiguredTraitCanBeMarkedToStayOnTransform() {
+        configureOnlyTrait("cursed", "base", "Magic");
+        plugin.getConfig().set("traits.cursed.keep_on_transform", true);
+
+        reloadTraits();
+
+        assertTrue(trait("cursed").isKeptOnTransform());
+        assertFalse(trait(ItemEditor.ITEM_HP_TRAIT).isKeptOnTransform(), "traits are dropped unless marked");
+    }
+
+    @Test
     void printableTypeLoadsItsPrintingValueTagsAndWeight() {
         PrintableTrait charges = assertInstanceOf(PrintableTrait.class, trait("charges"));
 

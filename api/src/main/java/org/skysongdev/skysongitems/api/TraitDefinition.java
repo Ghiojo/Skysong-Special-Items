@@ -35,6 +35,7 @@ public final class TraitDefinition {
     private String category = "Other";
     private Material icon = Material.PAPER;
     private int weight;
+    private OnTransform onTransform = OnTransform.DROP;
 
     private TraitDefinition(Kind kind, String id, String template, List<String> valueTags) {
         this.kind = kind;
@@ -94,6 +95,16 @@ public final class TraitDefinition {
         return this;
     }
 
+    /**
+     * Whether the trait stays on an item when it transforms; {@link OnTransform#DROP} when not set.
+     *
+     * @since 1.16.0
+     */
+    public @NotNull TraitDefinition onTransform(@NotNull OnTransform onTransform) {
+        this.onTransform = Objects.requireNonNull(onTransform, "onTransform");
+        return this;
+    }
+
     public @NotNull Kind kind() {
         return kind;
     }
@@ -130,5 +141,14 @@ public final class TraitDefinition {
 
     public int weight() {
         return weight;
+    }
+
+    /**
+     * Whether the trait stays on an item when it transforms.
+     *
+     * @since 1.16.0
+     */
+    public @NotNull OnTransform onTransform() {
+        return onTransform;
     }
 }

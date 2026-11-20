@@ -31,14 +31,15 @@ import java.util.logging.Logger;
  */
 public class TagRegistry {
     private volatile Snapshot snapshot = new Snapshot(Collections.emptyMap(), Collections.emptyMap(),
-            Collections.emptySet(), Collections.emptyMap());
+            Collections.emptySet(), Collections.emptyMap(), Collections.emptySet());
 
     /**
-     * The registered tags and their id index, published together, with the built-in keys
-     * and the plugin that registered each tag (config.yml and built-in tags have none).
+     * The registered tags and their id index, published together, with the built-in keys,
+     * the plugin that registered each tag (config.yml and built-in tags have none) and the
+     * tags that stay on an item when it transforms.
      */
     private record Snapshot(Map<NamespacedKey, PersistentDataType<?, ?>> types, Map<String, NamespacedKey> keysById,
-                            Set<NamespacedKey> builtIn, Map<NamespacedKey, String> owners) {
+                            Set<NamespacedKey> builtIn, Map<NamespacedKey, String> owners, Set<NamespacedKey> kept) {
     }
 
     /**
@@ -51,6 +52,7 @@ public class TagRegistry {
         Set<String> ids = config.getConfigurationSection("tags").getKeys(false);
         registerBuiltInTags(loaded);
         Set<NamespacedKey> builtIn = new HashSet<>(loaded.keySet());
+        Set<NamespacedKey> kept = new HashSet<>();
         for (String id : ids) {
             String typeName = config.getString("tags." + id + ".type");
             PersistentDataType<?, ?> type = parseType(typeName);
@@ -60,8 +62,11 @@ public class TagRegistry {
             }
             NamespacedKey key = ItemKeys.named(config.getString("tags." + id + ".namespace"));
             loaded.put(key, type);
+            if (config.getBoolean("tags." + id + "." + TraitRegistry.KEEP_ON_TRANSFORM_KEY)) {
+                kept.add(key);
+            }
         }
-        swapIn(loaded, builtIn, new HashMap<>());
+        swapIn(loaded, builtIn, new HashMap<>(), kept);
     }
 
     /**
@@ -70,26 +75,38 @@ public class TagRegistry {
      * wins over a configured one.
      */
     private void swapIn(Map<NamespacedKey, PersistentDataType<?, ?>> loaded, Set<NamespacedKey> builtIn,
-                        Map<NamespacedKey, String> owners) {
+                        Map<NamespacedKey, String> owners, Set<NamespacedKey> kept) {
         Map<String, NamespacedKey> index = new HashMap<>();
         for (NamespacedKey key : loaded.keySet()) {
             index.putIfAbsent(normalise(key.getKey()), key);
         }
         snapshot = new Snapshot(Collections.unmodifiableMap(loaded), Collections.unmodifiableMap(index),
-                Collections.unmodifiableSet(builtIn), Collections.unmodifiableMap(owners));
+                Collections.unmodifiableSet(builtIn), Collections.unmodifiableMap(owners),
+                Collections.unmodifiableSet(kept));
     }
 
     /**
      * Adds a tag registered by another plugin, after the built-in and configured ones.
      * The caller checks the registration is allowed first.
+     *
+     * @param keptOnTransform whether the tag stays on an item when it transforms
      */
-    public void register(NamespacedKey key, TagType type, String owner) {
+    public void register(NamespacedKey key, TagType type, String owner, boolean keptOnTransform) {
         Snapshot current = snapshot;
         Map<NamespacedKey, PersistentDataType<?, ?>> types = new LinkedHashMap<>(current.types());
         Map<NamespacedKey, String> owners = new HashMap<>(current.owners());
+        Set<NamespacedKey> kept = new HashSet<>(current.kept());
         types.put(key, TagTypes.dataType(type));
         owners.put(key, owner);
-        swapIn(types, current.builtIn(), owners);
+        if (keptOnTransform) {
+            kept.add(key);
+        }
+        swapIn(types, current.builtIn(), owners, kept);
+    }
+
+    /** Adds a tag registered by another plugin that is dropped when its item transforms. */
+    public void register(NamespacedKey key, TagType type, String owner) {
+        register(key, type, owner, false);
     }
 
     /** Removes every tag the named plugin registered. */
@@ -100,14 +117,16 @@ public class TagRegistry {
         }
         Map<NamespacedKey, PersistentDataType<?, ?>> types = new LinkedHashMap<>(current.types());
         Map<NamespacedKey, String> owners = new HashMap<>(current.owners());
+        Set<NamespacedKey> kept = new HashSet<>(current.kept());
         owners.entrySet().removeIf(entry -> {
             boolean owned = entry.getValue().equals(owner);
             if (owned) {
                 types.remove(entry.getKey());
+                kept.remove(entry.getKey());
             }
             return owned;
         });
-        swapIn(types, current.builtIn(), owners);
+        swapIn(types, current.builtIn(), owners, kept);
     }
 
     /**
@@ -121,6 +140,11 @@ public class TagRegistry {
     /** Whether this key is one of the tags the plugin itself relies on. */
     public boolean isBuiltIn(NamespacedKey key) {
         return snapshot.builtIn().contains(key);
+    }
+
+    /** Whether the tag stays on an item when the item transforms, as config.yml or its plugin set it. */
+    public boolean isKeptOnTransform(NamespacedKey key) {
+        return snapshot.kept().contains(key);
     }
 
     /** The name of the plugin that registered the tag, or null for a built-in, configured or unknown tag. */

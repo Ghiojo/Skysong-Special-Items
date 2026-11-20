@@ -26,6 +26,7 @@ import java.util.logging.Logger;
  *     permission: skysong.moon      # optional
  *     message: "The blade darkens." # optional
  *     parts: [functional, model]    # optional, see ItemPart; none swaps the whole item
+ *     keep: [broken]                # optional, tags and traits kept on top of keep_on_transform ones
  * messages:                         # optional, the lines /transform sends
  *   no-transformation: "This item doesn't transform."
  * </pre>
@@ -33,7 +34,8 @@ import java.util.logging.Logger;
  * A rule is skipped, with a warning, when it has no {@code to}, when {@code to} is not a
  * saved item, or when that item has no {@code material_id} or the same one as the rule,
  * since the {@code material_id} is what tells the item's forms apart. It is also skipped
- * when a part is unknown, or names a tag that is not registered.
+ * when a part is unknown, or names a tag that is not registered, or when {@code keep} names
+ * neither a registered tag nor a trait.
  */
 public final class TransformationLoader {
     public static final String FILE_NAME = "transformations.yml";
@@ -41,6 +43,7 @@ public final class TransformationLoader {
     private static final String SECTION = "transformations";
     private static final String TO = "to";
     private static final String PARTS = "parts";
+    private static final String KEEP = "keep";
     private static final String PERMISSION = "permission";
     private static final String MESSAGE = "message";
     private static final String MESSAGES = "messages";
@@ -50,16 +53,20 @@ public final class TransformationLoader {
 
     private final Function<String, Optional<SkysongItem>> savedItems;
     private final Predicate<String> isTag;
+    private final Predicate<String> isTrait;
     private final Logger logger;
 
     /**
      * @param savedItems finds a saved item by id, empty when there is none
-     * @param isTag      whether a {@code tag:<id>} part names a registered tag
+     * @param isTag      whether a {@code tag:<id>} part or a {@code keep} entry names a registered tag
+     * @param isTrait    whether a {@code keep} entry names a trait
      * @param logger     where the skipped rules are reported
      */
-    public TransformationLoader(Function<String, Optional<SkysongItem>> savedItems, Predicate<String> isTag, Logger logger) {
+    public TransformationLoader(Function<String, Optional<SkysongItem>> savedItems, Predicate<String> isTag,
+                                Predicate<String> isTrait, Logger logger) {
         this.savedItems = savedItems;
         this.isTag = isTag;
+        this.isTrait = isTrait;
         this.logger = logger;
     }
 
@@ -94,6 +101,11 @@ public final class TransformationLoader {
         if (parts.isEmpty()) {
             return skip(problems, fromId, "its parts must be among " + PART_NAMES + ", or tag:<id> with a registered tag");
         }
+        List<String> keep = rule.getStringList(KEEP);
+        Optional<String> unknownKeep = keep.stream().filter(this::isUnknown).findFirst();
+        if (unknownKeep.isPresent()) {
+            return skip(problems, fromId, "it keeps " + unknownKeep.get() + ", which is neither a registered tag nor a trait");
+        }
         String targetId = rule.getString(TO);
         Optional<SkysongItem> target = savedItems.apply(targetId);
         if (target.isEmpty()) {
@@ -108,7 +120,7 @@ public final class TransformationLoader {
                     + " has the same material_id, so the item would never change form");
         }
         return Optional.of(new Transformation(fromId, targetId, target.get(), targetMaterialId,
-                rule.getString(PERMISSION), rule.getString(MESSAGE), parts.get()));
+                rule.getString(PERMISSION), rule.getString(MESSAGE), new TransformScope(parts.get(), keep)));
     }
 
     /** The parts named, or empty when one of them is unknown. */
@@ -122,6 +134,11 @@ public final class TransformationLoader {
             parts.add(part.get());
         }
         return Optional.of(parts);
+    }
+
+    /** Whether a {@code keep} entry names neither a registered tag nor a trait. */
+    private boolean isUnknown(String keptId) {
+        return !isTag.test(keptId) && !isTrait.test(keptId);
     }
 
     private boolean isKnown(ItemPart part) {

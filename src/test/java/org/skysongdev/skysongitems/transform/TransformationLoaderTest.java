@@ -27,7 +27,7 @@ class TransformationLoaderTest {
             "IRON_SWORD", null, "", "", Map.of());
 
     private final TransformationLoader loader = new TransformationLoader(TransformationLoaderTest::findSavedItem,
-            "arcrot"::equals, Logger.getAnonymousLogger());
+            "arcrot"::equals, "cursed"::equals, Logger.getAnonymousLogger());
 
     private static SkysongItem savedItem(String materialId) {
         Map<NamespacedKey, String> tags = Map.of(ItemKeys.MATERIAL_ID, materialId);
@@ -132,6 +132,30 @@ class TransformationLoaderTest {
         assertEquals(List.of(new ItemPart(ItemPart.Kind.FUNCTIONAL, null), new ItemPart(ItemPart.Kind.MODEL, null),
                 new ItemPart(ItemPart.Kind.TAG, "arcrot")), rules.find("day_blade").orElseThrow().parts());
         assertTrue(rules.find("night_blade").orElseThrow().isWholeItem());
+    }
+
+    @Test
+    void aKeepListOfTagsAndTraitsIsRead() {
+        TransformationRules rules = loader.load(file(
+                "transformations:",
+                "  day_blade:",
+                "    to: weapons/night_blade",
+                "    keep: [arcrot, cursed]"));
+
+        assertEquals(List.of("arcrot", "cursed"), rules.find("day_blade").orElseThrow().keep());
+    }
+
+    @Test
+    void aRuleKeepingAnUnknownIdIsSkipped() {
+        TransformationRules rules = loader.load(file(
+                "transformations:",
+                "  day_blade:",
+                "    to: weapons/night_blade",
+                "    keep: [arcrot, wings]"));
+
+        assertTrue(rules.all().isEmpty());
+        assertEquals(List.of("transformations.yml: skipped the transformation of day_blade: it keeps wings, "
+                + "which is neither a registered tag nor a trait."), rules.problems());
     }
 
     @ParameterizedTest

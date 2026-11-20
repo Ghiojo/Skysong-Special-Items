@@ -144,7 +144,8 @@ public class SkysongItems extends JavaPlugin {
         if (!file.exists()) {
             saveResource(TransformationLoader.FILE_NAME, false);
         }
-        transformations = new TransformationLoader(TransformationLoader.savedItemsOnDisk(), tagRegistry::contains, getLogger())
+        transformations = new TransformationLoader(TransformationLoader.savedItemsOnDisk(), tagRegistry::contains,
+                traitRegistry::contains, getLogger())
                 .load(YamlConfiguration.loadConfiguration(file));
     }
 
@@ -242,7 +243,7 @@ public class SkysongItems extends JavaPlugin {
                 this::syncPermissionItems);
         getServer().getPluginManager().registerEvents(itemTimers, this);
         getCommand("timers").setExecutor(new PlayerTimersCommand(itemTimers, this::getTimerDescriptions));
-        itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, this::syncPermissionItems,
+        itemTransformer = new ItemTransformer(this::getTransformations, tagRegistry, traitRegistry, this::syncPermissionItems,
                 updater::upgrade);
         getCommand("transform").setExecutor(new TransformCommand(itemTransformer, this::getTransformations));
         timerActions.register(new TransformTimerAction(itemTransformer, timerClocks));
