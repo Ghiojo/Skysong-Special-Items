@@ -103,10 +103,10 @@ final class PartCopy {
         }
     }
 
-    /** Drops the item's own tags, keeping other plugins' ones, then copies the new form's tags. */
+    /** Drops every tag the item has, whichever plugin registered it, then copies the new form's tags. */
     void copyTags() {
         for (NamespacedKey key : List.copyOf(to.getKeys())) {
-            if (isPlainTag(key) && tags.ownerOf(key) == null) {
+            if (isPlainTag(key)) {
                 to.remove(key);
             }
         }

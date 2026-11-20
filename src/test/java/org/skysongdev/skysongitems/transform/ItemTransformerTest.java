@@ -247,13 +247,13 @@ class ItemTransformerTest extends MockBukkitTest {
     }
 
     @Test
-    void tagsOtherPluginsOwnAreAlwaysKept() {
+    void tagsOtherPluginsOwnAreDroppedWhenTheNewFormLacksThem() {
         plugin.getTagRegistry().register(RANDOM_ID, TagType.STRING, "SkysongCrafting");
         ItemStack crafted = edited(dayBlade(), meta -> meta.getPersistentDataContainer().set(RANDOM_ID, PersistentDataType.STRING, "a1b2"));
 
         ItemStack night = transformer.transformed(crafted, rules.find("day_blade").orElseThrow());
 
-        assertEquals("a1b2", read(night, RANDOM_ID, PersistentDataType.STRING));
+        assertFalse(night.getPersistentDataContainer().has(RANDOM_ID), "a transform is full, whoever owns the tag");
     }
 
     @Test

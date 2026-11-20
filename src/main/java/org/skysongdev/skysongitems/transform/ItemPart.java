@@ -84,7 +84,7 @@ public record ItemPart(Kind kind, @Nullable String tagId) {
                 copy.copyTraits();
             }
         },
-        /** Every tag, except the ones other parts cover and the ones other plugins own. */
+        /** Every tag, whichever plugin registered it, except the ones other parts cover. */
         TAGS("tags") {
             @Override
             void copy(PartCopy copy, ItemPart part) {
